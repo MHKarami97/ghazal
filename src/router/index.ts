@@ -30,6 +30,17 @@ const routes: RouteRecordRaw[] = [
     props: true
   },
   {
+    path: '/read/:poetSlug/:poemSlug',
+    name: 'PoemDetailSimple',
+    component: () => import('../views/PoemDetailView.vue'),
+    props: true
+  },
+  {
+    path: '/poem/:poemId',
+    name: 'PoemById',
+    component: () => import('../views/PoemResolverView.vue')
+  },
+  {
     path: '/search',
     name: 'Search',
     component: () => import('../views/SearchView.vue')

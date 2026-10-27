@@ -69,7 +69,7 @@
         <router-link
           v-for="res in results"
           :key="res.id"
-          :to="`/search?poemId=${res.poemId}`"
+          :to="getPoemLink(res)"
           class="p-4 rounded-2xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border hover:border-brand-500/50 hover:shadow-sm transition-all block group"
         >
           <div class="flex items-center justify-between text-xs mb-2 text-ink-500">
@@ -101,6 +101,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useDataStore } from '../stores/dataStore';
 import { searchIndexService, type SearchResultItem } from '../services/SearchIndexService';
 import { toPersianDigits } from '../utils/persianNormalizer';
@@ -108,6 +109,8 @@ import LoadingState from '../components/common/LoadingState.vue';
 import EmptyState from '../components/common/EmptyState.vue';
 import { Search } from 'lucide-vue-next';
 
+var route = useRoute();
+var router = useRouter();
 var dataStore = useDataStore();
 var query = ref<string>('');
 var selectedPoetId = ref<number | undefined>(undefined);
@@ -120,9 +123,24 @@ var hasSearched = ref<boolean>(false);
 var searchTimeout: any = null;
 
 onMounted(async function () {
+  var poemId = route.query.poemId;
+  if (poemId) {
+    router.replace(`/poem/${poemId}`);
+    return;
+  }
+
   await dataStore.init();
   await searchIndexService.initializeFromDB();
 });
+
+function getPoemLink(res: SearchResultItem): string {
+  if (res.fullUrl) {
+    var clean = res.fullUrl.replace(/^\/+|\/+$/g, '');
+    var coupletParam = res.coupletIndex !== undefined ? `?couplet=${res.coupletIndex}` : '';
+    return `/read/${clean}${coupletParam}`;
+  }
+  return `/poem/${res.poemId}${res.coupletIndex !== undefined ? '?couplet=' + res.coupletIndex : ''}`;
+}
 
 function onSearch() {
   clearTimeout(searchTimeout);

@@ -52,6 +52,14 @@ export const useAppStore = defineStore('app', () => {
     localStorage.setItem('ghazal-line-height', String(newHeight));
   });
 
+  watch(showLiteraryTags, function (val) {
+    localStorage.setItem('ghazal-show-literary', String(val));
+  });
+
+  watch(showCoupletSummary, function (val) {
+    localStorage.setItem('ghazal-show-summary', String(val));
+  });
+
   // اعمال اولیه تم
   applyTheme(savedTheme);
 

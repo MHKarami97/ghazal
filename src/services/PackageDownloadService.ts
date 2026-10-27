@@ -257,37 +257,37 @@ export class PackageDownloadService {
       var totalBytes = 0;
       var locs = await cdnClient.getLocations();
       totalBytes += JSON.stringify(locs).length;
-      await db.baseMeta.put({ key: 'locations', data: locs, updatedAt: new Date().toISOString() });
+      await db.baseMeta.put({ key: 'locations', data: JSON.parse(JSON.stringify(locs)), updatedAt: new Date().toISOString() });
       prog.completed = 1; prog.percent = 15; this.notify(pkgId, prog);
 
       var people = await cdnClient.getPeople();
       totalBytes += JSON.stringify(people).length;
-      await db.baseMeta.put({ key: 'people', data: people, updatedAt: new Date().toISOString() });
+      await db.baseMeta.put({ key: 'people', data: JSON.parse(JSON.stringify(people)), updatedAt: new Date().toISOString() });
       prog.completed = 2; prog.percent = 30; this.notify(pkgId, prog);
 
       var rels = await cdnClient.getPersonRelations();
       totalBytes += JSON.stringify(rels).length;
-      await db.baseMeta.put({ key: 'relations', data: rels, updatedAt: new Date().toISOString() });
+      await db.baseMeta.put({ key: 'relations', data: JSON.parse(JSON.stringify(rels)), updatedAt: new Date().toISOString() });
       prog.completed = 3; prog.percent = 45; this.notify(pkgId, prog);
 
       var affs = await cdnClient.getPersonAffiliations();
       totalBytes += JSON.stringify(affs).length;
-      await db.baseMeta.put({ key: 'affiliations', data: affs, updatedAt: new Date().toISOString() });
+      await db.baseMeta.put({ key: 'affiliations', data: JSON.parse(JSON.stringify(affs)), updatedAt: new Date().toISOString() });
       prog.completed = 4; prog.percent = 60; this.notify(pkgId, prog);
 
       var devices = await cdnClient.getLiteraryDevices();
       totalBytes += JSON.stringify(devices).length;
-      await db.baseMeta.put({ key: 'devices', data: devices, updatedAt: new Date().toISOString() });
+      await db.baseMeta.put({ key: 'devices', data: JSON.parse(JSON.stringify(devices)), updatedAt: new Date().toISOString() });
       prog.completed = 5; prog.percent = 75; this.notify(pkgId, prog);
 
       var sources = await cdnClient.getLiterarySources();
       totalBytes += JSON.stringify(sources).length;
-      await db.baseMeta.put({ key: 'sources', data: sources, updatedAt: new Date().toISOString() });
+      await db.baseMeta.put({ key: 'sources', data: JSON.parse(JSON.stringify(sources)), updatedAt: new Date().toISOString() });
       prog.completed = 6; prog.percent = 90; this.notify(pkgId, prog);
 
       var metres = await cdnClient.getMetres();
       totalBytes += JSON.stringify(metres).length;
-      await db.baseMeta.put({ key: 'metres', data: metres, updatedAt: new Date().toISOString() });
+      await db.baseMeta.put({ key: 'metres', data: JSON.parse(JSON.stringify(metres)), updatedAt: new Date().toISOString() });
 
       prog.completed = 7; prog.percent = 100; prog.status = 'completed'; prog.bytes = totalBytes;
       this.notify(pkgId, prog);

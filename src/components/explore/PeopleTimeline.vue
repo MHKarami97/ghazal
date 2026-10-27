@@ -10,10 +10,22 @@
       <Search class="w-4 h-4 absolute right-3.5 top-3.5 text-ink-400" />
     </div>
 
+    <!-- وضعیت لودینگ -->
+    <div v-if="literaryStore.isLoading && !literaryStore.people.length" class="text-center py-12">
+      <div class="w-8 h-8 rounded-full border-2 border-brand-500 border-t-transparent animate-spin mx-auto mb-2"></div>
+      <p class="text-xs text-ink-500">در حال دریافت و چیدمان خط زمانی مفاخر و اشخاص...</p>
+    </div>
+
+    <!-- وضعیت بدون نتیجه -->
+    <div v-else-if="!filteredPeople.length" class="text-center py-12 p-6 rounded-2xl bg-paper-warm/50 dark:bg-paper-surface/50 border border-dashed border-ink-300 dark:border-paper-border">
+      <p class="text-sm font-bold text-ink-700 dark:text-ink-300 mb-1">شخصیتی با این عنوان یافت نشد</p>
+      <p class="text-xs text-ink-500">می‌توانید نام شاعر یا شخصیت دیگری را جست‌وجو نمایید.</p>
+    </div>
+
     <!-- خط زمان عمودی -->
-    <div class="relative border-r-2 border-brand-500/30 pr-6 mr-3 space-y-6">
+    <div v-else class="relative border-r-2 border-brand-500/30 pr-6 mr-3 space-y-6">
       <div
-        v-for="person in filteredPeople"
+        v-for="person in visiblePeople"
         :key="person.Id"
         class="relative group"
       >
@@ -50,12 +62,22 @@
           </div>
         </router-link>
       </div>
+
+      <!-- دکمه نمایش بیشتر -->
+      <div v-if="visibleLimit < filteredPeople.length" class="text-center pt-2">
+        <button
+          @click="visibleLimit += 50"
+          class="px-5 py-2.5 rounded-xl text-xs font-bold bg-paper-warm dark:bg-paper-surface hover:bg-brand-500/10 text-brand-700 dark:text-brand-300 border border-ink-200 dark:border-paper-border transition-colors"
+        >
+          نمایش اشخاص بیشتر ({{ toPersianDigits(filteredPeople.length - visibleLimit) }} مورد باقی‌مانده)
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useLiteraryStore } from '../../stores/literaryStore';
 import { toPersianDigits } from '../../utils/persianNormalizer';
 import type { GanjoorPerson } from '../../types/ganjoor';
@@ -63,6 +85,11 @@ import { Search } from 'lucide-vue-next';
 
 var literaryStore = useLiteraryStore();
 var search = ref<string>('');
+var visibleLimit = ref<number>(50);
+
+onMounted(async function () {
+  await literaryStore.loadBaseMeta();
+});
 
 var filteredPeople = computed(function () {
   var list = literaryStore.people;
@@ -79,6 +106,10 @@ var filteredPeople = computed(function () {
     var yB = b.BirthYearInLHijri || 0;
     return yA - yB;
   });
+});
+
+var visiblePeople = computed(function () {
+  return filteredPeople.value.slice(0, visibleLimit.value);
 });
 
 function formatYears(person: GanjoorPerson): string {

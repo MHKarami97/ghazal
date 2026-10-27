@@ -8,6 +8,7 @@ export interface SearchResultItem {
   poetId: number;
   poetName: string;
   poemTitle: string;
+  fullUrl?: string;
   coupletIndex: number;
   verseText: string;
   rhythm?: string;
@@ -71,6 +72,7 @@ export class SearchIndexService {
             poetId: poem.PoetId || 0,
             poetName: poetName,
             poemTitle: poem.Title,
+            fullUrl: poem.FullUrl,
             coupletIndex: verse.CoupletIndex,
             verseText: verse.Text,
             rhythm: getPoemMetreRhythm(poem),

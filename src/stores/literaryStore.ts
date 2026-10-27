@@ -28,61 +28,116 @@ export const useLiteraryStore = defineStore('literary', () => {
     isLoading.value = true;
 
     try {
-      // بررسی وجود در IndexedDB
-      var devRecord = await db.baseMeta.get('devices');
-      if (devRecord) {
-        devices.value = devRecord.data;
-      } else {
-        devices.value = await cdnClient.getLiteraryDevices();
-        await db.baseMeta.put({ key: 'devices', data: devices.value, updatedAt: new Date().toISOString() });
+      // بررسی و بارگذاری ابزارها و صنایع ادبی
+      try {
+        var devRecord = await db.baseMeta.get('devices');
+        if (devRecord && devRecord.data) {
+          devices.value = devRecord.data;
+        } else {
+          var rawDev = await cdnClient.getLiteraryDevices();
+          if (rawDev) {
+            await db.baseMeta.put({ key: 'devices', data: JSON.parse(JSON.stringify(rawDev)), updatedAt: new Date().toISOString() });
+            devices.value = rawDev;
+          }
+        }
+      } catch (eDev) {
+        console.warn('Could not load literary devices:', eDev);
       }
 
-      var srcRecord = await db.baseMeta.get('sources');
-      if (srcRecord) {
-        sources.value = srcRecord.data;
-      } else {
-        sources.value = await cdnClient.getLiterarySources();
-        await db.baseMeta.put({ key: 'sources', data: sources.value, updatedAt: new Date().toISOString() });
+      // منابع ادبی
+      try {
+        var srcRecord = await db.baseMeta.get('sources');
+        if (srcRecord && srcRecord.data) {
+          sources.value = srcRecord.data;
+        } else {
+          var rawSrc = await cdnClient.getLiterarySources();
+          if (rawSrc) {
+            await db.baseMeta.put({ key: 'sources', data: JSON.parse(JSON.stringify(rawSrc)), updatedAt: new Date().toISOString() });
+            sources.value = rawSrc;
+          }
+        }
+      } catch (eSrc) {
+        console.warn('Could not load literary sources:', eSrc);
       }
 
-      var metresRecord = await db.baseMeta.get('metres');
-      if (metresRecord) {
-        metres.value = metresRecord.data;
-      } else {
-        metres.value = await cdnClient.getMetres();
-        await db.baseMeta.put({ key: 'metres', data: metres.value, updatedAt: new Date().toISOString() });
+      // اوزان عروضی
+      try {
+        var metresRecord = await db.baseMeta.get('metres');
+        if (metresRecord && metresRecord.data) {
+          metres.value = metresRecord.data;
+        } else {
+          var rawMetres = await cdnClient.getMetres();
+          if (rawMetres) {
+            await db.baseMeta.put({ key: 'metres', data: JSON.parse(JSON.stringify(rawMetres)), updatedAt: new Date().toISOString() });
+            metres.value = rawMetres;
+          }
+        }
+      } catch (eMetres) {
+        console.warn('Could not load metres:', eMetres);
       }
 
-      var locsRecord = await db.baseMeta.get('locations');
-      if (locsRecord) {
-        locations.value = locsRecord.data;
-      } else {
-        locations.value = await cdnClient.getLocations();
-        await db.baseMeta.put({ key: 'locations', data: locations.value, updatedAt: new Date().toISOString() });
+      // مکان‌ها و دیارها
+      try {
+        var locsRecord = await db.baseMeta.get('locations');
+        if (locsRecord && locsRecord.data) {
+          locations.value = locsRecord.data;
+        } else {
+          var rawLocs = await cdnClient.getLocations();
+          if (rawLocs) {
+            await db.baseMeta.put({ key: 'locations', data: JSON.parse(JSON.stringify(rawLocs)), updatedAt: new Date().toISOString() });
+            locations.value = rawLocs;
+          }
+        }
+      } catch (eLocs) {
+        console.warn('Could not load locations:', eLocs);
       }
 
-      var peopleRecord = await db.baseMeta.get('people');
-      if (peopleRecord) {
-        people.value = peopleRecord.data;
-      } else {
-        people.value = await cdnClient.getPeople();
-        await db.baseMeta.put({ key: 'people', data: people.value, updatedAt: new Date().toISOString() });
+      // اشخاص و مفاخر
+      try {
+        var peopleRecord = await db.baseMeta.get('people');
+        if (peopleRecord && peopleRecord.data) {
+          people.value = peopleRecord.data;
+        } else {
+          var rawPeople = await cdnClient.getPeople();
+          if (rawPeople) {
+            await db.baseMeta.put({ key: 'people', data: JSON.parse(JSON.stringify(rawPeople)), updatedAt: new Date().toISOString() });
+            people.value = rawPeople;
+          }
+        }
+      } catch (ePeople) {
+        console.warn('Could not load people:', ePeople);
       }
 
-      var relsRecord = await db.baseMeta.get('relations');
-      if (relsRecord) {
-        relations.value = relsRecord.data;
-      } else {
-        relations.value = await cdnClient.getPersonRelations();
-        await db.baseMeta.put({ key: 'relations', data: relations.value, updatedAt: new Date().toISOString() });
+      // روابط و تبارشناسی اشخاص
+      try {
+        var relsRecord = await db.baseMeta.get('relations');
+        if (relsRecord && relsRecord.data) {
+          relations.value = relsRecord.data;
+        } else {
+          var rawRels = await cdnClient.getPersonRelations();
+          if (rawRels) {
+            await db.baseMeta.put({ key: 'relations', data: JSON.parse(JSON.stringify(rawRels)), updatedAt: new Date().toISOString() });
+            relations.value = rawRels;
+          }
+        }
+      } catch (eRels) {
+        console.warn('Could not load relations:', eRels);
       }
 
-      var affsRecord = await db.baseMeta.get('affiliations');
-      if (affsRecord) {
-        affiliations.value = affsRecord.data;
-      } else {
-        affiliations.value = await cdnClient.getPersonAffiliations();
-        await db.baseMeta.put({ key: 'affiliations', data: affiliations.value, updatedAt: new Date().toISOString() });
+      // وابستگی‌ها و هم‌پیمانی‌ها
+      try {
+        var affsRecord = await db.baseMeta.get('affiliations');
+        if (affsRecord && affsRecord.data) {
+          affiliations.value = affsRecord.data;
+        } else {
+          var rawAffs = await cdnClient.getPersonAffiliations();
+          if (rawAffs) {
+            await db.baseMeta.put({ key: 'affiliations', data: JSON.parse(JSON.stringify(rawAffs)), updatedAt: new Date().toISOString() });
+            affiliations.value = rawAffs;
+          }
+        }
+      } catch (eAffs) {
+        console.warn('Could not load affiliations:', eAffs);
       }
 
       isLoaded.value = true;

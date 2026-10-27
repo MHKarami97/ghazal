@@ -120,18 +120,18 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { quizService } from '../../services/QuizService';
-import { useMemorizeStore } from '../../stores/memorizeStore';
-import { toPersianDigits } from '../../utils/persianNormalizer';
-import type { QuizMode, QuizQuestion } from '../../types/quiz';
-import LoadingState from '../../components/common/LoadingState.vue';
-import QuizCloze from '../../components/memorize/QuizCloze.vue';
-import QuizReorder from '../../components/memorize/QuizReorder.vue';
-import QuizMultipleChoice from '../../components/memorize/QuizMultipleChoice.vue';
-import QuizTyping from '../../components/memorize/QuizTyping.vue';
-import QuizGuessPoet from '../../components/memorize/QuizGuessPoet.vue';
-import QuizGuessDevice from '../../components/memorize/QuizGuessDevice.vue';
-import QuizWordHiding from '../../components/memorize/QuizWordHiding.vue';
+import { quizService } from '../services/QuizService';
+import { useMemorizeStore } from '../stores/memorizeStore';
+import { toPersianDigits } from '../utils/persianNormalizer';
+import type { QuizMode, QuizQuestion } from '../types/quiz';
+import LoadingState from '../components/common/LoadingState.vue';
+import QuizCloze from '../components/memorize/QuizCloze.vue';
+import QuizReorder from '../components/memorize/QuizReorder.vue';
+import QuizMultipleChoice from '../components/memorize/QuizMultipleChoice.vue';
+import QuizTyping from '../components/memorize/QuizTyping.vue';
+import QuizGuessPoet from '../components/memorize/QuizGuessPoet.vue';
+import QuizGuessDevice from '../components/memorize/QuizGuessDevice.vue';
+import QuizWordHiding from '../components/memorize/QuizWordHiding.vue';
 import { Award } from 'lucide-vue-next';
 
 var route = useRoute();

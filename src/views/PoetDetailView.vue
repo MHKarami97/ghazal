@@ -134,8 +134,11 @@ async function loadData() {
     var prefix = `/${poetSlug.value}`;
     poet.value = await db.poets.where('FullUrl').equals(prefix).first() || null;
     if (!poet.value) {
-      poet.value = await cdnClient.getPoet(poetSlug.value);
-      await db.poets.put(poet.value);
+      var remotePoet = await cdnClient.getPoet(poetSlug.value);
+      if (remotePoet) {
+        await db.poets.put(JSON.parse(JSON.stringify(remotePoet)));
+        poet.value = remotePoet;
+      }
     }
 
     category.value = await cdnClient.getCategory(poetSlug.value);

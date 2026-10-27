@@ -55,7 +55,7 @@
       <div class="poem-misra font-medium text-ink-900 dark:text-ink-100">
         <template v-for="(token, tIdx) in renderTokens(rightVerseText, 1)" :key="'r-' + tIdx">
           <span
-            v-if="token.tag"
+            v-if="token.tag && showLiteraryTags"
             class="literary-highlight"
             :class="{ 'uncertain': token.tag.Uncertain }"
             @click.stop="$emit('select-tag', token.tag)"
@@ -71,7 +71,7 @@
       <div class="poem-misra font-medium text-ink-900 dark:text-ink-100">
         <template v-for="(token, tIdx) in renderTokens(leftVerseText, 2)" :key="'l-' + tIdx">
           <span
-            v-if="token.tag"
+            v-if="token.tag && showLiteraryTags"
             class="literary-highlight"
             :class="{ 'uncertain': token.tag.Uncertain }"
             @click.stop="$emit('select-tag', token.tag)"
@@ -84,9 +84,9 @@
       </div>
     </div>
 
-    <!-- معنی و خلاصه بیت (در صورت وجود) -->
+    <!-- معنی و خلاصه بیت (در صورت وجود و فعال بودن) -->
     <div
-      v-if="summary"
+      v-if="summary && showSummary"
       class="mt-2 text-xs text-ink-500 dark:text-ink-400 bg-brand-50/50 dark:bg-brand-950/20 p-2.5 rounded-xl border-r-2 border-brand-500 text-right leading-relaxed"
     >
       <span class="font-bold text-brand-700 dark:text-brand-300">مفهوم بیت:</span>
@@ -101,17 +101,25 @@ import { toPersianDigits } from '../../utils/persianNormalizer';
 import type { GanjoorLiteraryTag } from '../../types/ganjoor';
 import { Bookmark, Brain, Share2 } from 'lucide-vue-next';
 
-var props = defineProps<{
-  coupletIndex: number;
-  rightVerseText: string;
-  leftVerseText: string;
-  summary?: string;
-  fontSize: number;
-  lineHeight: number;
-  isSelected?: boolean;
-  isBookmarked?: boolean;
-  literaryTags?: GanjoorLiteraryTag[];
-}>();
+var props = withDefaults(
+  defineProps<{
+    coupletIndex: number;
+    rightVerseText: string;
+    leftVerseText: string;
+    summary?: string;
+    fontSize: number;
+    lineHeight: number;
+    isSelected?: boolean;
+    isBookmarked?: boolean;
+    literaryTags?: GanjoorLiteraryTag[];
+    showLiteraryTags?: boolean;
+    showSummary?: boolean;
+  }>(),
+  {
+    showLiteraryTags: true,
+    showSummary: true
+  }
+);
 
 defineEmits(['select-couplet', 'select-tag', 'toggle-bookmark', 'add-to-memorize', 'share-card']);
 

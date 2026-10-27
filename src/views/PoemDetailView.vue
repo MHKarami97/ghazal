@@ -41,6 +41,7 @@
           <div class="space-y-4">
             <CoupletView
               v-for="pair in coupletPairs"
+              :id="'couplet-' + pair.coupletIndex"
               :key="pair.coupletIndex"
               :couplet-index="pair.coupletIndex"
               :right-verse-text="pair.rightVerse?.Text || ''"
@@ -51,6 +52,8 @@
               :is-selected="readingStore.activeCoupletIndex === pair.coupletIndex"
               :is-bookmarked="readingStore.isBookmarked(readingStore.currentPoem.Id, pair.coupletIndex)"
               :literary-tags="readingStore.currentPoem.LiteraryTags"
+              :show-literary-tags="appStore.showLiteraryTags && !appStore.readingMode"
+              :show-summary="appStore.showCoupletSummary && !appStore.readingMode"
               @select-couplet="onSelectCouplet"
               @select-tag="onSelectTag"
               @toggle-bookmark="onToggleBookmark"
@@ -60,8 +63,11 @@
           </div>
         </main>
 
-        <!-- پنل جانبی آموزش و آرایه‌ها در دسکتاپ -->
-        <aside class="hidden lg:block w-80 sticky top-20 h-[calc(100vh-6rem)] rounded-2xl overflow-hidden shadow-soft border border-ink-200/80 dark:border-paper-border">
+        <!-- پنل جانبی آموزش و آرایه‌ها در دسکتاپ (تنها در صورت نبودن در حالت مطالعه) -->
+        <aside
+          v-if="!appStore.readingMode"
+          class="hidden lg:block w-80 sticky top-20 h-[calc(100vh-6rem)] rounded-2xl overflow-hidden shadow-soft border border-ink-200/80 dark:border-paper-border"
+        >
           <LiteraryPanel
             :poem-tags="readingStore.currentPoem.LiteraryTags"
             :selected-tag="readingStore.selectedLiteraryTag"
@@ -152,6 +158,19 @@ watch(() => route.params, loadPoem);
 
 async function loadPoem() {
   await readingStore.loadPoem(poetSlug.value, catPath.value, poemSlug.value);
+  var coupletParam = route.query.couplet;
+  if (coupletParam !== undefined && coupletParam !== null && coupletParam !== '') {
+    var cIdx = Number(coupletParam);
+    if (!isNaN(cIdx)) {
+      readingStore.selectCouplet(cIdx);
+      setTimeout(function () {
+        var el = document.getElementById('couplet-' + cIdx);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 350);
+    }
+  }
 }
 
 var coupletPairs = computed(function () {

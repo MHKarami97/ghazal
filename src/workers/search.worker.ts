@@ -26,6 +26,7 @@ interface SearchItem {
   poetId: number;
   poetName: string;
   poemTitle: string;
+  fullUrl?: string;
   coupletIndex: number;
   verseText: string;
   rhythm?: string;
