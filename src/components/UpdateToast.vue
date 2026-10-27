@@ -1,36 +1,37 @@
 <script setup>
-/**
- * PWA update notifier. Uses vite-plugin-pwa's Vue composable: when a new
- * service worker has installed and is waiting, `needRefresh` flips to
- * true and we show a small snackbar asking the user to reload. No
- * install/"add to home screen" prompt is shown anywhere in this app —
- * only this update notice, per product requirement.
- */
-import { useRegisterSW } from 'virtual:pwa-register/vue'
+import { useRegisterSW } from 'virtual:pwa-register/vue';
 
 const { needRefresh, updateServiceWorker } = useRegisterSW({
   immediate: true,
-})
+});
 
 function reload() {
-  updateServiceWorker(true)
+  updateServiceWorker(true);
 }
 
 function dismiss() {
-  needRefresh.value = false
+  needRefresh.value = false;
 }
 </script>
 
 <template>
   <div
     v-if="needRefresh"
-    class="card"
-    style="position:fixed; bottom:18px; left:50%; transform:translateX(-50%); z-index:60; padding:14px 18px; display:flex; align-items:center; gap:14px; max-width:92vw;"
+    class="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 p-4 rounded-2xl bg-paper-light dark:bg-paper-surface border border-brand-500/40 shadow-2xl flex items-center gap-4 max-w-[92vw] text-xs font-medium"
   >
-    <span style="font-size:0.9rem;">نسخه جدیدی از برنامه در دسترس است.</span>
-    <button class="icon-btn" style="width:auto; padding:0 14px; background:var(--accent); color:#fff; border:none;" @click="reload">
-      بروزرسانی
+    <span class="text-ink-800 dark:text-ink-100">نسخهٔ جدید برنامه موجود است. برای اعمال، برنامه را به‌روزرسانی کنید.</span>
+    <button
+      class="py-1.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold transition-colors shadow-xs"
+      @click="reload"
+    >
+      به‌روزرسانی
     </button>
-    <button class="icon-btn" title="بستن" @click="dismiss">✕</button>
+    <button
+      class="p-1 rounded-lg text-ink-400 hover:text-ink-700 dark:hover:text-ink-200"
+      title="بستن"
+      @click="dismiss"
+    >
+      ✕
+    </button>
   </div>
 </template>
