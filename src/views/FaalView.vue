@@ -80,12 +80,21 @@
         </div>
 
         <!-- تعبیر فال -->
-        <div class="p-5 rounded-2xl bg-brand-50 dark:bg-brand-950/20 border border-brand-500/20 text-xs sm:text-sm text-ink-800 dark:text-ink-200 leading-relaxed">
-          <div class="font-bold text-brand-800 dark:text-brand-300 mb-1.5 flex items-center gap-1.5">
+        <div class="p-5 rounded-2xl bg-brand-50 dark:bg-brand-950/20 border border-brand-500/20 text-xs sm:text-sm text-ink-800 dark:text-ink-200 leading-relaxed space-y-3">
+          <div class="font-bold text-brand-800 dark:text-brand-300 flex items-center gap-1.5">
             <Sparkles class="w-4 h-4" />
             <span>تعبیر و پیام این غزل:</span>
           </div>
           <p>{{ currentFortune.interpretation }}</p>
+
+          <div class="pt-2 border-t border-brand-500/20 flex justify-end">
+            <router-link
+              :to="'/read/' + currentFortune.poem.FullUrl.replace(/^\/+/, '')"
+              class="text-xs font-bold text-brand-700 dark:text-brand-300 hover:underline"
+            >
+              مطالعه کامل این غزل و آرایه‌های آن »
+            </router-link>
+          </div>
         </div>
       </div>
     </div>
@@ -96,17 +105,18 @@
         تاریخچه فال‌های گذشته شما
       </h4>
       <div class="space-y-2">
-        <div
+        <router-link
           v-for="item in history"
           :key="item.id"
-          class="p-3.5 rounded-xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border flex items-center justify-between text-xs"
+          :to="'/read/' + item.fullUrl.replace(/^\/+/, '')"
+          class="p-3.5 rounded-xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border hover:border-brand-500/40 flex items-center justify-between text-xs transition-colors block"
         >
           <div>
             <span class="font-bold text-ink-800 dark:text-ink-200 ml-2">{{ item.poemTitle }}</span>
             <span v-if="item.faalNiat" class="text-ink-500 italic">({{ item.faalNiat }})</span>
           </div>
           <span class="text-ink-400 text-[11px]">{{ formatRelativeDate(item.viewedAt) }}</span>
-        </div>
+        </router-link>
       </div>
     </div>
   </div>

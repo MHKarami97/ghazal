@@ -98,8 +98,42 @@
           </button>
         </div>
 
-        <div class="p-4 rounded-2xl bg-paper-warm/70 dark:bg-paper-surface/60 border border-ink-200 dark:border-paper-border text-xs text-ink-600 dark:text-ink-300 leading-relaxed">
-          ارجاعات به نام این شخصیت در اشعار با برچسب‌های PersonTags ثبت گردیده و در صورت دانلود دفترهای مرتبط به طور مستقیم در متن ابیات نشانه‌گذاری می‌شوند.
+        <!-- فهرست ابیات شاهد استخراج‌شده از اسناد تبارشناسی -->
+        <div v-if="evidenceItems.length > 0" class="space-y-2">
+          <div
+            v-for="(ev, idx) in evidenceItems"
+            :key="idx"
+            class="p-3.5 rounded-2xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border flex items-center justify-between text-xs"
+          >
+            <div>
+              <span class="font-bold text-ink-800 dark:text-ink-200 block mb-0.5">
+                {{ ev.relDesc }}
+              </span>
+              <span class="text-[11px] text-ink-400">
+                شعر کد {{ toPersianDigits(ev.poemId) }}، بیت {{ toPersianDigits(ev.coupletIndex + 1) }}
+              </span>
+            </div>
+
+            <router-link
+              :to="`/poem/${ev.poemId}?couplet=${ev.coupletIndex}`"
+              class="px-3 py-1.5 rounded-xl bg-brand-500/10 hover:bg-brand-500/20 text-brand-700 dark:text-brand-300 font-bold text-xs transition-colors"
+            >
+              مشاهده در متن شعر »
+            </router-link>
+          </div>
+        </div>
+
+        <!-- دکمه کاوش در اشعار دانلودشده -->
+        <div class="p-4 rounded-2xl bg-paper-warm/70 dark:bg-paper-surface/60 border border-ink-200 dark:border-paper-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+          <span class="text-ink-600 dark:text-ink-300 leading-relaxed">
+            جست‌وجوی کلیه ابیات و اشعاری که نام «{{ person.Name }}» در آن‌ها به کار رفته است:
+          </span>
+          <router-link
+            :to="`/search?q=${encodeURIComponent(person.Name)}`"
+            class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold whitespace-nowrap shadow-xs transition-colors"
+          >
+            جست‌وجوی ابیات «{{ person.Name }}» »
+          </router-link>
         </div>
       </div>
     </template>
@@ -144,6 +178,27 @@ var personRelations = computed(function () {
   return literaryStore.relations.filter(function (r) {
     return r.Person1Id === personId.value || r.Person2Id === personId.value;
   });
+});
+
+var evidenceItems = computed(function () {
+  var list: { poemId: number; coupletIndex: number; relDesc: string }[] = [];
+  var rels = personRelations.value;
+  for (var i = 0; i < rels.length; i++) {
+    var rel = rels[i];
+    if (rel.Evidence && rel.Evidence.length) {
+      var otherName = getRelatedPersonName(rel);
+      var typeDesc = formatRelationType(rel.RelationType);
+      for (var j = 0; j < rel.Evidence.length; j++) {
+        var ev = rel.Evidence[j];
+        list.push({
+          poemId: ev.PoemId,
+          coupletIndex: ev.CoupletIndex,
+          relDesc: `${typeDesc} ${otherName}`
+        });
+      }
+    }
+  }
+  return list;
 });
 
 function getRelatedPersonId(rel: GanjoorPersonRelation): number {

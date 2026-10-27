@@ -37,7 +37,9 @@ export const useReadingStore = defineStore('reading', () => {
         // ۲. دریافت Lazy از CDN و ذخیره در دیتابیس
         var remotePoem = await cdnClient.getPoem(poetSlug, catPath, poemSlug);
         currentPoem.value = remotePoem;
-        await db.poems.put(remotePoem);
+        if (remotePoem) {
+          await db.poems.put(JSON.parse(JSON.stringify(remotePoem)));
+        }
       }
 
       // بارگذاری بیوگرافی شاعر در صورت عدم وجود
@@ -78,7 +80,9 @@ export const useReadingStore = defineStore('reading', () => {
     try {
       var remotePoet = await cdnClient.getPoet(poetSlug);
       currentPoet.value = remotePoet;
-      await db.poets.put(remotePoet);
+      if (remotePoet) {
+        await db.poets.put(JSON.parse(JSON.stringify(remotePoet)));
+      }
       return remotePoet;
     } catch (e) {
       return null;

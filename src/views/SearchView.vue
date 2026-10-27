@@ -129,8 +129,25 @@ onMounted(async function () {
     return;
   }
 
+  if (route.query.rhythm) {
+    rhythmFilter.value = String(route.query.rhythm);
+  }
+  if (route.query.q) {
+    query.value = String(route.query.q);
+  }
+  if (route.query.rhyme) {
+    rhymeFilter.value = String(route.query.rhyme);
+  }
+  if (route.query.poetId) {
+    selectedPoetId.value = Number(route.query.poetId);
+  }
+
   await dataStore.init();
   await searchIndexService.initializeFromDB();
+
+  if (rhythmFilter.value || query.value || rhymeFilter.value || selectedPoetId.value) {
+    onSearch();
+  }
 });
 
 function getPoemLink(res: SearchResultItem): string {

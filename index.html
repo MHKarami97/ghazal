@@ -12,6 +12,18 @@
     <link href="/fonts/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     <title>غزل | کتابخانه و آموزش شعر فارسی</title>
     <script>
+      // بازیابی مسیر در صورت استفاده از هدایت 404 در هاست‌های استاتیک
+      (function(l) {
+        if (l.search[1] === '/' ) {
+          var decoded = l.search.slice(1).split('&').map(function(s) { 
+            return s.replace(/~and~/g, '&')
+          }).join('?');
+          window.history.replaceState(null, null,
+              l.pathname.slice(0, -1) + decoded + l.hash
+          );
+        }
+      }(window.location));
+
       (function () {
         try {
           var theme = localStorage.getItem('ghazal-theme');

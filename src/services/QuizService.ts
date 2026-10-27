@@ -185,20 +185,17 @@ export class QuizService {
 
   private generateGuessPoetQuestions(poems: GanjoorPoem[], count: number): QuizQuestion[] {
     var questions: QuizQuestion[] = [];
-    if (!poems.length) return [];
+    var pool = this.convertPoemsToCardPool(poems);
+    if (!pool.length) return [];
 
-    var validPoems = poems.filter(function (p) {
-      return p.Verses && p.Verses.length >= 2;
-    });
-
-    var shuffled = [...validPoems].sort(function () { return 0.5 - Math.random(); });
+    var shuffled = [...pool].sort(function () { return 0.5 - Math.random(); });
     var poetNamesPool = ['حافظ', 'سعدی', 'مولانا', 'فردوسی', 'خیام', 'عطار', 'نظامی', 'شهریار'];
 
     for (var i = 0; i < Math.min(count, shuffled.length); i++) {
-      var poem = shuffled[i];
-      var poetName = poem.FullTitle?.split('»')?.[0]?.trim() || 'شاعر ناشناس';
-      var v1 = poem.Verses[0]?.Text || '';
-      var v2 = poem.Verses[1]?.Text || '';
+      var item = shuffled[i];
+      var poetName = item.poetName || 'حافظ';
+      var v1 = item.textFirst || '';
+      var v2 = item.textSecond || '';
 
       var options = [poetName];
       for (var p = 0; p < poetNamesPool.length && options.length < 4; p++) {
@@ -210,10 +207,10 @@ export class QuizService {
       questions.push({
         id: `poet-${i}`,
         mode: 'guess_poet',
-        poemId: poem.Id,
+        poemId: item.poemId,
         poetName: poetName,
-        poemTitle: poem.Title,
-        coupletIndex: 0,
+        poemTitle: item.poemTitle,
+        coupletIndex: item.coupletIndex,
         prompt: `این بیت سرودهٔ کدام شاعر است؟\n\n«${v1} / ${v2}»`,
         firstMisra: v1,
         secondMisra: v2,
@@ -334,6 +331,39 @@ export class QuizService {
         });
       }
     }
+
+    // در صورتی که دیتابیس خالی باشد، یک مجموعه نمونه از شاهکارهای ادبیات فراهم کن
+    if (cards.length === 0) {
+      var sampleVerses = [
+        { poet: 'حافظ', title: 'غزل ۱', v1: 'الا یا ایها الساقی ادر کأسا و ناولها', v2: 'که عشق آسان نمود اول ولی افتاد مشکل‌ها' },
+        { poet: 'سعدی', title: 'گلستان', v1: 'بنی آدم اعضای یکدیگرند', v2: 'که در آفرینش ز یک گوهرند' },
+        { poet: 'مولانا', title: 'مثنوی معنوی', v1: 'بشنو این نی چون شکایت می‌کند', v2: 'از جدایی‌ها حکایت می‌کند' },
+        { poet: 'فردوسی', title: 'شاهنامه', v1: 'توانا بود هر که دانا بود', v2: 'ز دانش دل پیر برنا بود' },
+        { poet: 'حافظ', title: 'غزل ۱۸۴', v1: 'دوش دیدم که ملائک در میخانه زدند', v2: 'گل آدم بسرشتند و به پیمانه زدند' },
+        { poet: 'سعدی', title: 'دیوان اشعار', v1: 'تن آدمی شریف است به جان آدمیت', v2: 'نه همین لباس زیباست نشان آدمیت' },
+        { poet: 'خیام', title: 'رباعیات', v1: 'ابر آمد و زار بر سر سبزه گریست', v2: 'بی بادهٔ گلرنگ نمی‌شاید زیست' },
+        { poet: 'نظامی', title: 'مخزن‌الاسرار', v1: 'ای نام تو بهترین سرآغاز', v2: 'بی‌نام تو نامه کی کنم باز' }
+      ];
+
+      for (var s = 0; s < sampleVerses.length; s++) {
+        var sv = sampleVerses[s];
+        cards.push({
+          deckId: 0,
+          poemId: 1000 + s,
+          coupletIndex: 0,
+          poemTitle: sv.title,
+          poetName: sv.poet,
+          textFirst: sv.v1,
+          textSecond: sv.v2,
+          status: 'new',
+          repCount: 0,
+          intervalDays: 1,
+          easeFactor: 2.5,
+          dueDate: new Date().toISOString().split('T')[0]
+        });
+      }
+    }
+
     return cards;
   }
 }

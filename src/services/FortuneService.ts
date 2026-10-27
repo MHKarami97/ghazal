@@ -30,10 +30,15 @@ export class FortuneService {
       try {
         selectedPoem = await cdnClient.getPoem('hafez', 'ghazal', `sh${randomShNum}`);
         // کش محلی غزل لودشده
-        await db.poems.put(selectedPoem);
+        if (selectedPoem) {
+          await db.poems.put(JSON.parse(JSON.stringify(selectedPoem)));
+        }
       } catch (e) {
         // بازگشت به شماره ۱ در صورت خطا
         selectedPoem = await cdnClient.getPoem('hafez', 'ghazal', 'sh1');
+        if (selectedPoem) {
+          await db.poems.put(JSON.parse(JSON.stringify(selectedPoem)));
+        }
       }
     }
 
@@ -73,7 +78,9 @@ export class FortuneService {
 
     // در حالت پیش‌فرض غزل اول حافظ را دریافت کن
     var defaultPoem = await cdnClient.getPoem('hafez', 'ghazal', 'sh1');
-    await db.poems.put(defaultPoem);
+    if (defaultPoem) {
+      await db.poems.put(JSON.parse(JSON.stringify(defaultPoem)));
+    }
     return defaultPoem;
   }
 

@@ -114,6 +114,23 @@
         />
       </div>
     </template>
+
+    <!-- در صورت نبود هیچ سوالی -->
+    <div
+      v-else
+      class="p-8 rounded-3xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border text-center space-y-4"
+    >
+      <h4 class="font-bold text-base text-ink-900 dark:text-ink-100">سؤالی برای این آزمون یافت نشد</h4>
+      <p class="text-xs text-ink-500 max-w-md mx-auto leading-relaxed">
+        برای تمرین در این حالت، می‌توانید ابیاتی را به فهرست حفظ اضافه نمایید یا از بخش شاعران، دیوان شعر دلخواهتان را برای استفاده آفلاین دانلود فرمایید.
+      </p>
+      <router-link
+        to="/memorize"
+        class="inline-block py-2.5 px-6 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md transition-colors"
+      >
+        رفتن به بخش حفظ شعر
+      </router-link>
+    </div>
   </div>
 </template>
 
