@@ -1,7 +1,7 @@
-<script setup>
+<script setup lang="ts">
 import { useRegisterSW } from 'virtual:pwa-register/vue';
 
-const { needRefresh, updateServiceWorker } = useRegisterSW({
+var { needRefresh, updateServiceWorker } = useRegisterSW({
   immediate: true,
 });
 
