@@ -1,24 +1,33 @@
 {
-  "name": "weather",
-  "version": "1.1.0",
+  "name": "ghazal",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "وضعیت آب‌وهوای ۳۱ استان ایران با داده‌ی Windy",
+  "description": "غزل - وب‌اپلیکیشن جامع و پیشرفته شعر فارسی، آموزش ادبی و حفظ اشعار",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "fetch-data": "node scripts/fetch-weather.mjs",
-    "test:logic": "node scripts/selftest.mjs"
+    "preview": "vite preview"
   },
   "dependencies": {
-    "vue": "^3.4.21",
-    "vue-router": "^4.3.0",
-    "pinia": "^2.1.7"
+    "canvas-confetti": "^1.9.4",
+    "dexie": "^4.0.11",
+    "leaflet": "^1.9.4",
+    "lucide-vue-next": "^0.468.0",
+    "pinia": "^2.3.0",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.0.4",
-    "vite": "^5.2.8",
-    "vite-plugin-pwa": "^0.19.8"
+    "@types/canvas-confetti": "^1.9.0",
+    "@types/leaflet": "^1.9.14",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2",
+    "vite": "^5.4.11",
+    "vite-plugin-pwa": "^0.21.1",
+    "vue-tsc": "^2.2.0"
   }
 }
