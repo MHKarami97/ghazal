@@ -56,7 +56,7 @@
       <div class="flex items-center justify-between text-xs text-ink-500 pt-3 border-t border-ink-200/60 dark:border-paper-border">
         <span>{{ poemOfTheDay.FullTitle }}</span>
         <button
-          @click="openCardExport(poemOfTheDay.Verses[0]?.Text, poemOfTheDay.Verses[1]?.Text, 'حافظ')"
+          @click="openCardExport(poemOfTheDay.Verses[0]?.Text, poemOfTheDay.Verses[1]?.Text, poemOfTheDay.FullTitle?.split('»')?.[0]?.trim() || 'حافظ')"
           class="flex items-center gap-1 text-brand-600 hover:underline"
         >
           <Share2 class="w-3.5 h-3.5" />
