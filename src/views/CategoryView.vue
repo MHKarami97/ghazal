@@ -16,14 +16,12 @@
         </div>
 
         <!-- دکمه دانلود آفلاین این دفتر -->
-        <button
-          @click="downloadThisCategory"
-          :disabled="isDownloading"
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-bold text-xs shadow-sm transition-colors"
-        >
-          <Download class="w-4 h-4" />
-          <span>{{ isDownloading ? 'در حال دانلود...' : 'دانلود آفلاین این دفتر' }}</span>
-        </button>
+        <DownloadButton
+          variant="solid"
+          :package-id="`cat:${poetSlug}:${catPath}`"
+          idle-label="دانلود آفلاین این دفتر"
+          @start="downloadThisCategory"
+        />
       </div>
 
       <!-- اگر زیردسته‌های بیشتری دارد -->
@@ -67,6 +65,7 @@
 </template>
 
 <script setup lang="ts">
+import DownloadButton from '../components/common/DownloadButton.vue';
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { cdnClient } from '../services/CDNClient';
@@ -96,6 +95,7 @@ onMounted(loadCategory);
 watch(() => route.params, loadCategory);
 
 async function loadCategory() {
+  if (!poetSlug.value) return;
   isLoading.value = true;
   try {
     category.value = await cdnClient.getCategory(poetSlug.value, catPath.value);

@@ -83,6 +83,10 @@
 
     <!-- توست به‌روزرسانی PWA -->
     <UpdateToast />
+
+    <!-- نشانگر سراسری ارتباط با سرور و پنجرهٔ وضعیت دانلود -->
+    <GlobalActivityIndicator />
+    <DownloadProgressModal />
   </div>
 </template>
 
@@ -96,6 +100,8 @@ import SidebarNav from './components/common/SidebarNav.vue';
 import BottomNav from './components/common/BottomNav.vue';
 import AppHeader from './components/common/AppHeader.vue';
 import UpdateToast from './components/UpdateToast.vue';
+import GlobalActivityIndicator from './components/common/GlobalActivityIndicator.vue';
+import DownloadProgressModal from './components/common/DownloadProgressModal.vue';
 import { Minimize2, Eye, EyeOff, Sparkles, BookOpenText, FileText } from 'lucide-vue-next';
 
 var route = useRoute();

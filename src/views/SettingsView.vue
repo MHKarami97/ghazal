@@ -20,46 +20,94 @@
         </div>
 
         <!-- دانلود بسته پایه -->
-        <button
+        <DownloadButton
           v-if="!dataStore.isBasePackageInstalled()"
-          @click="downloadBasePackage"
-          class="text-xs font-bold text-brand-600 hover:underline flex items-center gap-1"
-        >
-          <Download class="w-3.5 h-3.5" />
-          دانلود بسته پایه (آرایه‌ها و اشخاص)
-        </button>
+          variant="link"
+          package-id="base:meta"
+          idle-label="دانلود بسته پایه (آرایه‌ها و اشخاص)"
+          @start="downloadBasePackage"
+        />
       </div>
 
       <div v-if="dataStore.installedPackages.length > 0" class="space-y-3">
         <div
           v-for="pkg in dataStore.installedPackages"
           :key="pkg.id"
-          class="p-4 rounded-2xl bg-paper-warm/70 dark:bg-paper-dark border border-ink-200/60 dark:border-paper-border flex items-center justify-between"
+          class="p-4 rounded-2xl bg-paper-warm/70 dark:bg-paper-dark border border-ink-200/60 dark:border-paper-border flex items-center justify-between gap-3"
         >
-          <div>
-            <div class="flex items-center gap-2">
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-2">
               <span class="font-bold text-sm text-ink-900 dark:text-ink-100">{{ pkg.title }}</span>
               <span
-                v-if="pkg.status === 'update_available'"
+                v-if="isActive(pkg.id)"
+                class="text-[10px] px-2 py-0.5 rounded-full bg-brand-500/15 text-brand-700 dark:text-brand-300 font-bold inline-flex items-center gap-1"
+              >
+                <InlineSpinner size="xs" />
+                در حال دانلود
+              </span>
+              <span
+                v-else-if="isIncomplete(pkg)"
+                class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-700 dark:text-rose-300 font-bold"
+              >
+                دانلود ناقص
+              </span>
+              <span
+                v-else-if="pkg.status === 'update_available'"
                 class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold"
               >
                 به‌روزرسانی موجود است
               </span>
             </div>
-            <div class="text-[11px] text-ink-400 mt-1 flex gap-3">
-              <span>حجم: {{ formatBytes(pkg.sizeBytes) }}</span>
-              <span v-if="pkg.totalPoems">تعداد اشعار: {{ toPersianDigits(pkg.totalPoems) }}</span>
+
+            <div class="text-[11px] text-ink-400 mt-1 flex flex-wrap gap-x-3 gap-y-1">
+              <span>حجم: {{ formatBytes(packageBytes(pkg)) }}</span>
+              <span v-if="pkg.totalPoems">
+                تعداد اشعار: {{ toPersianDigits(packageCompleted(pkg)) }} از {{ toPersianDigits(pkg.totalPoems) }}
+              </span>
               <span>SHA: {{ pkg.commitSha?.slice(0, 7) }}</span>
+            </div>
+
+            <div
+              v-if="isActive(pkg.id) || isIncomplete(pkg)"
+              class="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-ink-200 dark:bg-ink-800"
+              role="progressbar"
+              :aria-valuenow="packagePercent(pkg)"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            >
+              <div
+                class="h-full rounded-full transition-all duration-300"
+                :class="isActive(pkg.id) ? 'bg-brand-500' : 'bg-rose-400'"
+                :style="{ width: packagePercent(pkg) + '%' }"
+              ></div>
             </div>
           </div>
 
-          <button
-            @click="removePackage(pkg.id)"
-            class="p-2 rounded-xl text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors"
-            title="حذف بسته و آزادسازی حافظه"
-          >
-            <Trash2 class="w-4 h-4" />
-          </button>
+          <div class="flex items-center gap-1 shrink-0">
+            <button
+              v-if="isActive(pkg.id)"
+              @click="dataStore.isDownloadPanelOpen = true"
+              class="px-3 py-1.5 rounded-xl border border-brand-500/40 text-brand-600 dark:text-brand-400 text-[11px] font-bold hover:bg-brand-50 dark:hover:bg-brand-950/20 transition-colors"
+            >
+              مشاهدهٔ وضعیت
+            </button>
+            <button
+              v-else-if="isIncomplete(pkg)"
+              @click="dataStore.resumePackage(pkg)"
+              class="px-3 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-[11px] font-bold transition-colors"
+            >
+              ادامهٔ دانلود
+            </button>
+
+            <button
+              @click="removePackage(pkg.id)"
+              :disabled="isActive(pkg.id)"
+              class="p-2 rounded-xl text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              title="حذف بسته و آزادسازی حافظه"
+            >
+              <Trash2 class="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -299,6 +347,9 @@
 </template>
 
 <script setup lang="ts">
+import type { DataPackage } from '../types/user';
+import InlineSpinner from '../components/common/InlineSpinner.vue';
+import DownloadButton from '../components/common/DownloadButton.vue';
 import { ref, onMounted } from 'vue';
 import { useAppStore } from '../stores/appStore';
 import { useDataStore } from '../stores/dataStore';
@@ -340,6 +391,32 @@ async function requestPersistence() {
   if (isPersisted.value) {
     alert('ذخیره‌سازی پایدار با موفقیت فعال شد.');
   }
+}
+
+function isActive(pkgId: string): boolean {
+  return dataStore.isDownloadActive(pkgId);
+}
+
+function isIncomplete(pkg: DataPackage): boolean {
+  var brokenStates = ['interrupted', 'downloading', 'paused', 'error'];
+  return !isActive(pkg.id) && brokenStates.indexOf(pkg.status) !== -1;
+}
+
+function packageBytes(pkg: DataPackage): number {
+  var live = dataStore.getProgress(pkg.id);
+  return (live && live.bytes) || pkg.sizeBytes || 0;
+}
+
+function packageCompleted(pkg: DataPackage): number {
+  var live = dataStore.getProgress(pkg.id);
+  return live ? live.completed : pkg.downloadedPoems || 0;
+}
+
+function packagePercent(pkg: DataPackage): number {
+  var live = dataStore.getProgress(pkg.id);
+  if (live) return live.percent;
+  if (!pkg.totalPoems) return 0;
+  return Math.min(100, Math.round(((pkg.downloadedPoems || 0) / pkg.totalPoems) * 100));
 }
 
 async function removePackage(pkgId: string) {

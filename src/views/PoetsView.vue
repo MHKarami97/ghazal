@@ -56,15 +56,12 @@
             <CheckCircle class="w-3.5 h-3.5" />
             آفلاین
           </span>
-          <button
+          <DownloadButton
             v-else
-            @click="downloadPoet(poet)"
-            :disabled="isDownloading(poet.FullUrl)"
-            class="text-[11px] font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1"
-          >
-            <Download class="w-3.5 h-3.5" />
-            <span>{{ isDownloading(poet.FullUrl) ? 'در حال دانلود...' : 'دانلود' }}</span>
-          </button>
+            variant="link"
+            :package-id="`poet:${getPoetSlug(poet.FullUrl)}`"
+            @start="downloadPoet(poet)"
+          />
         </div>
       </div>
     </div>
@@ -72,6 +69,7 @@
 </template>
 
 <script setup lang="ts">
+import DownloadButton from '../components/common/DownloadButton.vue';
 import { ref, computed, onMounted } from 'vue';
 import { useDataStore } from '../stores/dataStore';
 import LoadingState from '../components/common/LoadingState.vue';

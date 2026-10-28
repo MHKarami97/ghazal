@@ -1,4 +1,4 @@
-export type PackageStatus = 'ready' | 'downloading' | 'paused' | 'error' | 'update_available';
+export type PackageStatus = 'ready' | 'downloading' | 'paused' | 'interrupted' | 'error' | 'update_available';
 
 export interface DataPackage {
   id: string; // e.g. "poet:hafez" or "cat:24" or "base:meta"

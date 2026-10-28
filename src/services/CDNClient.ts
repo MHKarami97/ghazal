@@ -1,4 +1,5 @@
 import { buildUrl, PRIMARY_DATA_URL, FALLBACK_DATA_URL } from '../config/dataConfig';
+import { networkActivity } from './NetworkActivityService';
 import type {
   GanjoorManifest,
   GanjoorPoet,
@@ -18,12 +19,32 @@ import type {
 
 export class CDNClient {
   private cache: Map<string, any> = new Map();
+  private inflight: Map<string, Promise<any>> = new Map();
 
   async fetchWithRetry<T>(url: string, retries = 3, delay = 600): Promise<T> {
     if (this.cache.has(url)) {
       return this.cache.get(url) as T;
     }
 
+    var pending = this.inflight.get(url);
+    if (pending) {
+      return pending as Promise<T>;
+    }
+
+    var self = this;
+    var request = networkActivity
+      .track(function () {
+        return self.requestWithRetry<T>(url, retries, delay);
+      })
+      .finally(function () {
+        self.inflight.delete(url);
+      });
+
+    this.inflight.set(url, request);
+    return request;
+  }
+
+  private async requestWithRetry<T>(url: string, retries: number, delay: number): Promise<T> {
     var lastError: any = null;
     var urlsToTry = [url];
 

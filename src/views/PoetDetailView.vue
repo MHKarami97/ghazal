@@ -38,15 +38,13 @@
               <CheckCircle class="w-4 h-4" />
               دیوان دانلود شده
             </span>
-            <button
+            <DownloadButton
               v-else
-              @click="downloadPoet"
-              :disabled="isDownloading"
-              class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-bold text-xs shadow-md transition-colors"
-            >
-              <Download class="w-4 h-4" />
-              <span>{{ isDownloading ? 'در حال دانلود...' : 'دانلود کل دیوان' }}</span>
-            </button>
+              variant="solid"
+              :package-id="`poet:${poetSlug}`"
+              idle-label="دانلود کل دیوان"
+              @start="downloadPoet"
+            />
           </div>
         </div>
 
@@ -54,6 +52,11 @@
         <p v-if="poet.Description" class="text-xs sm:text-sm text-ink-700 dark:text-ink-300 leading-relaxed pt-4 border-t border-ink-200/60 dark:border-paper-border">
           {{ poet.Description }}
         </p>
+
+        <div v-if="isStatsLoading" class="mt-6 pt-6 border-t border-ink-200/60 dark:border-paper-border flex items-center gap-2 text-xs text-ink-500">
+          <InlineSpinner size="sm" class="text-brand-600" />
+          <span>در حال محاسبهٔ آمار دیوان...</span>
+        </div>
 
         <!-- آمار جامع و ویژگی‌های شعری (در صورت موجود بودن در دیتابیس محلی) -->
         <div v-if="poetStats && poetStats.totalPoems > 0" class="mt-6 pt-6 border-t border-ink-200/60 dark:border-paper-border space-y-4">
@@ -120,13 +123,12 @@
                 {{ child.Title }}
               </router-link>
 
-              <button
-                @click="downloadChildCategory(child)"
-                class="p-1.5 rounded-lg text-ink-400 hover:text-brand-600 hover:bg-ink-100 dark:hover:bg-paper-dark transition-colors"
+              <DownloadButton
+                variant="icon"
+                :package-id="getChildPackageId(child.FullUrl)"
                 title="دانلود آفلاین این دفتر"
-              >
-                <Download class="w-4 h-4" />
-              </button>
+                @start="downloadChildCategory(child)"
+              />
             </div>
           </div>
 
@@ -150,10 +152,27 @@
         </div>
       </div>
     </template>
+
+    <EmptyState
+      v-else
+      type="book"
+      title="دریافت اطلاعات شاعر ناموفق بود"
+      description="اتصال اینترنت را بررسی کنید و دوباره تلاش کنید."
+    >
+      <button
+        @click="loadData"
+        class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md transition-colors"
+      >
+        تلاش مجدد
+      </button>
+    </EmptyState>
   </div>
 </template>
 
 <script setup lang="ts">
+import EmptyState from '../components/common/EmptyState.vue';
+import InlineSpinner from '../components/common/InlineSpinner.vue';
+import DownloadButton from '../components/common/DownloadButton.vue';
 import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { cdnClient } from '../services/CDNClient';
@@ -176,6 +195,7 @@ var poet = ref<GanjoorPoet | null>(null);
 var category = ref<GanjoorCategory | null>(null);
 var poetStats = ref<PoetStatsResult | null>(null);
 var isLoading = ref<boolean>(true);
+var isStatsLoading = ref<boolean>(false);
 
 onMounted(async function () {
   await loadData();
@@ -196,22 +216,32 @@ async function loadData() {
     }
 
     category.value = await cdnClient.getCategory(poetSlug.value);
-
-    // محاسبه یا بارگذاری آمار شاعر از کش
-    if (poet.value) {
-      poetStats.value = await poetAnalytics.getPoetStats(poetSlug.value, poet.value.Nickname);
-    }
   } catch (e) {
     console.error('Error loading poet details:', e);
   } finally {
     isLoading.value = false;
   }
+
+  if (poet.value) {
+    await loadStats(poet.value.Nickname);
+  }
 }
 
-var isDownloading = computed(function () {
-  var pkgId = `poet:${poetSlug.value}`;
-  return dataStore.activeProgress[pkgId]?.status === 'downloading';
-});
+async function loadStats(nickname: string) {
+  isStatsLoading.value = true;
+  try {
+    poetStats.value = await poetAnalytics.getPoetStats(poetSlug.value, nickname);
+  } catch (e) {
+    console.error('Error computing poet stats:', e);
+  } finally {
+    isStatsLoading.value = false;
+  }
+}
+
+function getChildPackageId(fullUrl: string): string {
+  var cleanCatPath = fullUrl.replace(`/${poetSlug.value}`, '').replace(/^\//, '');
+  return `cat:${poetSlug.value}:${cleanCatPath}`;
+}
 
 async function downloadPoet() {
   if (poet.value) {

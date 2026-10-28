@@ -1,125 +1,175 @@
-// Web Worker for downloading Ganjoor poetry packages with concurrency control
+import { PRIMARY_DATA_URL, FALLBACK_DATA_URL } from '../config/dataConfig';
 
 interface DownloadTask {
   packageId: string;
-  type: 'poet' | 'category' | 'base';
-  slug: string;
-  title: string;
   urls: string[];
-  commitSha: string;
-  schemaVersion: number;
+  alreadyCompleted: number;
+  alreadyBytes: number;
 }
 
-var isPaused = false;
-var isCancelled = false;
-var activeDownloads = 0;
-var concurrencyLimit = 3;
+interface TaskState {
+  paused: boolean;
+  cancelled: boolean;
+  wake: (() => void) | null;
+}
 
-self.onmessage = async function (e: MessageEvent) {
+var CONCURRENCY = 4;
+var BATCH_SIZE = 15;
+var MAX_ATTEMPTS = 3;
+var PROGRESS_INTERVAL_MS = 120;
+
+var tasks = new Map<string, TaskState>();
+
+self.onmessage = function (e: MessageEvent) {
   var data = e.data;
-  var action = data.action;
+  var state = tasks.get(data.packageId);
 
-  if (action === 'start') {
-    isPaused = false;
-    isCancelled = false;
-    await processDownloads(data.task as DownloadTask);
-  } else if (action === 'pause') {
-    isPaused = true;
-  } else if (action === 'resume') {
-    isPaused = false;
-  } else if (action === 'cancel') {
-    isCancelled = true;
+  if (data.action === 'start') {
+    void runTask(data.task as DownloadTask);
+  } else if (data.action === 'pause' && state) {
+    state.paused = true;
+  } else if (data.action === 'resume' && state) {
+    state.paused = false;
+    wake(state);
+  } else if (data.action === 'cancel' && state) {
+    state.cancelled = true;
+    wake(state);
   }
 };
 
-async function processDownloads(task: DownloadTask) {
-  var urls = task.urls;
-  var total = urls.length;
-  var completed = 0;
-  var totalBytes = 0;
-  var batchSize = 15;
-  var batch: any[] = [];
-
-  var index = 0;
-
-  async function downloadNext(): Promise<void> {
-    if (index >= total || isCancelled) return;
-    if (isPaused) {
-      await new Promise(function (resolve) {
-        var interval = setInterval(function () {
-          if (!isPaused || isCancelled) {
-            clearInterval(interval);
-            resolve(true);
-          }
-        }, 300);
-      });
-      if (isCancelled) return;
-    }
-
-    var currentIndex = index++;
-    var url = urls[currentIndex];
-
-    try {
-      var res = await fetch(url);
-      if (res.ok) {
-        var json = await res.json();
-        var bytes = JSON.stringify(json).length;
-        totalBytes += bytes;
-        completed++;
-        batch.push(json);
-
-        if (batch.length >= batchSize || completed === total) {
-          self.postMessage({
-            type: 'batch',
-            packageId: task.packageId,
-            items: [...batch],
-            completed: completed,
-            total: total,
-            bytes: totalBytes
-          });
-          batch = [];
-        }
-
-        self.postMessage({
-          type: 'progress',
-          packageId: task.packageId,
-          completed: completed,
-          total: total,
-          bytes: totalBytes
-        });
-      }
-    } catch (err: any) {
-      self.postMessage({
-        type: 'item_error',
-        packageId: task.packageId,
-        url: url,
-        error: err.message
-      });
-    }
-
-    if (index < total && !isCancelled) {
-      await downloadNext();
-    }
+function wake(state: TaskState): void {
+  if (state.wake) {
+    state.wake();
+    state.wake = null;
   }
+}
 
-  var pool: Promise<void>[] = [];
-  for (var i = 0; i < Math.min(concurrencyLimit, total); i++) {
-    pool.push(downloadNext());
-  }
-
-  await Promise.all(pool);
-
-  if (isCancelled) {
-    self.postMessage({
-      type: 'cancelled',
-      packageId: task.packageId
+async function waitWhilePaused(state: TaskState): Promise<void> {
+  while (state.paused && !state.cancelled) {
+    await new Promise<void>(function (resolve) {
+      state.wake = resolve;
     });
-  } else {
+  }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(function (resolve) {
+    setTimeout(resolve, ms);
+  });
+}
+
+async function fetchPoemText(url: string): Promise<string | null> {
+  var candidates = [url];
+  if (url.startsWith(PRIMARY_DATA_URL)) {
+    candidates.push(url.replace(PRIMARY_DATA_URL, FALLBACK_DATA_URL));
+  }
+
+  for (var c = 0; c < candidates.length; c++) {
+    for (var attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      try {
+        var res = await fetch(candidates[c]);
+        if (res.ok) {
+          return await res.text();
+        }
+        if (res.status === 404) {
+          break;
+        }
+      } catch (err) {
+        // شبکه قطع است؛ تلاش مجدد با تاخیر افزایشی
+      }
+      await sleep(400 * Math.pow(2, attempt));
+    }
+  }
+  return null;
+}
+
+async function runTask(task: DownloadTask): Promise<void> {
+  var state: TaskState = { paused: false, cancelled: false, wake: null };
+  tasks.set(task.packageId, state);
+
+  var total = task.alreadyCompleted + task.urls.length;
+  var completed = task.alreadyCompleted;
+  var failed = 0;
+  var totalBytes = task.alreadyBytes;
+  var cursor = 0;
+  var batch: any[] = [];
+  var lastProgressAt = 0;
+
+  function postProgress(force: boolean): void {
+    var now = Date.now();
+    if (!force && now - lastProgressAt < PROGRESS_INTERVAL_MS) return;
+    lastProgressAt = now;
     self.postMessage({
-      type: 'completed',
+      type: 'progress',
       packageId: task.packageId,
+      completed: completed,
+      failed: failed,
       total: total,
       bytes: totalBytes
     });
   }
+
+  function flushBatch(): void {
+    if (batch.length === 0) return;
+    self.postMessage({
+      type: 'batch',
+      packageId: task.packageId,
+      items: batch,
+      completed: completed,
+      total: total,
+      bytes: totalBytes
+    });
+    batch = [];
+  }
+
+  async function lane(): Promise<void> {
+    while (true) {
+      await waitWhilePaused(state);
+      if (state.cancelled) return;
+
+      var index = cursor++;
+      if (index >= task.urls.length) return;
+
+      var text = await fetchPoemText(task.urls[index]);
+      if (text === null) {
+        failed++;
+      } else {
+        try {
+          batch.push(JSON.parse(text));
+          totalBytes += text.length;
+          completed++;
+        } catch (err) {
+          failed++;
+        }
+      }
+
+      if (batch.length >= BATCH_SIZE) flushBatch();
+      postProgress(false);
+    }
+  }
+
+  var laneCount = Math.min(CONCURRENCY, task.urls.length);
+  var lanes: Promise<void>[] = [];
+  for (var i = 0; i < laneCount; i++) {
+    lanes.push(lane());
+  }
+  await Promise.all(lanes);
+
+  tasks.delete(task.packageId);
+
+  if (state.cancelled) {
+    self.postMessage({ type: 'cancelled', packageId: task.packageId });
+    return;
+  }
+
+  flushBatch();
+  postProgress(true);
+  self.postMessage({
+    type: 'completed',
+    packageId: task.packageId,
+    total: total,
+    completed: completed,
+    failed: failed,
+    bytes: totalBytes
+  });
 }

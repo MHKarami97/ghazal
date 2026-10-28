@@ -1,6 +1,6 @@
 <template>
   <div class="pb-16">
-    <LoadingState v-if="readingStore.isLoading" message="در حال بازگشایی شعر..." />
+    <LoadingState v-if="isBooting || readingStore.isLoading" message="در حال بازگشایی شعر..." />
 
     <template v-else-if="readingStore.currentPoem">
       <div class="flex flex-col lg:flex-row gap-6">
@@ -185,10 +185,25 @@
         </div>
       </div>
     </template>
+
+    <EmptyState
+      v-else
+      type="book"
+      title="شعر بارگذاری نشد"
+      :description="readingStore.error || 'اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.'"
+    >
+      <button
+        @click="loadPoem"
+        class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md transition-colors"
+      >
+        تلاش مجدد
+      </button>
+    </EmptyState>
   </div>
 </template>
 
 <script setup lang="ts">
+import EmptyState from '../components/common/EmptyState.vue';
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAppStore } from '../stores/appStore';
@@ -239,15 +254,27 @@ var showCollectionModal = ref<boolean>(false);
 var userCollections = ref<UserCollection[]>([]);
 var selectedCoupletIndexForCollection = ref<number | null>(null);
 
+var isBooting = ref<boolean>(true);
+
 onMounted(async function () {
-  await literaryStore.loadBaseMeta();
+  literaryStore.loadBaseMeta().catch(function (err) {
+    console.warn('Base meta load failed:', err);
+  });
   await loadPoem();
 });
 
 watch(() => route.params, loadPoem);
 
 async function loadPoem() {
-  await readingStore.loadPoem(poetSlug.value, catPath.value, poemSlug.value);
+  if (!poemSlug.value) return;
+
+  isBooting.value = true;
+  try {
+    await readingStore.loadPoem(poetSlug.value, catPath.value, poemSlug.value);
+  } finally {
+    isBooting.value = false;
+  }
+
   var coupletParam = route.query.couplet;
   if (coupletParam !== undefined && coupletParam !== null && coupletParam !== '') {
     var cIdx = Number(coupletParam);

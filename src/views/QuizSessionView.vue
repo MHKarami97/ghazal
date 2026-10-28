@@ -161,6 +161,7 @@ var mode = computed(function () {
 var questions = ref<QuizQuestion[]>([]);
 var currentIndex = ref<number>(0);
 var correctCount = ref<number>(0);
+var answeredCount = ref<number>(0);
 var isLoading = ref<boolean>(true);
 var isFinished = ref<boolean>(false);
 
@@ -171,6 +172,7 @@ async function startQuiz() {
   isFinished.value = false;
   currentIndex.value = 0;
   correctCount.value = 0;
+  answeredCount.value = 0;
 
   try {
     questions.value = await quizService.generateQuestions(mode.value, 10);
@@ -184,11 +186,14 @@ var currentQuestion = computed(function () {
 });
 
 var accuracyPercent = computed(function () {
-  if (currentIndex.value === 0) return 0;
-  return Math.round((correctCount.value / currentIndex.value) * 100);
+  if (answeredCount.value === 0) return 0;
+  return Math.min(100, Math.round((correctCount.value / answeredCount.value) * 100));
 });
 
 async function handleAnswer(payload: { isCorrect: boolean; answer: string }) {
+  if (isFinished.value) return;
+
+  answeredCount.value++;
   if (payload.isCorrect) {
     correctCount.value++;
   }

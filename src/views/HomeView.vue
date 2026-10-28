@@ -27,7 +27,29 @@
     </div>
 
     <!-- کارت شعر امروز -->
-    <div v-if="poemOfTheDay" class="p-6 rounded-3xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border shadow-soft">
+    <div
+      v-if="isPoemLoading"
+      class="p-6 rounded-3xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border shadow-soft"
+    >
+      <div class="flex items-center gap-2 mb-2">
+        <Calendar class="w-4 h-4 text-brand-600" />
+        <h3 class="font-bold text-sm text-ink-900 dark:text-ink-50">شعر امروز</h3>
+      </div>
+      <LoadingState message="در حال دریافت شعر امروز..." />
+    </div>
+    <div
+      v-else-if="!poemOfTheDay"
+      class="p-6 rounded-3xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border shadow-soft text-center space-y-3"
+    >
+      <p class="text-sm text-ink-600 dark:text-ink-300">دریافت شعر امروز ناموفق بود. اتصال اینترنت را بررسی کنید.</p>
+      <button
+        @click="loadPoemOfTheDay"
+        class="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md transition-colors"
+      >
+        تلاش مجدد
+      </button>
+    </div>
+    <div v-else class="p-6 rounded-3xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border shadow-soft">
       <div class="flex items-center justify-between mb-4 pb-3 border-b border-ink-200/60 dark:border-paper-border">
         <div class="flex items-center gap-2">
           <Calendar class="w-4 h-4 text-brand-600" />
@@ -213,14 +235,13 @@
               <CheckCircle class="w-4 h-4" />
               آفلاین و آماده
             </span>
-            <button
+            <DownloadButton
               v-else
-              @click="downloadPoet(poet)"
-              class="inline-flex items-center gap-1 text-brand-600 font-bold hover:underline"
-            >
-              <Download class="w-3.5 h-3.5" />
-              دانلود آفلاین ({{ poet.approxSize }})
-            </button>
+              variant="link"
+              :package-id="`poet:${poet.slug}`"
+              :idle-label="`دانلود آفلاین (${poet.approxSize})`"
+              @start="downloadPoet(poet)"
+            />
 
             <router-link
               :to="`/poet/${poet.slug}`"
@@ -245,6 +266,8 @@
 </template>
 
 <script setup lang="ts">
+import LoadingState from '../components/common/LoadingState.vue';
+import DownloadButton from '../components/common/DownloadButton.vue';
 import { ref, onMounted } from 'vue';
 import { useAppStore } from '../stores/appStore';
 import { useDataStore } from '../stores/dataStore';
@@ -273,6 +296,7 @@ var dataStore = useDataStore();
 var memorizeStore = useMemorizeStore();
 
 var poemOfTheDay = ref<GanjoorPoem | null>(null);
+var isPoemLoading = ref<boolean>(true);
 
 var showCardModal = ref<boolean>(false);
 var cardFirst = ref<string>('');
@@ -289,14 +313,24 @@ var featuredPoets = [
 ];
 
 onMounted(async function () {
-  await dataStore.init();
-  await memorizeStore.init();
+  await Promise.all([
+    loadPoemOfTheDay(),
+    dataStore.init(),
+    memorizeStore.init()
+  ]);
+});
+
+async function loadPoemOfTheDay() {
+  isPoemLoading.value = true;
   try {
     poemOfTheDay.value = await fortuneService.getPoemOfTheDay();
   } catch (e) {
+    poemOfTheDay.value = null;
     console.error('Poem of the day error:', e);
+  } finally {
+    isPoemLoading.value = false;
   }
-});
+}
 
 function getPoemRoute(fullUrl: string): string {
   // e.g. /hafez/ghazal/sh1 -> /read/hafez/ghazal/sh1
