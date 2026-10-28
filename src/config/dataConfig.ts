@@ -7,8 +7,8 @@ export const SUPPORTED_SCHEMA_VERSION = 4;
  * ۲. cdn.statically.io فایل‌ها را به صورت مستقیم و بدون سقف ۵۰ مگابایت از طریق شبکه لبه Cloudflare/Fastly با CORS باز و سرعت بالا تحویل می‌دهد.
  * ۳. raw.githubusercontent.com به عنوان لایه پشتیبان در دسترس است.
  */
-export const PRIMARY_DATA_URL = `https://cdn.statically.io/gh/MHKarami97/ganjoor-data/${DATA_COMMIT_SHA}`;
-export const FALLBACK_DATA_URL = `https://raw.githubusercontent.com/MHKarami97/ganjoor-data/${DATA_COMMIT_SHA}`;
+export const FALLBACK_DATA_URL = `https://cdn.statically.io/gh/MHKarami97/ganjoor-data/${DATA_COMMIT_SHA}`;
+export const PRIMARY_DATA_URL = `https://raw.githubusercontent.com/MHKarami97/ganjoor-data/${DATA_COMMIT_SHA}`;
 
 export interface UrlBuilder {
   manifest(): string;
