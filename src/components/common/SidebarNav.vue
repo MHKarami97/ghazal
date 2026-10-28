@@ -75,6 +75,10 @@ import {
   Brain,
   Compass,
   Bookmark,
+  BookmarkCheck,
+  Music,
+  Globe2,
+  Scale,
   Settings
 } from 'lucide-vue-next';
 
@@ -92,6 +96,10 @@ var navLinks = computed(function () {
     { label: 'خانه', path: '/', icon: Home },
     { label: 'شاعران و دیوان‌ها', path: '/poets', icon: BookOpen },
     { label: 'جست‌وجوی شعر', path: '/search', icon: Search },
+    { label: 'مجموعه‌های شخصی', path: '/collections', icon: BookmarkCheck },
+    { label: 'موسیقی و وزن شعر', path: '/metres', icon: Music },
+    { label: 'شعر در گویش‌ها', path: '/dialects', icon: Globe2 },
+    { label: 'مقایسه دو شاعر', path: '/compare', icon: Scale },
     { label: 'فال حافظ', path: '/faal', icon: Sparkles },
     { label: 'حفظ شعر و آزمون', path: '/memorize', icon: Brain, badge: dueCount.value },
     { label: 'آموزش و آرایه‌ها', path: '/education', icon: Bookmark },

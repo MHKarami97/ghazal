@@ -1,5 +1,35 @@
 <template>
   <div class="space-y-8 pb-12">
+    <!-- بنر چالش روزانه -->
+    <router-link
+      to="/memorize/daily-challenge"
+      class="p-6 rounded-3xl bg-gradient-to-r from-amber-500/15 via-brand-500/10 to-transparent border border-amber-500/30 shadow-soft flex items-center justify-between group hover:border-amber-500/50 transition-all"
+    >
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold text-xl shadow-md">
+          <CalendarDays class="w-6 h-6" />
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="font-bold text-base text-ink-900 dark:text-ink-50 group-hover:text-amber-600 transition-colors">
+              چالش روزانه شعر پارسی
+            </h3>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-800 dark:text-amber-300 font-bold">
+              امروز فعال است
+            </span>
+          </div>
+          <p class="text-xs text-ink-500 mt-1">
+            هر روز یک بیت، یک سوال و ثبت زنجیرهٔ استمرار (Streak)
+          </p>
+        </div>
+      </div>
+
+      <div class="inline-flex items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-400 group-hover:translate-x-[-4px] transition-transform">
+        <span>شرکت در چالش</span>
+        <ArrowLeft class="w-4 h-4" />
+      </div>
+    </router-link>
+
     <!-- سربرگ و آمار کلی پیشرفت حفظ -->
     <div class="p-6 sm:p-8 rounded-3xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border shadow-soft">
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
@@ -186,7 +216,11 @@ import {
   Keyboard,
   UserCheck,
   Sparkles,
-  EyeOff
+  EyeOff,
+  CalendarDays,
+  ArrowLeft,
+  Music,
+  ArrowDownCircle
 } from 'lucide-vue-next';
 
 var memorizeStore = useMemorizeStore();
@@ -203,6 +237,9 @@ var quizModes = [
   { key: 'multiple_choice', title: 'انتخاب مصرع دوم', desc: 'با دیدن مصرع اول، مصرع دوم صحیح را انتخاب کنید.', icon: CheckSquare },
   { key: 'typing', title: 'تایپ بیت از حفظ', desc: 'مصرع دوم را تایپ کنید (با تحمل خطاهای تایپی و املایی).', icon: Keyboard },
   { key: 'guess_poet', title: 'حدس شاعر بیت', desc: 'با مشاهده بیت، سرایندهٔ آن را از میان گزینه‌ها برگزینید.', icon: UserCheck },
+  { key: 'guess_metre', title: 'این شعر در چه وزنی است؟', desc: 'وزن و ریتم صحیح بیت را از میان گزینه‌های اوزان عروضی نام‌دار حدس بزنید.', icon: Music },
+  { key: 'next_couplet', title: 'بیت بعدی کدام است؟', desc: 'با دیدن یک بیت از شعر، بیت پسین آن را به درستی پیدا کنید.', icon: ArrowDownCircle },
+  { key: 'rhyme_match', title: 'بازی بیت‌های هم‌قافیه', desc: 'بیت‌هایی که دارای قافیه و آهنگ یکسان هستند را بیابید.', icon: Sparkles },
   { key: 'guess_device', title: 'تشخیص آرایه ادبی', desc: 'آرایه بلاغی برجسته‌شده در بیت را شناسایی کنید.', icon: Sparkles },
   { key: 'word_hiding', title: 'محوشدن تدریجی کلمات', desc: 'کلمات بیت به تدریج محو می‌شوند تا حافظه به چالش کشیده شود.', icon: EyeOff }
 ];

@@ -5,6 +5,9 @@ export type QuizMode =
   | 'typing'
   | 'guess_poet'
   | 'guess_device'
+  | 'guess_metre'
+  | 'next_couplet'
+  | 'rhyme_match'
   | 'word_hiding';
 
 export interface QuizQuestion {

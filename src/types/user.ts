@@ -62,6 +62,54 @@ export interface MemorizeCard {
   lastReviewDate?: string;
 }
 
+export interface UserCollectionItem {
+  poemId: number;
+  coupletIndex?: number;
+  poemTitle: string;
+  poetName: string;
+  fullUrl?: string;
+  firstMisra?: string;
+  secondMisra?: string;
+  verseFirst?: string;
+  verseSecond?: string;
+  note?: string;
+  addedAt?: string;
+}
+
+export interface UserCollection {
+  id?: number;
+  title: string;
+  description?: string;
+  color?: string;
+  items: UserCollectionItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DailyChallengeRecord {
+  id?: number;
+  date: string; // YYYY-MM-DD
+  poemId: number;
+  poetName: string;
+  poemTitle: string;
+  verseFirst: string;
+  verseSecond: string;
+  question: string;
+  options: string[];
+  correctAnswer: string;
+  userAnswer?: string;
+  isCorrect?: boolean;
+  score: number;
+  answeredAt?: string;
+}
+
+export interface CachedStatRecord {
+  key: string;
+  data: any;
+  cachedAt: string;
+  expiresAt?: string;
+}
+
 export interface UserDataBackup {
   version: string;
   dataCommitSha: string;
@@ -70,4 +118,6 @@ export interface UserDataBackup {
   history: UserHistoryItem[];
   decks: MemorizeDeck[];
   cards: MemorizeCard[];
+  collections?: UserCollection[];
+  dailyChallenges?: DailyChallengeRecord[];
 }

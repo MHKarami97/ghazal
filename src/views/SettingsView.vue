@@ -9,61 +9,6 @@
       </p>
     </div>
 
-    <!-- بخش ۱: نسخه داده‌ها و وضعیت سازگاری -->
-    <div class="p-6 rounded-3xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border shadow-soft space-y-4">
-      <div class="flex items-center gap-2 pb-3 border-b border-ink-200/60 dark:border-paper-border">
-        <Database class="w-5 h-5 text-brand-600" />
-        <h3 class="font-bold text-base text-ink-900 dark:text-ink-50">
-          اطلاعات نسخه و سازگاری داده‌ها
-        </h3>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-        <div class="p-3.5 rounded-2xl bg-paper-warm/70 dark:bg-paper-dark border border-ink-200/60 dark:border-paper-border">
-          <span class="text-ink-400 block mb-1">نسخه Commit پین‌شده برنامه:</span>
-          <code class="font-mono text-brand-700 dark:text-brand-300 font-bold break-all">
-            {{ dataStore.versionStatus?.appCommitSha || DATA_COMMIT_SHA }}
-          </code>
-        </div>
-
-        <div class="p-3.5 rounded-2xl bg-paper-warm/70 dark:bg-paper-dark border border-ink-200/60 dark:border-paper-border">
-          <span class="text-ink-400 block mb-1">نسخه Schema مورد انتظار:</span>
-          <span class="font-bold text-ink-800 dark:text-ink-200">
-            نسخه {{ toPersianDigits(dataStore.versionStatus?.appSchemaVersion || 4) }} (ایندکس ابیات از ۰)
-          </span>
-        </div>
-      </div>
-
-      <!-- هشدار نسخه یا آپدیت موجود -->
-      <div
-        v-if="dataStore.versionStatus?.errorMessage"
-        class="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs leading-relaxed"
-      >
-        {{ dataStore.versionStatus.errorMessage }}
-      </div>
-
-      <div
-        v-else-if="dataStore.versionStatus?.hasUpdates"
-        class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs flex items-center justify-between"
-      >
-        <span>برای {{ toPersianDigits(dataStore.versionStatus.outdatedPackagesCount) }} بستهٔ نصب‌شده، نسخهٔ جدیدتری موجود است.</span>
-      </div>
-
-      <!-- وضعیت ماندگاری حافظه مرورگر -->
-      <div class="flex items-center justify-between pt-2 text-xs">
-        <div>
-          <span class="font-bold text-ink-800 dark:text-ink-200 block">مجوز ذخیره‌سازی پایدار (Persistent Storage):</span>
-          <span class="text-[11px] text-ink-500">جلوگیری از پاک‌شدن خودکار داده‌های آفلاین توسط مرورگر در کمبود حافظه</span>
-        </div>
-        <button
-          @click="requestPersistence"
-          class="px-3.5 py-1.5 rounded-xl border border-brand-500/40 text-brand-600 dark:text-brand-400 font-bold hover:bg-brand-50 dark:hover:bg-brand-950/20 transition-colors"
-        >
-          {{ isPersisted ? 'فعال است ✓' : 'درخواست مجوز' }}
-        </button>
-      </div>
-    </div>
-
     <!-- بخش ۲: مدیریت بسته‌های آفلاین نصب‌شده -->
     <div class="p-6 rounded-3xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border shadow-soft space-y-4">
       <div class="flex items-center justify-between pb-3 border-b border-ink-200/60 dark:border-paper-border">
@@ -226,6 +171,130 @@
         </button>
       </div>
     </div>
+
+    
+    <!-- بخش ۱: نسخه داده‌ها و وضعیت سازگاری -->
+    <div class="p-6 rounded-3xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border shadow-soft space-y-4">
+      <div class="flex items-center gap-2 pb-3 border-b border-ink-200/60 dark:border-paper-border">
+        <Database class="w-5 h-5 text-brand-600" />
+        <h3 class="font-bold text-base text-ink-900 dark:text-ink-50">
+          اطلاعات نسخه و سازگاری داده‌ها
+        </h3>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+        <div class="p-3.5 rounded-2xl bg-paper-warm/70 dark:bg-paper-dark border border-ink-200/60 dark:border-paper-border">
+          <span class="text-ink-400 block mb-1">نسخه Commit پین‌شده برنامه:</span>
+          <code class="font-mono text-brand-700 dark:text-brand-300 font-bold break-all">
+            {{ dataStore.versionStatus?.appCommitSha || DATA_COMMIT_SHA }}
+          </code>
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-paper-warm/70 dark:bg-paper-dark border border-ink-200/60 dark:border-paper-border">
+          <span class="text-ink-400 block mb-1">نسخه Schema مورد انتظار:</span>
+          <span class="font-bold text-ink-800 dark:text-ink-200">
+            نسخه {{ toPersianDigits(dataStore.versionStatus?.appSchemaVersion || 4) }} (ایندکس ابیات از ۰)
+          </span>
+        </div>
+      </div>
+
+      <!-- هشدار نسخه یا آپدیت موجود -->
+      <div
+        v-if="dataStore.versionStatus?.errorMessage"
+        class="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs leading-relaxed"
+      >
+        {{ dataStore.versionStatus.errorMessage }}
+      </div>
+
+      <div
+        v-else-if="dataStore.versionStatus?.hasUpdates"
+        class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs flex items-center justify-between"
+      >
+        <span>برای {{ toPersianDigits(dataStore.versionStatus.outdatedPackagesCount) }} بستهٔ نصب‌شده، نسخهٔ جدیدتری موجود است.</span>
+      </div>
+
+      <!-- وضعیت ماندگاری حافظه مرورگر -->
+      <div class="flex items-center justify-between pt-2 text-xs">
+        <div>
+          <span class="font-bold text-ink-800 dark:text-ink-200 block">مجوز ذخیره‌سازی پایدار (Persistent Storage):</span>
+          <span class="text-[11px] text-ink-500">جلوگیری از پاک‌شدن خودکار داده‌های آفلاین توسط مرورگر در کمبود حافظه</span>
+        </div>
+        <button
+          @click="requestPersistence"
+          class="px-3.5 py-1.5 rounded-xl border border-brand-500/40 text-brand-600 dark:text-brand-400 font-bold hover:bg-brand-50 dark:hover:bg-brand-950/20 transition-colors"
+        >
+          {{ isPersisted ? 'فعال است ✓' : 'درخواست مجوز' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- بخش درباره، توسعه‌دهنده و منابع -->
+    <div class="p-6 rounded-3xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border shadow-soft space-y-4">
+      <div class="flex items-center gap-2 pb-3 border-b border-ink-200/60 dark:border-paper-border">
+        <Info class="w-5 h-5 text-brand-600" />
+        <h3 class="font-bold text-base text-ink-900 dark:text-ink-50">
+          دربارهٔ غزل و منابع داده‌ها
+        </h3>
+      </div>
+
+      <div class="space-y-3 text-xs leading-relaxed text-ink-700 dark:text-ink-300">
+        <p>
+          نرم‌افزار «غزل» یک پروژهٔ متن‌باز، محلی و غیرانتفاعی جهت پاسداشت و ترویج ادبیات فاخر، اوزان عروضی و فرهنگ شعر پارسی است.
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+          <!-- سایت و مرجع سازنده -->
+          <a
+            href="https://mhkarami97.ir"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="p-4 rounded-2xl bg-paper-warm/70 dark:bg-paper-dark/70 border border-ink-200/60 dark:border-paper-border hover:border-brand-500/50 hover:shadow-xs transition-all flex items-center justify-between group"
+          >
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-brand-500/10 text-brand-600 flex items-center justify-center font-bold">
+                <Globe class="w-5 h-5" />
+              </div>
+              <div>
+                <span class="font-bold text-ink-900 dark:text-ink-100 group-hover:text-brand-600 transition-colors block">
+                  وب‌سایت و مرجع:
+                </span>
+                <span class="text-xs text-brand-600 font-mono dir-ltr inline-block">
+                  mhkarami97.ir
+                </span>
+              </div>
+            </div>
+            <ExternalLink class="w-4 h-4 text-ink-400 group-hover:text-brand-600 transition-colors" />
+          </a>
+
+          <!-- منبع دیتا: گنجور -->
+          <a
+            href="https://ganjoor.net"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="p-4 rounded-2xl bg-paper-warm/70 dark:bg-paper-dark/70 border border-ink-200/60 dark:border-paper-border hover:border-brand-500/50 hover:shadow-xs transition-all flex items-center justify-between group"
+          >
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold">
+                <BookOpen class="w-5 h-5" />
+              </div>
+              <div>
+                <span class="font-bold text-ink-900 dark:text-ink-100 group-hover:text-brand-600 transition-colors block">
+                  منبع داده‌های شعر (گنجور):
+                </span>
+                <span class="text-xs text-amber-700 dark:text-amber-400 font-mono dir-ltr inline-block">
+                  Ganjoor (ganjoor.net)
+                </span>
+              </div>
+            </div>
+            <ExternalLink class="w-4 h-4 text-ink-400 group-hover:text-brand-600 transition-colors" />
+          </a>
+        </div>
+
+        <p class="text-[11px] text-ink-400 pt-2 border-t border-ink-200/40 dark:border-paper-border text-center">
+          کلیه متون و گنجینه اشعار برگرفته از پایگاه ارزشمند «گنجور» (Ganjoor) بوده و با سپاس بیکران از زحمات گردآورندگان آن، به صورت کاملاً آفلاین و محلی بازپردازش و ارائه شده است.
+        </p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -246,7 +315,11 @@ import {
   Bell,
   Trash2,
   Download,
-  Upload
+  Upload,
+  Info,
+  Globe,
+  ExternalLink,
+  BookOpen
 } from 'lucide-vue-next';
 
 var appStore = useAppStore();

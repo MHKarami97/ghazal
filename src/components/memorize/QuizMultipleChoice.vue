@@ -4,11 +4,11 @@
       <div class="text-xs font-bold text-brand-600 dark:text-brand-400 mb-2">
         {{ question.poetName }} » {{ question.poemTitle }}
       </div>
-      <div class="text-sm text-ink-500 mb-2">
-        مصرع اول:
+      <div class="text-sm text-ink-600 dark:text-ink-400 mb-2 whitespace-pre-line leading-relaxed font-bold">
+        {{ question.prompt }}
       </div>
-      <div class="text-xl sm:text-2xl font-bold text-ink-900 dark:text-ink-50 leading-relaxed">
-        « {{ question.firstMisra }} »
+      <div v-if="question.firstMisra && question.secondMisra && !question.prompt.includes(question.firstMisra)" class="text-lg sm:text-xl font-bold text-ink-900 dark:text-ink-50 leading-relaxed mt-2">
+        « {{ question.firstMisra }} / {{ question.secondMisra }} »
       </div>
     </div>
 

@@ -62,6 +62,31 @@ const routes: RouteRecordRaw[] = [
     props: true
   },
   {
+    path: '/memorize/daily-challenge',
+    name: 'DailyChallenge',
+    component: () => import('../views/DailyChallengeView.vue')
+  },
+  {
+    path: '/metres',
+    name: 'Metres',
+    component: () => import('../views/MetresView.vue')
+  },
+  {
+    path: '/dialects',
+    name: 'Dialects',
+    component: () => import('../views/DialectsView.vue')
+  },
+  {
+    path: '/collections',
+    name: 'Collections',
+    component: () => import('../views/CollectionsView.vue')
+  },
+  {
+    path: '/compare',
+    name: 'PoetCompare',
+    component: () => import('../views/PoetCompareView.vue')
+  },
+  {
     path: '/education',
     name: 'Education',
     component: () => import('../views/EducationView.vue')

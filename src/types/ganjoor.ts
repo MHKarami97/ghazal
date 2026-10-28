@@ -180,4 +180,27 @@ export interface GanjoorPersonAffiliation {
 export interface GanjoorMetre {
   Id: number;
   Rhythm: string;
+  Name?: string;
+}
+
+export interface GanjoorGeotag {
+  LocationId: number;
+  PoemId: number;
+  CoupletIndex: number;
+  PoetId?: number;
+}
+
+export interface GanjoorLanguage {
+  Id: number;
+  Name: string;
+  NativeName?: string;
+  Code?: string;
+  Description?: string;
+}
+
+export interface GanjoorLiteraryConcept {
+  Id: number;
+  Name: string;
+  Definition?: string;
+  Category?: string;
 }

@@ -33,26 +33,53 @@
     <!-- جزئیات مکان انتخاب‌شده -->
     <div
       v-if="selectedLocation"
-      class="p-4 rounded-2xl bg-paper-warm/90 dark:bg-paper-surface/90 border border-brand-500/40 shadow-xs flex items-start justify-between"
+      class="p-5 rounded-2xl bg-paper-warm/90 dark:bg-paper-surface/90 border border-brand-500/40 shadow-xs space-y-3"
     >
-      <div>
-        <div class="flex items-center gap-2 mb-1">
-          <MapPin class="w-4 h-4 text-brand-600" />
-          <h4 class="font-bold text-base text-brand-800 dark:text-brand-300">
-            {{ selectedLocation.Name }}
-          </h4>
+      <div class="flex items-start justify-between">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <MapPin class="w-4 h-4 text-brand-600" />
+            <h4 class="font-bold text-base text-brand-800 dark:text-brand-300">
+              {{ selectedLocation.Name }}
+            </h4>
+          </div>
+          <p class="text-xs text-ink-600 dark:text-ink-400">
+            مختصات جغرافیایی: عرض جغرافیایی {{ toPersianDigits(Number(selectedLocation.Latitude).toFixed(2)) }}، طول جغرافیایی {{ toPersianDigits(Number(selectedLocation.Longitude).toFixed(2)) }}
+          </p>
         </div>
-        <p class="text-xs text-ink-600 dark:text-ink-400">
-          مختصات جغرافیایی: عرض جغرافیایی {{ toPersianDigits(Number(selectedLocation.Latitude).toFixed(2)) }}، طول جغرافیایی {{ toPersianDigits(Number(selectedLocation.Longitude).toFixed(2)) }}
-        </p>
+
+        <button
+          @click="selectedLocation = null"
+          class="text-xs text-ink-400 hover:text-ink-700 dark:hover:text-ink-200 px-2 py-1 rounded-lg"
+        >
+          بستن
+        </button>
       </div>
 
-      <button
-        @click="selectedLocation = null"
-        class="text-xs text-ink-400 hover:text-ink-700 dark:hover:text-ink-200 px-2 py-1 rounded-lg"
-      >
-        بستن
-      </button>
+      <!-- ابیات و اشعاری که از این مکان نام برده‌اند -->
+      <div v-if="selectedLocationGeotags.length > 0" class="pt-3 border-t border-ink-200/60 dark:border-paper-border space-y-2">
+        <span class="text-xs font-bold text-ink-700 dark:text-ink-300 flex items-center gap-1.5">
+          <BookOpen class="w-3.5 h-3.5 text-brand-600" />
+          <span>یادکرد این دیار در اشعار ادب پارسی ({{ toPersianDigits(selectedLocationGeotags.length) }} بار):</span>
+        </span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+          <div
+            v-for="gt in selectedLocationGeotags.slice(0, 10)"
+            :key="gt.PoemId + '-' + gt.CoupletIndex"
+            class="text-xs p-2.5 rounded-xl bg-paper-light dark:bg-paper-dark border border-ink-200/60 dark:border-paper-border flex items-center justify-between"
+          >
+            <span class="text-ink-700 dark:text-ink-200 font-medium truncate">
+              بیت {{ toPersianDigits(gt.CoupletIndex + 1) }}
+            </span>
+            <router-link
+              :to="`/poem/${gt.PoemId}?couplet=${gt.CoupletIndex}`"
+              class="text-xs font-bold text-brand-600 hover:text-brand-700 shrink-0 mr-2"
+            >
+              مشاهده در شعر
+            </router-link>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- فهرست شهرهای تاریخی جهت انتخاب سریع -->
@@ -82,7 +109,7 @@ import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue';
 import { useLiteraryStore } from '../../stores/literaryStore';
 import { toPersianDigits } from '../../utils/persianNormalizer';
 import type { GanjoorLocation } from '../../types/ganjoor';
-import { Search, MapPin } from 'lucide-vue-next';
+import { Search, MapPin, BookOpen } from 'lucide-vue-next';
 import 'leaflet/dist/leaflet.css';
 
 var literaryStore = useLiteraryStore();
@@ -93,6 +120,11 @@ var isLoading = ref<boolean>(true);
 var mapInstance: any = null;
 var markersGroup: any = null;
 var LeafletLib: any = null;
+
+var selectedLocationGeotags = computed(function () {
+  if (!selectedLocation.value) return [];
+  return literaryStore.getGeotagsForLocation(selectedLocation.value.Id);
+});
 
 var filteredLocations = computed(function () {
   var locs = literaryStore.locations;

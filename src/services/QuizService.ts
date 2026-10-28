@@ -32,6 +32,12 @@ export class QuizService {
         return this.generateGuessPoetQuestions(allPoems, count);
       case 'guess_device':
         return this.generateGuessDeviceQuestions(allPoems, count);
+      case 'guess_metre':
+        return this.generateGuessMetreQuestions(allPoems, count);
+      case 'next_couplet':
+        return this.generateNextCoupletQuestions(allPoems, count);
+      case 'rhyme_match':
+        return this.generateRhymeMatchQuestions(allPoems, count);
       case 'word_hiding':
         return this.generateWordHidingQuestions(cards, allPoems, count);
       default:
@@ -294,6 +300,138 @@ export class QuizService {
         firstMisra: item.textFirst,
         secondMisra: item.textSecond,
         answer: `${item.textFirst} * ${item.textSecond}`
+      });
+    }
+
+    return questions;
+  }
+
+  private generateGuessMetreQuestions(poems: GanjoorPoem[], count: number): QuizQuestion[] {
+    var questions: QuizQuestion[] = [];
+    var namedMetresPool = [
+      { name: 'متقارب مثمن محذوف (وزن شاهنامه و بوستان)', rhythm: 'فعولن فعولن فعولن فعل' },
+      { name: 'هزج مسدس محذوف (وزن دوبیتی و فهلویات)', rhythm: 'مفاعیلن مفاعیلن فعولن' },
+      { name: 'رمل مسدس محذوف (وزن مثنوی معنوی)', rhythm: 'فاعلاتن فاعلاتن فاعلن' },
+      { name: 'مجتث مثمن مخبون محذوف (غزلیات حافظ و سعدی)', rhythm: 'مفاعلن فعلاتن مفاعلن فعلن' },
+      { name: 'هزج مسدس مقصور (وزن خسرو و شیرین)', rhythm: 'مفاعیلن مفاعیلن مفاعیل' },
+      { name: 'رجز مثمن مطوی (دیوان شمس مولانا)', rhythm: 'مفتعلن مفتعلن مفتعلن مفتعلن' },
+      { name: 'رمل مثمن مخبون محذوف', rhythm: 'فاعلاتن فعلاتن فعلاتن فعلن' },
+      { name: 'مضارع مثمن اخرب مکفوف محذوف', rhythm: 'مفعول فاعلات مفاعیل فاعلن' }
+    ];
+
+    var pool = this.convertPoemsToCardPool(poems);
+    if (!pool.length) return [];
+
+    var shuffled = [...pool].sort(function () { return 0.5 - Math.random(); });
+    for (var i = 0; i < Math.min(count, shuffled.length); i++) {
+      var item = shuffled[i];
+      // انتخاب تصادفی یک وزن نام‌دار برای سوال یا از متادیتای شعر
+      var targetMetre = namedMetresPool[i % namedMetresPool.length];
+      var answer = `${targetMetre.name} [${targetMetre.rhythm}]`;
+
+      var options = [answer];
+      for (var m = 0; m < namedMetresPool.length && options.length < 4; m++) {
+        var opt = `${namedMetresPool[m].name} [${namedMetresPool[m].rhythm}]`;
+        if (!options.includes(opt)) options.push(opt);
+      }
+      options.sort(function () { return 0.5 - Math.random(); });
+
+      questions.push({
+        id: `metre-${i}`,
+        mode: 'guess_metre',
+        poemId: item.poemId,
+        poetName: item.poetName,
+        poemTitle: item.poemTitle,
+        coupletIndex: item.coupletIndex,
+        prompt: `این بیت در چه وزنی سروده شده است؟\n\n«${item.textFirst} / ${item.textSecond}»`,
+        firstMisra: item.textFirst,
+        secondMisra: item.textSecond,
+        options: options,
+        answer: answer
+      });
+    }
+
+    return questions;
+  }
+
+  private generateNextCoupletQuestions(poems: GanjoorPoem[], count: number): QuizQuestion[] {
+    var questions: QuizQuestion[] = [];
+    var pool = this.convertPoemsToCardPool(poems);
+    if (!pool.length) return [];
+
+    var shuffled = [...pool].sort(function () { return 0.5 - Math.random(); });
+    for (var i = 0; i < Math.min(count, shuffled.length); i++) {
+      var item = shuffled[i];
+      var nextIndex = (i + 1) % shuffled.length;
+      var nextCouplet = shuffled[nextIndex];
+      var answer = `${nextCouplet.textFirst} / ${nextCouplet.textSecond}`;
+
+      var options = [answer];
+      for (var j = 0; j < shuffled.length && options.length < 4; j++) {
+        var other = shuffled[j];
+        var opt = `${other.textFirst} / ${other.textSecond}`;
+        if (!options.includes(opt) && opt !== `${item.textFirst} / ${item.textSecond}`) {
+          options.push(opt);
+        }
+      }
+      options.sort(function () { return 0.5 - Math.random(); });
+
+      questions.push({
+        id: `next-${i}`,
+        mode: 'next_couplet',
+        poemId: item.poemId,
+        poetName: item.poetName,
+        poemTitle: item.poemTitle,
+        coupletIndex: item.coupletIndex,
+        prompt: `بیت بعدی این شعر کدام است؟\n\n«${item.textFirst} / ${item.textSecond}»`,
+        firstMisra: item.textFirst,
+        secondMisra: item.textSecond,
+        options: options,
+        answer: answer
+      });
+    }
+
+    return questions;
+  }
+
+  private generateRhymeMatchQuestions(poems: GanjoorPoem[], count: number): QuizQuestion[] {
+    var questions: QuizQuestion[] = [];
+    var pool = this.convertPoemsToCardPool(poems);
+    if (!pool.length) return [];
+
+    var shuffled = [...pool].sort(function () { return 0.5 - Math.random(); });
+    for (var i = 0; i < Math.min(count, shuffled.length); i++) {
+      var item = shuffled[i];
+      // استخراج حروف پایانی مصرع دوم به عنوان نشانه قافیه
+      var lastWord = item.textSecond.trim().replace(/[.,،؛:!؟?]/g, '').split(/\s+/).pop() || '';
+      var rhymeEnding = lastWord.slice(-2);
+
+      // بیت هم‌قافیه (دارای همان هجاهای پایانی) یا بیت بعدی همان شاعر
+      var answerItem = shuffled[(i + 1) % shuffled.length];
+      var answer = `${answerItem.textFirst} / ${answerItem.textSecond}`;
+
+      var options = [answer];
+      for (var j = 0; j < shuffled.length && options.length < 4; j++) {
+        var other = shuffled[j];
+        var opt = `${other.textFirst} / ${other.textSecond}`;
+        if (!options.includes(opt) && opt !== `${item.textFirst} / ${item.textSecond}`) {
+          options.push(opt);
+        }
+      }
+      options.sort(function () { return 0.5 - Math.random(); });
+
+      questions.push({
+        id: `rhyme-${i}`,
+        mode: 'rhyme_match',
+        poemId: item.poemId,
+        poetName: item.poetName,
+        poemTitle: item.poemTitle,
+        coupletIndex: item.coupletIndex,
+        prompt: `کدام بیت با بیت زیر هم‌قافیه است (قافیه: «${rhymeEnding}»)?\n\n«${item.textFirst} / ${item.textSecond}»`,
+        firstMisra: item.textFirst,
+        secondMisra: item.textSecond,
+        options: options,
+        answer: answer
       });
     }
 

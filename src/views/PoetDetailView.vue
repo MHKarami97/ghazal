@@ -21,14 +21,22 @@
             </div>
           </div>
 
-          <!-- دکمه دانلود آفلاین کل دیوان -->
-          <div>
+          <!-- دکمه‌های اقدام: دانلود و مقایسه -->
+          <div class="flex items-center gap-2">
+            <router-link
+              :to="`/compare?poet1=${poetSlug}`"
+              class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-ink-200 dark:border-paper-border hover:bg-paper-warm dark:hover:bg-paper-dark text-ink-800 dark:text-ink-200 font-bold text-xs transition-colors"
+            >
+              <Scale class="w-4 h-4 text-brand-600" />
+              <span>مقایسه با شاعر دیگر</span>
+            </router-link>
+
             <span
               v-if="dataStore.isPoetInstalled(poetSlug)"
               class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold text-xs"
             >
               <CheckCircle class="w-4 h-4" />
-              کل دیوان دانلود شده (آفلاین)
+              دیوان دانلود شده
             </span>
             <button
               v-else
@@ -37,7 +45,7 @@
               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-bold text-xs shadow-md transition-colors"
             >
               <Download class="w-4 h-4" />
-              <span>{{ isDownloading ? 'در حال دانلود...' : 'دانلود آفلاین کل دیوان' }}</span>
+              <span>{{ isDownloading ? 'در حال دانلود...' : 'دانلود کل دیوان' }}</span>
             </button>
           </div>
         </div>
@@ -46,6 +54,49 @@
         <p v-if="poet.Description" class="text-xs sm:text-sm text-ink-700 dark:text-ink-300 leading-relaxed pt-4 border-t border-ink-200/60 dark:border-paper-border">
           {{ poet.Description }}
         </p>
+
+        <!-- آمار جامع و ویژگی‌های شعری (در صورت موجود بودن در دیتابیس محلی) -->
+        <div v-if="poetStats && poetStats.totalPoems > 0" class="mt-6 pt-6 border-t border-ink-200/60 dark:border-paper-border space-y-4">
+          <div class="flex items-center justify-between">
+            <h4 class="text-sm font-bold text-ink-900 dark:text-ink-100 flex items-center gap-2">
+              <BarChart2 class="w-4 h-4 text-brand-600" />
+              <span>آمار و ویژگی‌های شعری دیوان</span>
+            </h4>
+            <span class="text-xs text-ink-500">
+              {{ toPersianDigits(poetStats.totalPoems) }} شعر / {{ toPersianDigits(poetStats.totalVerses) }} بیت
+            </span>
+          </div>
+
+          <!-- اوزان پرکاربرد -->
+          <div v-if="poetStats.topMetres.length > 0" class="space-y-2">
+            <span class="text-xs font-bold text-ink-700 dark:text-ink-300">اوزان پربسامد در اشعار:</span>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <router-link
+                v-for="m in poetStats.topMetres.slice(0, 4)"
+                :key="m.rhythm"
+                :to="`/search?rhythm=${encodeURIComponent(m.rhythm)}&poetId=${poet.Id}`"
+                class="p-2.5 rounded-xl bg-paper-warm/60 dark:bg-paper-dark/60 border border-ink-200/40 dark:border-paper-border flex items-center justify-between text-xs hover:border-brand-500/50 transition-colors"
+              >
+                <span class="font-mono font-medium text-ink-800 dark:text-ink-200 truncate">{{ m.rhythm }}</span>
+                <span class="text-brand-600 font-bold shrink-0 mr-2">{{ toPersianDigits(m.count) }} شعر (٪{{ toPersianDigits(m.percentage) }})</span>
+              </router-link>
+            </div>
+          </div>
+
+          <!-- واژگان پرتکرار -->
+          <div v-if="poetStats.topKeywords.length > 0" class="pt-2">
+            <span class="text-xs font-bold text-ink-700 dark:text-ink-300 block mb-2">واژگان پرتکرار:</span>
+            <div class="flex flex-wrap gap-1.5">
+              <span
+                v-for="kw in poetStats.topKeywords"
+                :key="kw.word"
+                class="px-2 py-0.5 rounded-lg bg-paper-warm/80 dark:bg-paper-dark/80 text-ink-700 dark:text-ink-300 text-[11px]"
+              >
+                {{ kw.word }} ({{ toPersianDigits(kw.count) }})
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- ساختار دفاتر و بخش‌های دیوان (کتاب‌ها) -->
@@ -108,9 +159,11 @@ import { useRoute } from 'vue-router';
 import { cdnClient } from '../services/CDNClient';
 import { db } from '../db/GhazalDB';
 import { useDataStore } from '../stores/dataStore';
+import { poetAnalytics, type PoetStatsResult } from '../services/PoetAnalyticsService';
+import { toPersianDigits } from '../utils/persianNormalizer';
 import LoadingState from '../components/common/LoadingState.vue';
 import type { GanjoorPoet, GanjoorCategory } from '../types/ganjoor';
-import { Download, CheckCircle, ChevronLeft } from 'lucide-vue-next';
+import { Download, CheckCircle, ChevronLeft, Scale, BarChart2 } from 'lucide-vue-next';
 
 var route = useRoute();
 var dataStore = useDataStore();
@@ -121,6 +174,7 @@ var poetSlug = computed(function () {
 
 var poet = ref<GanjoorPoet | null>(null);
 var category = ref<GanjoorCategory | null>(null);
+var poetStats = ref<PoetStatsResult | null>(null);
 var isLoading = ref<boolean>(true);
 
 onMounted(async function () {
@@ -142,6 +196,11 @@ async function loadData() {
     }
 
     category.value = await cdnClient.getCategory(poetSlug.value);
+
+    // محاسبه یا بارگذاری آمار شاعر از کش
+    if (poet.value) {
+      poetStats.value = await poetAnalytics.getPoetStats(poetSlug.value, poet.value.Nickname);
+    }
   } catch (e) {
     console.error('Error loading poet details:', e);
   } finally {

@@ -10,7 +10,10 @@ import type {
   GanjoorPersonAffiliation,
   GanjoorLiteraryDevice,
   GanjoorLiterarySource,
-  GanjoorMetre
+  GanjoorMetre,
+  GanjoorGeotag,
+  GanjoorLanguage,
+  GanjoorLiteraryConcept
 } from '../types/ganjoor';
 
 export class CDNClient {
@@ -106,6 +109,18 @@ export class CDNClient {
 
   async getMetres(): Promise<GanjoorMetre[]> {
     return this.fetchWithRetry<GanjoorMetre[]>(buildUrl.metres());
+  }
+
+  async getGeotags(): Promise<GanjoorGeotag[]> {
+    return this.fetchWithRetry<GanjoorGeotag[]>(buildUrl.geotags());
+  }
+
+  async getLanguages(): Promise<GanjoorLanguage[]> {
+    return this.fetchWithRetry<GanjoorLanguage[]>(buildUrl.languages());
+  }
+
+  async getLiteraryConcepts(): Promise<GanjoorLiteraryConcept[]> {
+    return this.fetchWithRetry<GanjoorLiteraryConcept[]>(buildUrl.literaryConcepts());
   }
 }
 

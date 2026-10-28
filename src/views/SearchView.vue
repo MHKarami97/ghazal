@@ -10,6 +10,20 @@
       </p>
     </div>
 
+    <!-- بنر راهنمای دانلود برای جست‌وجو -->
+    <div class="p-4 rounded-2xl bg-brand-500/10 border border-brand-500/20 text-xs text-brand-900 dark:text-brand-200 flex items-start gap-3">
+      <span class="text-base">💡</span>
+      <div class="flex-1 leading-relaxed">
+        <strong>توجه داشته باشید:</strong> جست‌وجوی محلی در غزل تنها روی دیوان‌های <strong>دانلودشده</strong> انجام می‌شود. برای جست‌وجو در اشعار شاعران مورد علاقه، لطفاً ابتدا دیوان آن‌ها را دریافت کنید.
+      </div>
+      <router-link
+        to="/poets"
+        class="shrink-0 px-3 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-medium text-xs transition-colors"
+      >
+        دریافت دیوان‌ها
+      </router-link>
+    </div>
+
     <!-- فرم ورودی جست‌وجو و فیلترها -->
     <div class="p-5 rounded-3xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border shadow-soft space-y-4">
       <div class="relative">
@@ -90,12 +104,29 @@
       </div>
     </div>
 
-    <EmptyState
+    <!-- نتیجه‌ای یافت نشد -->
+    <div
       v-else-if="hasSearched"
-      title="بیتی با این مشخصات یافت نشد"
-      description="از واژه‌های ساده‌تر استفاده کنید یا اطمینان حاصل کنید دیوان شاعر مورد نظر را از بخش شاعران دانلود کرده‌اید."
-      type="search"
-    />
+      class="p-8 rounded-3xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border text-center space-y-4"
+    >
+      <div class="w-16 h-16 mx-auto rounded-full bg-amber-500/10 flex items-center justify-center text-amber-600">
+        <Search class="w-8 h-8" />
+      </div>
+      <div>
+        <h3 class="text-lg font-bold text-ink-900 dark:text-ink-100">
+          بیتی با این مشخصات در اشعار دانلودشده یافت نشد
+        </h3>
+        <p class="text-xs text-ink-500 max-w-md mx-auto mt-2 leading-relaxed">
+          جست‌وجوی آفلاین تنها بر روی دیوان‌ها و آثاری انجام می‌شود که قبلاً از صفحهٔ شاعران دانلود کرده‌اید. در صورتی که دیوان شاعر مورد نظر را دانلود نکرده‌اید، ابتدا آن را ذخیره نمایید.
+        </p>
+      </div>
+      <router-link
+        to="/poets"
+        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-medium text-xs shadow-sm transition-colors"
+      >
+        مشاهده و دریافت دیوان شاعران
+      </router-link>
+    </div>
   </div>
 </template>
 

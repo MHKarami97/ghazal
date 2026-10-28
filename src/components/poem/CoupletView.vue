@@ -24,9 +24,25 @@
       <button
         @click.stop="$emit('add-to-memorize', coupletIndex)"
         class="p-1 rounded-full hover:bg-ink-100 dark:hover:bg-paper-surface text-ink-600 dark:text-ink-400"
-        title="افزودن به فهرست حفظ"
+        title="افزودن به جعبه حفظ"
       >
         <Brain class="w-3.5 h-3.5" />
+      </button>
+
+      <button
+        @click.stop="$emit('step-memorize', coupletIndex)"
+        class="p-1 rounded-full hover:bg-ink-100 dark:hover:bg-paper-surface text-ink-600 dark:text-ink-400"
+        title="تمرین و حفظ مرحله‌ای این بیت"
+      >
+        <Sparkles class="w-3.5 h-3.5 text-brand-600" />
+      </button>
+
+      <button
+        @click.stop="$emit('add-to-collection', coupletIndex)"
+        class="p-1 rounded-full hover:bg-ink-100 dark:hover:bg-paper-surface text-ink-600 dark:text-ink-400"
+        title="افزودن به مجموعه‌های شخصی"
+      >
+        <FolderPlus class="w-3.5 h-3.5" />
       </button>
 
       <button
@@ -99,7 +115,7 @@
 import { computed } from 'vue';
 import { toPersianDigits } from '../../utils/persianNormalizer';
 import type { GanjoorLiteraryTag } from '../../types/ganjoor';
-import { Bookmark, Brain, Share2 } from 'lucide-vue-next';
+import { Bookmark, Brain, Share2, Sparkles, FolderPlus } from 'lucide-vue-next';
 
 var props = withDefaults(
   defineProps<{
@@ -121,7 +137,15 @@ var props = withDefaults(
   }
 );
 
-defineEmits(['select-couplet', 'select-tag', 'toggle-bookmark', 'add-to-memorize', 'share-card']);
+defineEmits([
+  'select-couplet',
+  'select-tag',
+  'toggle-bookmark',
+  'add-to-memorize',
+  'step-memorize',
+  'add-to-collection',
+  'share-card'
+]);
 
 interface WordToken {
   text: string;

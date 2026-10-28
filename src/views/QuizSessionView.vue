@@ -88,7 +88,7 @@
           @answered="handleAnswer"
         />
         <QuizMultipleChoice
-          v-else-if="mode === 'multiple_choice'"
+          v-else-if="mode === 'multiple_choice' || mode === 'guess_metre' || mode === 'next_couplet' || mode === 'rhyme_match'"
           :question="currentQuestion"
           @answered="handleAnswer"
         />

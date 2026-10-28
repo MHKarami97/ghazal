@@ -9,7 +9,10 @@ import type {
   UserBookmark,
   UserHistoryItem,
   MemorizeDeck,
-  MemorizeCard
+  MemorizeCard,
+  UserCollection,
+  DailyChallengeRecord,
+  CachedStatRecord
 } from '../types/user';
 
 export interface VerseIndexRecord {
@@ -38,6 +41,9 @@ export class GhazalDB extends Dexie {
   memorizeDecks!: Table<MemorizeDeck, number>;
   memorizeCards!: Table<MemorizeCard, number>;
   baseMeta!: Table<BaseMetaRecord, string>;
+  userCollections!: Table<UserCollection, number>;
+  dailyChallenges!: Table<DailyChallengeRecord, number>;
+  cachedStats!: Table<CachedStatRecord, string>;
 
   constructor() {
     super('GhazalPoetryDB');
@@ -53,6 +59,22 @@ export class GhazalDB extends Dexie {
       memorizeDecks: '++id, title, createdAt',
       memorizeCards: '++id, deckId, poemId, coupletIndex, dueDate, status',
       baseMeta: 'key'
+    });
+
+    this.version(2).stores({
+      packages: 'id, type, slug, title, status, commitSha',
+      poets: 'Id, Nickname, FullUrl',
+      categories: 'Id, PoetId, Title, FullUrl',
+      poems: 'Id, CatId, PoetId, FullUrl, Rhythm',
+      verseIndex: '++id, poemId, poetId, coupletIndex, normalizedText',
+      userBookmarks: '++id, poemId, coupletIndex, createdAt',
+      userHistory: '++id, poemId, viewedAt, type',
+      memorizeDecks: '++id, title, createdAt',
+      memorizeCards: '++id, deckId, poemId, coupletIndex, dueDate, status',
+      baseMeta: 'key',
+      userCollections: '++id, title, createdAt',
+      dailyChallenges: '++id, date, isCorrect',
+      cachedStats: 'key, cachedAt'
     });
   }
 

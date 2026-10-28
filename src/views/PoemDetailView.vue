@@ -58,8 +58,47 @@
               @select-tag="onSelectTag"
               @toggle-bookmark="onToggleBookmark"
               @add-to-memorize="onAddToMemorize"
+              @step-memorize="onStepMemorize"
+              @add-to-collection="onOpenAddToCollection"
               @share-card="onShareCard"
             />
+          </div>
+
+          <!-- بخش اشعار هم‌وزن و هم‌آهنگ -->
+          <div v-if="similarPoems.length > 0" class="mt-12 pt-8 border-t border-ink-200/80 dark:border-paper-border space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <Music class="w-5 h-5 text-brand-600" />
+                <h3 class="font-bold text-base text-ink-900 dark:text-ink-50">
+                  اشعار هم‌وزن و هم‌آهنگ با این شعر
+                </h3>
+              </div>
+              <router-link
+                v-if="poemRhythm"
+                :to="`/search?rhythm=${encodeURIComponent(poemRhythm)}`"
+                class="text-xs font-bold text-brand-600 hover:text-brand-700 transition-colors"
+              >
+                کاوش همه در جست‌وجو
+              </router-link>
+            </div>
+            <p class="text-xs text-ink-500">
+              این سروده‌ها از میان دیوان‌های دانلودشده در دیتابیس دستگاه شما با همین ریتم عروضی ({{ poemRhythm }}) شناسایی شده‌اند:
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <router-link
+                v-for="simPoem in similarPoems"
+                :key="simPoem.Id"
+                :to="getSimilarPoemLink(simPoem)"
+                class="p-4 rounded-2xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border hover:border-brand-500/50 hover:shadow-soft transition-all block group"
+              >
+                <div class="text-xs font-bold text-brand-700 dark:text-brand-300 mb-1.5 group-hover:text-brand-600 transition-colors">
+                  {{ simPoem.FullTitle || simPoem.Title }}
+                </div>
+                <div v-if="simPoem.Verses && simPoem.Verses.length" class="text-xs text-ink-600 dark:text-ink-300 font-medium truncate">
+                  « {{ simPoem.Verses[0]?.Text }} »
+                </div>
+              </router-link>
+            </div>
           </div>
         </main>
 
@@ -107,6 +146,44 @@
         :poem-title="readingStore.currentPoem.Title"
         @close="showExportModal = false"
       />
+
+      <!-- مدال حفظ مرحله‌ای بیت -->
+      <StepMemorizerModal
+        v-if="activeStepCard"
+        :is-open="showStepMemorizer"
+        :card="activeStepCard"
+        @close="showStepMemorizer = false"
+      />
+
+      <!-- مدال افزودن به مجموعه‌های شخصی -->
+      <div
+        v-if="showCollectionModal"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+      >
+        <div class="bg-paper-light dark:bg-paper-surface w-full max-w-sm rounded-3xl border border-ink-200 dark:border-paper-border p-6 shadow-2xl space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-ink-200/60 dark:border-paper-border">
+            <h3 class="text-sm font-bold text-ink-900 dark:text-ink-50 flex items-center gap-2">
+              <FolderPlus class="w-4 h-4 text-brand-600" />
+              افزودن به مجموعه شخصی
+            </h3>
+            <button @click="showCollectionModal = false" class="text-ink-400 hover:text-ink-600">
+              <X class="w-4 h-4" />
+            </button>
+          </div>
+
+          <div class="space-y-2 max-h-56 overflow-y-auto">
+            <button
+              v-for="col in userCollections"
+              :key="col.id"
+              @click="saveToCollection(col.id!)"
+              class="w-full p-3 rounded-2xl border border-ink-200/80 dark:border-paper-border hover:border-brand-500 hover:bg-brand-500/5 transition-all text-right flex items-center justify-between text-xs"
+            >
+              <span class="font-bold text-ink-800 dark:text-ink-200">{{ col.title }}</span>
+              <span class="text-[10px] text-ink-400">{{ col.items.length }} شعر</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </template>
   </div>
 </template>
@@ -118,13 +195,18 @@ import { useAppStore } from '../stores/appStore';
 import { useReadingStore } from '../stores/readingStore';
 import { useMemorizeStore } from '../stores/memorizeStore';
 import { useLiteraryStore } from '../stores/literaryStore';
+import { poetAnalytics } from '../services/PoetAnalyticsService';
+import { collectionService } from '../services/CollectionService';
 import { groupVersesIntoCouplets, getPoemMetreRhythm } from '../utils/formatters';
 import CoupletView from '../components/poem/CoupletView.vue';
 import LiteraryPanel from '../components/poem/LiteraryPanel.vue';
 import ReaderToolbar from '../components/poem/ReaderToolbar.vue';
 import CardExportModal from '../components/common/CardExportModal.vue';
+import StepMemorizerModal from '../components/memorize/StepMemorizerModal.vue';
 import LoadingState from '../components/common/LoadingState.vue';
-import type { GanjoorLiteraryTag } from '../types/ganjoor';
+import type { GanjoorLiteraryTag, GanjoorPoem } from '../types/ganjoor';
+import type { UserCollection, MemorizeCard } from '../types/user';
+import { Music, FolderPlus, X } from 'lucide-vue-next';
 
 var route = useRoute();
 var appStore = useAppStore();
@@ -149,6 +231,14 @@ var showExportModal = ref<boolean>(false);
 var activeExportFirst = ref<string>('');
 var activeExportSecond = ref<string>('');
 
+var similarPoems = ref<GanjoorPoem[]>([]);
+var showStepMemorizer = ref<boolean>(false);
+var activeStepCard = ref<MemorizeCard | null>(null);
+
+var showCollectionModal = ref<boolean>(false);
+var userCollections = ref<UserCollection[]>([]);
+var selectedCoupletIndexForCollection = ref<number | null>(null);
+
 onMounted(async function () {
   await literaryStore.loadBaseMeta();
   await loadPoem();
@@ -170,6 +260,17 @@ async function loadPoem() {
         }
       }, 350);
     }
+  }
+
+  // بارگذاری اشعار هم‌وزن از کش
+  if (readingStore.currentPoem && poemRhythm.value) {
+    similarPoems.value = await poetAnalytics.getSimilarMetrePoems(
+      poemRhythm.value,
+      readingStore.currentPoem.Id,
+      readingStore.currentPoem.RhymeLetters
+    );
+  } else {
+    similarPoems.value = [];
   }
 }
 
@@ -211,6 +312,55 @@ async function onAddToMemorize(coupletIndex: number) {
   alert('این بیت به فهرست حفظ شما اضافه شد.');
 }
 
+function onStepMemorize(coupletIndex: number) {
+  var pair = coupletPairs.value.find(function (p) { return p.coupletIndex === coupletIndex; });
+  if (!pair || !readingStore.currentPoem) return;
+
+  activeStepCard.value = {
+    deckId: 1,
+    poemId: readingStore.currentPoem.Id,
+    coupletIndex: coupletIndex,
+    poemTitle: readingStore.currentPoem.Title,
+    poetName: readingStore.currentPoet?.Nickname || poetSlug.value,
+    textFirst: pair.rightVerse?.Text || '',
+    textSecond: pair.leftVerse?.Text || '',
+    status: 'learning',
+    repCount: 0,
+    intervalDays: 1,
+    easeFactor: 2.5,
+    dueDate: new Date().toISOString().split('T')[0]
+  };
+  showStepMemorizer.value = true;
+}
+
+async function onOpenAddToCollection(coupletIndex: number) {
+  selectedCoupletIndexForCollection.value = coupletIndex;
+  userCollections.value = await collectionService.getCollections();
+  showCollectionModal.value = true;
+}
+
+async function saveToCollection(collectionId: number) {
+  if (selectedCoupletIndexForCollection.value === null || !readingStore.currentPoem) return;
+  var pair = coupletPairs.value.find(function (p) { return p.coupletIndex === selectedCoupletIndexForCollection.value; });
+  if (!pair) return;
+
+  var success = await collectionService.addItemToCollection(collectionId, {
+    poemId: readingStore.currentPoem.Id,
+    coupletIndex: selectedCoupletIndexForCollection.value,
+    poemTitle: readingStore.currentPoem.Title,
+    poetName: readingStore.currentPoet?.Nickname || poetSlug.value,
+    verseFirst: pair.rightVerse?.Text || '',
+    verseSecond: pair.leftVerse?.Text || ''
+  });
+
+  showCollectionModal.value = false;
+  if (success) {
+    alert('بیت با موفقیت به مجموعه افزوده شد.');
+  } else {
+    alert('این بیت قبلاً در این مجموعه ذخیره شده بود.');
+  }
+}
+
 function onShareCard(coupletIndex: number) {
   var pair = coupletPairs.value.find(function (p) { return p.coupletIndex === coupletIndex; });
   if (pair) {
@@ -218,5 +368,13 @@ function onShareCard(coupletIndex: number) {
     activeExportSecond.value = pair.leftVerse?.Text || '';
     showExportModal.value = true;
   }
+}
+
+function getSimilarPoemLink(p: GanjoorPoem): string {
+  if (p.FullUrl) {
+    var clean = p.FullUrl.replace(/^\/+|\/+$/g, '');
+    return `/read/${clean}`;
+  }
+  return `/poem/${p.Id}`;
 }
 </script>
