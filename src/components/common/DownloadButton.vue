@@ -1,5 +1,6 @@
 <template>
   <button
+    v-if="shouldShow"
     type="button"
     class="disabled:cursor-wait"
     :class="variantClass"
@@ -41,6 +42,14 @@ var progress = computed(function () {
 
 var isActive = computed(function () {
   return dataStore.isDownloadActive(props.packageId);
+});
+
+var isAvailableOffline = computed(function () {
+  return dataStore.isPackageAvailableOffline(props.packageId);
+});
+
+var shouldShow = computed(function () {
+  return isActive.value || !isAvailableOffline.value;
 });
 
 var isInterrupted = computed(function () {

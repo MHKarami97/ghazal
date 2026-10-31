@@ -115,6 +115,24 @@ export const useDataStore = defineStore('data', () => {
     });
   }
 
+  function isPackageAvailableOffline(packageId: string): boolean {
+    if (isPackageInstalled(packageId)) return true;
+
+    var parts = packageId.split(':');
+    if (parts[0] !== 'cat' || parts.length < 3) return false;
+
+    var poetSlug = parts[1];
+    var segments = parts.slice(2).join(':').split('/').filter(Boolean);
+
+    if (isPoetInstalled(poetSlug)) return true;
+
+    for (var depth = segments.length - 1; depth > 0; depth--) {
+      var ancestorId = `cat:${poetSlug}:${segments.slice(0, depth).join('/')}`;
+      if (isPackageInstalled(ancestorId)) return true;
+    }
+    return false;
+  }
+
   function isPoetInstalled(poetSlug: string): boolean {
     return isPackageInstalled(`poet:${poetSlug}`);
   }
@@ -211,6 +229,7 @@ export const useDataStore = defineStore('data', () => {
     loadInstalledPackages,
     isPackageInstalled,
     isPoetInstalled,
+    isPackageAvailableOffline,
     isBasePackageInstalled,
     getProgress,
     isDownloadActive,
