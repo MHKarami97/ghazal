@@ -42,12 +42,12 @@ export class DataVersionService {
 
       for (var i = 0; i < installedPackages.length; i++) {
         var pkg = installedPackages[i];
-        if (pkg.commitSha !== DATA_COMMIT_SHA) {
+        var isFinished = pkg.status === 'ready' || pkg.status === 'update_available';
+        if (isFinished && pkg.commitSha !== DATA_COMMIT_SHA) {
           outdatedCount++;
-          // بروزرسانی وضعیت به آپدیت موجود است
-          await db.packages.update(pkg.id, {
-            status: 'update_available'
-          });
+          if (pkg.status === 'ready') {
+            await db.packages.update(pkg.id, { status: 'update_available' });
+          }
         }
       }
 

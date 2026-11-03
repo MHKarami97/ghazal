@@ -91,7 +91,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAppStore } from './stores/appStore';
 import { useDataStore } from './stores/dataStore';
@@ -109,20 +109,27 @@ var router = useRouter();
 var appStore = useAppStore();
 var dataStore = useDataStore();
 
-onMounted(async function () {
-  await dataStore.init();
-
+function handleKeydown(e: KeyboardEvent) {
   // میانبر کیبورد دسکتاپ برای جست‌وجو (Ctrl+K)
-  window.addEventListener('keydown', function (e) {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-      e.preventDefault();
-      router.push('/search');
-    }
-    // خروج از حالت مطالعه با دکمه Escape
-    if (e.key === 'Escape' && appStore.readingMode) {
-      appStore.readingMode = false;
-    }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+    e.preventDefault();
+    router.push('/search');
+  }
+  // خروج از حالت مطالعه با دکمه Escape
+  if (e.key === 'Escape' && appStore.readingMode) {
+    appStore.readingMode = false;
+  }
+}
+
+onMounted(function () {
+  window.addEventListener('keydown', handleKeydown);
+  dataStore.init().catch(function (error) {
+    console.error('Data store init failed', error);
   });
+});
+
+onBeforeUnmount(function () {
+  window.removeEventListener('keydown', handleKeydown);
 });
 
 var showBack = computed(function () {

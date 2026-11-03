@@ -17,6 +17,8 @@ import type {
   GanjoorLiteraryConcept
 } from '../types/ganjoor';
 
+var MAX_CACHE_ENTRIES = 150;
+
 export class CDNClient {
   private cache: Map<string, any> = new Map();
   private inflight: Map<string, Promise<any>> = new Map();
@@ -64,11 +66,18 @@ export class CDNClient {
           });
 
           if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            var httpError = new Error(`HTTP ${response.status}: ${response.statusText}`);
+            var isClientError = response.status >= 400 && response.status < 500 && response.status !== 429;
+            if (isClientError) {
+              // خطای دائمی (مثل ۴۰۴): تلاش مجدد بی‌فایده است، مستقیم سراغ منبع پشتیبان برو
+              lastError = httpError;
+              break;
+            }
+            throw httpError;
           }
 
           var data = await response.json();
-          this.cache.set(url, data);
+          this.remember(url, data);
           return data as T;
         } catch (err: any) {
           lastError = err;
@@ -82,6 +91,14 @@ export class CDNClient {
     }
 
     throw new Error(`دریافت داده از منبع ناموفق بود: ${lastError?.message || 'خطای شبکه'}`);
+  }
+
+  private remember(url: string, data: unknown): void {
+    if (this.cache.size >= MAX_CACHE_ENTRIES) {
+      var oldestKey = this.cache.keys().next().value;
+      if (oldestKey !== undefined) this.cache.delete(oldestKey);
+    }
+    this.cache.set(url, data);
   }
 
   async getManifest(): Promise<GanjoorManifest> {

@@ -353,6 +353,8 @@ import DownloadButton from '../components/common/DownloadButton.vue';
 import { ref, onMounted } from 'vue';
 import { useAppStore } from '../stores/appStore';
 import { useDataStore } from '../stores/dataStore';
+import { useMemorizeStore } from '../stores/memorizeStore';
+import { toLocalDateString } from '../utils/dateUtils';
 import { db } from '../db/GhazalDB';
 import { DATA_COMMIT_SHA } from '../config/dataConfig';
 import { exportService, type ImportResult } from '../services/ExportService';
@@ -375,6 +377,7 @@ import {
 
 var appStore = useAppStore();
 var dataStore = useDataStore();
+var memorizeStore = useMemorizeStore();
 
 var isPersisted = ref<boolean>(false);
 var importResult = ref<ImportResult | null>(null);
@@ -435,9 +438,9 @@ async function exportBackup() {
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
   a.href = url;
-  a.download = `ghazal-backup-${new Date().toISOString().split('T')[0]}.json`;
+  a.download = `ghazal-backup-${toLocalDateString()}.json`;
   a.click();
-  URL.revokeObjectURL(url);
+  setTimeout(function () { URL.revokeObjectURL(url); }, 0);
 }
 
 async function handleFileImport(e: Event) {
@@ -449,8 +452,21 @@ async function handleFileImport(e: Event) {
   reader.onload = async function (evt) {
     var content = evt.target?.result as string;
     importResult.value = await exportService.importUserData(content);
+    await memorizeStore.init();
+  };
+  reader.onerror = function () {
+    importResult.value = {
+      success: false,
+      importedBookmarks: 0,
+      importedCards: 0,
+      importedDecks: 0,
+      missingPoemsCount: 0,
+      missingPoemIds: [],
+      errorMessage: 'خواندن فایل ناموفق بود.'
+    };
   };
   reader.readAsText(file);
+  target.value = '';
 }
 
 async function toggleNotification() {

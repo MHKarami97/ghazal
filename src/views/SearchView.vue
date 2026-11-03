@@ -131,7 +131,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useDataStore } from '../stores/dataStore';
 import { searchIndexService, type SearchResultItem } from '../services/SearchIndexService';
@@ -152,6 +152,11 @@ var isSearching = ref<boolean>(false);
 var hasSearched = ref<boolean>(false);
 
 var searchTimeout: any = null;
+var latestSearchId = 0;
+
+onBeforeUnmount(function () {
+  clearTimeout(searchTimeout);
+});
 
 onMounted(async function () {
   var poemId = route.query.poemId;
@@ -199,17 +204,19 @@ function onSearch() {
   }
 
   searchTimeout = setTimeout(async function () {
+    var searchId = ++latestSearchId;
     isSearching.value = true;
     hasSearched.value = true;
     try {
-      results.value = await searchIndexService.search(query.value, {
+      var found = await searchIndexService.search(query.value, {
         poetId: selectedPoetId.value,
         rhythm: rhythmFilter.value,
         rhyme: rhymeFilter.value,
         limit: 80
       });
+      if (searchId === latestSearchId) results.value = found;
     } finally {
-      isSearching.value = false;
+      if (searchId === latestSearchId) isSearching.value = false;
     }
   }, 350);
 }

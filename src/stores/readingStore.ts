@@ -5,6 +5,8 @@ import { cdnClient } from '../services/CDNClient';
 import type { GanjoorPoem, GanjoorPoet, GanjoorLiteraryTag } from '../types/ganjoor';
 import type { UserBookmark } from '../types/user';
 
+var HISTORY_DEDUPE_WINDOW_MS = 10 * 60 * 1000;
+
 export const useReadingStore = defineStore('reading', () => {
   var currentPoem = ref<GanjoorPoem | null>(null);
   var currentPoet = ref<GanjoorPoet | null>(null);
@@ -25,10 +27,11 @@ export const useReadingStore = defineStore('reading', () => {
       var localPoem = await db.poems.where('FullUrl').equals(fullUrl).first();
       if (!localPoem) {
         // جست‌وجو با تطبیق دقیق اسلاگ
-        var all = await db.poems.toArray();
-        localPoem = all.find(function (p) {
-          return p.FullUrl.endsWith(`/${poemSlug}`);
-        });
+        localPoem = await db.poems
+          .filter(function (p) {
+            return p.FullUrl.startsWith(`/${poetSlug}/`) && p.FullUrl.endsWith(`/${poemSlug}`);
+          })
+          .first();
       }
 
       if (localPoem) {
@@ -49,14 +52,7 @@ export const useReadingStore = defineStore('reading', () => {
 
       // ثبت در تاریخچه مطالعه
       if (currentPoem.value) {
-        await db.userHistory.add({
-          poemId: currentPoem.value.Id,
-          poemTitle: currentPoem.value.Title,
-          poetName: currentPoet.value?.Nickname || poetSlug,
-          fullUrl: currentPoem.value.FullUrl,
-          type: 'read',
-          viewedAt: new Date().toISOString()
-        });
+        await recordReadHistory(currentPoem.value, poetSlug);
       }
 
       await loadBookmarks();
@@ -67,6 +63,26 @@ export const useReadingStore = defineStore('reading', () => {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  async function recordReadHistory(poem: GanjoorPoem, poetSlug: string) {
+    var lastVisit = await db.userHistory
+      .where('poemId')
+      .equals(poem.Id)
+      .and(function (h) { return h.type === 'read'; })
+      .last();
+
+    var isRecentRepeat = !!lastVisit && Date.now() - new Date(lastVisit.viewedAt).getTime() < HISTORY_DEDUPE_WINDOW_MS;
+    if (isRecentRepeat) return;
+
+    await db.userHistory.add({
+      poemId: poem.Id,
+      poemTitle: poem.Title,
+      poetName: currentPoet.value?.Nickname || poetSlug,
+      fullUrl: poem.FullUrl,
+      type: 'read',
+      viewedAt: new Date().toISOString()
+    });
   }
 
   async function loadPoet(poetSlug: string): Promise<GanjoorPoet | null> {

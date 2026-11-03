@@ -1,5 +1,9 @@
 import { db } from '../db/GhazalDB';
 import type { DailyChallengeRecord } from '../types/user';
+import { toLocalDateString } from '../utils/dateUtils';
+import { shuffle } from '../utils/random';
+
+var DEFAULT_SCORE = 15;
 
 export interface DailyChallengeStatus {
   todayRecord: DailyChallengeRecord;
@@ -13,50 +17,61 @@ export class DailyChallengeService {
    * دریافت یا تولید چالش روزانه برای تاریخ امروز
    */
   async getTodayChallenge(): Promise<DailyChallengeStatus> {
-    var todayStr = new Date().toISOString().split('T')[0];
+    var self = this;
+    var todayStr = toLocalDateString();
 
-    // ۱. بررسی اینکه آیا برای امروز رکوردی ثبت شده
-    var record = await db.dailyChallenges.where('date').equals(todayStr).first();
+    var record = await db.transaction('rw', db.dailyChallenges, async function () {
+      var existing = await db.dailyChallenges.where('date').equals(todayStr).first();
+      if (existing) return existing;
 
-    if (!record) {
-      // تولید سوال امروز بر اساس تاریخ
-      record = await this.generateChallengeForDate(todayStr);
-      var id = await db.dailyChallenges.add(record);
-      record.id = id;
-    }
+      var created = self.generateChallengeForDate(todayStr);
+      created.id = await db.dailyChallenges.add(created);
+      return created;
+    });
 
-    // ۲. محاسبه زنجیره تداوم روزانه (Streak)
-    var allRecords = await db.dailyChallenges.orderBy('date').reverse().toArray();
-    var streak = 0;
+    var allRecords = await db.dailyChallenges.toArray();
+    var byDate = new Map<string, DailyChallengeRecord>();
     var totalScore = 0;
-
-    for (var i = 0; i < allRecords.length; i++) {
-      var r = allRecords[i];
-      if (r.isCorrect) {
-        totalScore += r.score || 10;
-        streak++;
-      } else if (r.answeredAt) {
-        break;
-      }
-    }
+    allRecords.forEach(function (r) {
+      byDate.set(r.date, r);
+      if (r.isCorrect) totalScore += r.score || DEFAULT_SCORE;
+    });
 
     return {
       todayRecord: record,
       hasAnsweredToday: !!record.answeredAt,
-      streakDays: streak,
+      streakDays: this.countStreak(byDate, record),
       totalScore: totalScore
     };
   }
 
   /**
-   * ثبت پاسخ کاربر به چالش روزانه
+   * تعداد روزهای متوالیِ درست‌پاسخ‌داده‌شده؛ اگر امروز هنوز پاسخ داده نشده، از دیروز شمرده می‌شود
+   */
+  private countStreak(byDate: Map<string, DailyChallengeRecord>, today: DailyChallengeRecord): number {
+    if (today.answeredAt && !today.isCorrect) return 0;
+
+    var cursor = new Date();
+    if (!today.isCorrect) cursor.setDate(cursor.getDate() - 1);
+
+    var streak = 0;
+    while (byDate.get(toLocalDateString(cursor))?.isCorrect) {
+      streak++;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    return streak;
+  }
+
+  /**
+   * ثبت پاسخ کاربر به چالش روزانه (هر چالش فقط یک‌بار پاسخ‌پذیر است)
    */
   async submitAnswer(challengeId: number, answer: string): Promise<{ isCorrect: boolean; scoreEarned: number }> {
     var record = await db.dailyChallenges.get(challengeId);
     if (!record) return { isCorrect: false, scoreEarned: 0 };
+    if (record.answeredAt) return { isCorrect: !!record.isCorrect, scoreEarned: 0 };
 
     var isCorrect = record.correctAnswer.trim() === answer.trim();
-    var score = isCorrect ? 15 : 0;
+    var score = isCorrect ? DEFAULT_SCORE : 0;
 
     await db.dailyChallenges.update(challengeId, {
       userAnswer: answer,
@@ -68,7 +83,7 @@ export class DailyChallengeService {
     return { isCorrect: isCorrect, scoreEarned: score };
   }
 
-  private async generateChallengeForDate(dateStr: string): Promise<DailyChallengeRecord> {
+  private generateChallengeForDate(dateStr: string): DailyChallengeRecord {
     // مجموعه‌ای غنی از سوالات شاهکارهای شعر پارسی
     var challengePool = [
       {
@@ -157,7 +172,8 @@ export class DailyChallengeService {
     ];
 
     // انتخاب سوال بر اساس عدد روز
-    var dayNum = new Date(dateStr).getDate() + (new Date(dateStr).getMonth() * 31);
+    var dateParts = dateStr.split('-').map(Number);
+    var dayNum = Math.floor(Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2]) / 86400000);
     var item = challengePool[dayNum % challengePool.length];
 
     return {
@@ -168,7 +184,7 @@ export class DailyChallengeService {
       verseFirst: item.verseFirst,
       verseSecond: item.verseSecond,
       question: item.question,
-      options: [...item.options].sort(() => 0.5 - Math.random()),
+      options: shuffle(item.options),
       correctAnswer: item.correctAnswer,
       score: 15
     };

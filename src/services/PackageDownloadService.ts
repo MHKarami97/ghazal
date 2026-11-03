@@ -169,6 +169,7 @@ export class PackageDownloadService {
     var saved = this.sessionSavedIds.get(pkgId) || [];
     if (saved.length > 0) {
       await db.poems.bulkDelete(saved);
+      searchIndexService.removePoems(saved);
     }
 
     var baseline = this.baselines.get(pkgId);
@@ -427,6 +428,7 @@ export class PackageDownloadService {
     if (prefix) {
       var ids = (await db.poems.where('FullUrl').startsWith(prefix).primaryKeys()) as number[];
       await db.poems.bulkDelete(ids);
+      searchIndexService.removePoems(ids);
     }
 
     if (pkg.type === 'poet') {

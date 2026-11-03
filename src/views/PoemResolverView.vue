@@ -21,10 +21,6 @@ onMounted(async function () {
   if (poemId && !isNaN(poemId)) {
     // ۱. بررسی در IndexedDB
     var poem = await db.poems.get(poemId);
-    if (!poem) {
-      var all = await db.poems.toArray();
-      poem = all.find(function (p) { return p.Id === poemId; });
-    }
 
     if (poem && poem.FullUrl) {
       var clean = poem.FullUrl.replace(/^\/+|\/+$/g, '');
