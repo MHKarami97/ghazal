@@ -173,9 +173,10 @@
 import EmptyState from '../components/common/EmptyState.vue';
 import InlineSpinner from '../components/common/InlineSpinner.vue';
 import DownloadButton from '../components/common/DownloadButton.vue';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { cdnClient } from '../services/CDNClient';
+import { loadCategoryData } from '../services/CategoryRepository';
 import { db } from '../db/GhazalDB';
 import { useDataStore } from '../stores/dataStore';
 import { poetAnalytics, type PoetStatsResult } from '../services/PoetAnalyticsService';
@@ -201,6 +202,10 @@ onMounted(async function () {
   await loadData();
 });
 
+watch(poetSlug, function (newSlug, oldSlug) {
+  if (newSlug && newSlug !== oldSlug) void loadData();
+});
+
 async function loadData() {
   isLoading.value = true;
   try {
@@ -215,7 +220,7 @@ async function loadData() {
       }
     }
 
-    category.value = await cdnClient.getCategory(poetSlug.value);
+    category.value = await loadCategoryData(poetSlug.value);
   } catch (e) {
     console.error('Error loading poet details:', e);
   } finally {

@@ -38,14 +38,14 @@ export class PoetAnalyticsService {
    * محاسبه یا دریافت آمار جامع یک شاعر با کش ماندگار
    */
   async getPoetStats(poetSlug: string, poetName?: string): Promise<PoetStatsResult> {
-    var cacheKey = `stats:poet:${poetSlug}`;
+    var prefix = `/${poetSlug}/`;
+    var poemCount = await db.poems.where('FullUrl').startsWith(prefix).count();
+
+    // تعداد اشعار در کلید کش است تا بعد از دانلود اشعار بیشتر، آمار قدیمی نمایش داده نشود
+    var cacheKey = `stats:poet:${poetSlug}:${poemCount}`;
     return cachedCompute.getOrCompute(cacheKey, async () => {
-      // پیدا کردن تمام اشعار این شاعر در دیتابیس محلی
-      var poems = await db.poems
-        .filter(function (p) {
-          return p.FullUrl.startsWith(`/${poetSlug}/`) || p.FullUrl === `/${poetSlug}`;
-        })
-        .toArray();
+      await cachedCompute.invalidate(`stats:poet:${poetSlug}:`);
+      var poems = await db.poems.where('FullUrl').startsWith(prefix).toArray();
 
       var resolvedName = poetName || poems[0]?.FullTitle?.split('»')?.[0]?.trim() || poetSlug;
       var totalPoems = poems.length;
@@ -135,33 +135,26 @@ export class PoetAnalyticsService {
    * مقایسه تطبیقی دو شاعر بزرگ با کش محاسبات
    */
   async comparePoets(poet1Slug: string, poet2Slug: string): Promise<PoetComparisonResult> {
-    var key = `compare:${poet1Slug}:${poet2Slug}`;
-    return cachedCompute.getOrCompute(key, async () => {
-      var p1 = await this.getPoetStats(poet1Slug);
-      var p2 = await this.getPoetStats(poet2Slug);
+    var p1 = await this.getPoetStats(poet1Slug);
+    var p2 = await this.getPoetStats(poet2Slug);
 
-      var p2MetreMap = new Map<string, number>();
-      p2.topMetres.forEach(function (m) { p2MetreMap.set(m.rhythm, m.count); });
+    var p2MetreMap = new Map<string, number>();
+    p2.topMetres.forEach(function (m) { p2MetreMap.set(m.rhythm, m.count); });
 
-      var sharedMetres: { rhythm: string; count1: number; count2: number }[] = [];
-      p1.topMetres.forEach(function (m1) {
-        var c2 = p2MetreMap.get(m1.rhythm);
-        if (c2 !== undefined) {
-          sharedMetres.push({
-            rhythm: m1.rhythm,
-            count1: m1.count,
-            count2: c2
-          });
-        }
-      });
-
-      return {
-        poet1: p1,
-        poet2: p2,
-        sharedMetres: sharedMetres,
-        sharedLocations: []
-      };
+    var sharedMetres: { rhythm: string; count1: number; count2: number }[] = [];
+    p1.topMetres.forEach(function (m1) {
+      var c2 = p2MetreMap.get(m1.rhythm);
+      if (c2 !== undefined) {
+        sharedMetres.push({ rhythm: m1.rhythm, count1: m1.count, count2: c2 });
+      }
     });
+
+    return {
+      poet1: p1,
+      poet2: p2,
+      sharedMetres: sharedMetres,
+      sharedLocations: []
+    };
   }
 
   /**
@@ -177,26 +170,24 @@ export class PoetAnalyticsService {
 
     var cacheKey = `similar:${encodeURIComponent(rhythm)}:${currentPoemId}:${rhymeLetters || ''}`;
     return cachedCompute.getOrCompute(cacheKey, async () => {
-      var all = await db.poems.toArray();
-      var matches: GanjoorPoem[] = [];
+      var candidateLimit = limit * 4 + 1;
+      var candidates = await db.poems.where('Rhythm').equals(rhythm).limit(candidateLimit).toArray();
 
-      for (var i = 0; i < all.length; i++) {
-        var p = all[i];
-        if (p.Id === currentPoemId) continue;
-
-        var pRhythm = getPoemMetreRhythm(p);
-        if (pRhythm === rhythm) {
-          // ترجیح اشعاری که هم‌قافیه نیز هستند
-          if (rhymeLetters && p.RhymeLetters === rhymeLetters) {
-            matches.unshift(p);
-          } else {
-            matches.push(p);
-          }
-        }
-        if (matches.length >= limit * 2) break;
+      if (candidates.length === 0) {
+        // وزن ممکن است فقط در فیلد Metre ذخیره شده باشد
+        candidates = await db.poems
+          .filter(function (p) { return getPoemMetreRhythm(p) === rhythm; })
+          .limit(candidateLimit)
+          .toArray();
       }
 
-      return matches.slice(0, limit);
+      var others = candidates.filter(function (p) { return p.Id !== currentPoemId; });
+      if (rhymeLetters) {
+        var sameRhyme = others.filter(function (p) { return p.RhymeLetters === rhymeLetters; });
+        var differentRhyme = others.filter(function (p) { return p.RhymeLetters !== rhymeLetters; });
+        others = sameRhyme.concat(differentRhyme);
+      }
+      return others.slice(0, limit);
     });
   }
 }

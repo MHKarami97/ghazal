@@ -50,7 +50,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { exportService } from '../../services/ExportService';
+import { renderPoemCard } from '../../services/PoemCardRenderer';
 import { X, Download, Copy } from 'lucide-vue-next';
 
 var props = defineProps<{
@@ -66,18 +66,16 @@ var cardDataUrl = ref<string>('');
 
 watch(
   () => props.show,
-  function (newVal) {
-    if (newVal) {
-      setTimeout(function () {
-        var canvas = exportService.generatePoemCardCanvas(
-          props.firstMisra,
-          props.secondMisra,
-          props.poetName,
-          props.poemTitle
-        );
-        cardDataUrl.value = canvas.toDataURL('image/png');
-      }, 50);
-    }
+  async function (isShown) {
+    if (!isShown) return;
+    cardDataUrl.value = '';
+    var canvas = await renderPoemCard(
+      props.firstMisra,
+      props.secondMisra,
+      props.poetName,
+      props.poemTitle
+    );
+    cardDataUrl.value = canvas.toDataURL('image/png');
   }
 );
 
@@ -89,9 +87,13 @@ function downloadImage() {
   a.click();
 }
 
-function copyPoemText() {
+async function copyPoemText() {
   var text = `${props.firstMisra}\n${props.secondMisra}\n\n— ${props.poetName}`;
-  navigator.clipboard.writeText(text);
-  alert('متن بیت در کلیپ‌بورد کپی شد.');
+  try {
+    await navigator.clipboard.writeText(text);
+    alert('متن بیت در کلیپ‌بورد کپی شد.');
+  } catch (error) {
+    alert('کپی انجام نشد. مجوز دسترسی به کلیپ‌بورد را بررسی کنید.');
+  }
 }
 </script>

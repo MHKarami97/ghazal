@@ -15,55 +15,7 @@ export const useReadingStore = defineStore('reading', () => {
   var selectedLiteraryTag = ref<GanjoorLiteraryTag | null>(null);
   var isLoading = ref<boolean>(false);
   var error = ref<string | null>(null);
-
-  async function loadPoem(poetSlug: string, catPath: string, poemSlug: string): Promise<GanjoorPoem | null> {
-    isLoading.value = true;
-    error.value = null;
-
-    try {
-      var fullUrl = `/${poetSlug}/${catPath ? catPath + '/' : ''}${poemSlug}`.replace(/\/+/g, '/');
-
-      // ۱. ابتدا جست‌وجو در IndexedDB محلی
-      var localPoem = await db.poems.where('FullUrl').equals(fullUrl).first();
-      if (!localPoem) {
-        // جست‌وجو با تطبیق دقیق اسلاگ
-        localPoem = await db.poems
-          .filter(function (p) {
-            return p.FullUrl.startsWith(`/${poetSlug}/`) && p.FullUrl.endsWith(`/${poemSlug}`);
-          })
-          .first();
-      }
-
-      if (localPoem) {
-        currentPoem.value = localPoem;
-      } else {
-        // ۲. دریافت Lazy از CDN و ذخیره در دیتابیس
-        var remotePoem = await cdnClient.getPoem(poetSlug, catPath, poemSlug);
-        currentPoem.value = remotePoem;
-        if (remotePoem) {
-          await db.poems.put(JSON.parse(JSON.stringify(remotePoem)));
-        }
-      }
-
-      // بارگذاری بیوگرافی شاعر در صورت عدم وجود
-      if (!currentPoet.value || !currentPoet.value.FullUrl.includes(poetSlug)) {
-        await loadPoet(poetSlug);
-      }
-
-      // ثبت در تاریخچه مطالعه
-      if (currentPoem.value) {
-        await recordReadHistory(currentPoem.value, poetSlug);
-      }
-
-      await loadBookmarks();
-      return currentPoem.value;
-    } catch (err: any) {
-      error.value = `خطا در بارگذاری شعر: ${err.message}`;
-      return null;
-    } finally {
-      isLoading.value = false;
-    }
-  }
+  var latestLoadId = 0;
 
   async function recordReadHistory(poem: GanjoorPoem, poetSlug: string) {
     var lastVisit = await db.userHistory
@@ -83,6 +35,61 @@ export const useReadingStore = defineStore('reading', () => {
       type: 'read',
       viewedAt: new Date().toISOString()
     });
+  }
+
+  async function findLocalPoem(poetSlug: string, poemSlug: string, fullUrl: string): Promise<GanjoorPoem | undefined> {
+    var exact = await db.poems.where('FullUrl').equals(fullUrl).first();
+    if (exact) return exact;
+
+    return db.poems
+      .filter(function (p) {
+        return p.FullUrl.startsWith(`/${poetSlug}/`) && p.FullUrl.endsWith(`/${poemSlug}`);
+      })
+      .first();
+  }
+
+  /**
+   * بارگذاری شعر. اگر کاربر وسط کار به شعر دیگری برود، نتیجهٔ درخواست قدیمی دور ریخته می‌شود (null).
+   */
+  async function loadPoem(poetSlug: string, catPath: string, poemSlug: string): Promise<GanjoorPoem | null> {
+    var loadId = ++latestLoadId;
+    var isStale = function () { return loadId !== latestLoadId; };
+
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      var fullUrl = `/${poetSlug}/${catPath ? catPath + '/' : ''}${poemSlug}`.replace(/\/+/g, '/');
+
+      var poem = await findLocalPoem(poetSlug, poemSlug, fullUrl);
+      if (!poem) {
+        var remotePoem = await cdnClient.getPoem(poetSlug, catPath, poemSlug);
+        if (remotePoem) {
+          await db.poems.put(JSON.parse(JSON.stringify(remotePoem)));
+        }
+        poem = remotePoem;
+      }
+      if (isStale()) return null;
+
+      if (!currentPoet.value || !currentPoet.value.FullUrl.includes(poetSlug)) {
+        await loadPoet(poetSlug);
+        if (isStale()) return null;
+      }
+
+      currentPoem.value = poem || null;
+
+      if (poem) {
+        await recordReadHistory(poem, poetSlug);
+      }
+
+      await loadBookmarks();
+      return isStale() ? null : currentPoem.value;
+    } catch (err: any) {
+      if (!isStale()) error.value = `خطا در بارگذاری شعر: ${err.message}`;
+      return null;
+    } finally {
+      if (!isStale()) isLoading.value = false;
+    }
   }
 
   async function loadPoet(poetSlug: string): Promise<GanjoorPoet | null> {

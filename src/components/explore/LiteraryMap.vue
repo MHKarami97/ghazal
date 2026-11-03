@@ -120,6 +120,16 @@ var isLoading = ref<boolean>(true);
 var mapInstance: any = null;
 var markersGroup: any = null;
 var LeafletLib: any = null;
+var isUnmounted = false;
+
+function escapeHtml(value: string): string {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 var selectedLocationGeotags = computed(function () {
   if (!selectedLocation.value) return [];
@@ -142,6 +152,7 @@ onMounted(async function () {
 });
 
 onUnmounted(function () {
+  isUnmounted = true;
   if (mapInstance) {
     mapInstance.remove();
     mapInstance = null;
@@ -153,7 +164,7 @@ async function initMap() {
     LeafletLib = await import('leaflet');
     var L = LeafletLib.default || LeafletLib;
 
-    if (!mapContainer.value) return;
+    if (isUnmounted || !mapContainer.value) return;
 
     // ایجاد نقشه با تنظیمات بهینه
     mapInstance = L.map(mapContainer.value, {
@@ -216,7 +227,7 @@ function renderMarkers() {
 
       marker.bindPopup(`
         <div style="font-family: Vazirmatn, sans-serif; text-align: right; direction: rtl; padding: 4px;">
-          <b style="font-size: 14px; color: #c2410c;">${loc.Name}</b>
+          <b style="font-size: 14px; color: #c2410c;">${escapeHtml(loc.Name)}</b>
           <div style="font-size: 11px; color: #64748b; margin-top: 4px;">دیار و مکان تاریخی در ادبیات فارسی</div>
         </div>
       `);

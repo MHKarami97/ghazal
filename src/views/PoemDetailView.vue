@@ -266,15 +266,21 @@ onMounted(async function () {
 
 watch(() => route.params, loadPoem);
 
+var latestLoadId = 0;
+
 async function loadPoem() {
   if (!poemSlug.value) return;
+
+  var loadId = ++latestLoadId;
+  var isStale = function () { return loadId !== latestLoadId; };
 
   isBooting.value = true;
   try {
     await readingStore.loadPoem(poetSlug.value, catPath.value, poemSlug.value);
   } finally {
-    isBooting.value = false;
+    if (!isStale()) isBooting.value = false;
   }
+  if (isStale()) return;
 
   var coupletParam = route.query.couplet;
   if (coupletParam !== undefined && coupletParam !== null && coupletParam !== '') {
@@ -292,11 +298,12 @@ async function loadPoem() {
 
   // بارگذاری اشعار هم‌وزن از کش
   if (readingStore.currentPoem && poemRhythm.value) {
-    similarPoems.value = await poetAnalytics.getSimilarMetrePoems(
+    var similar = await poetAnalytics.getSimilarMetrePoems(
       poemRhythm.value,
       readingStore.currentPoem.Id,
       readingStore.currentPoem.RhymeLetters
     );
+    if (!isStale()) similarPoems.value = similar;
   } else {
     similarPoems.value = [];
   }

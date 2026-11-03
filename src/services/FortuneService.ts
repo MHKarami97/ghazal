@@ -137,23 +137,18 @@ export class FortuneService {
     var targetSlug = 'sh' + targetNum;
     var targetFullUrl = `/hafez/ghazal/${targetSlug}`;
 
-    // ۱. بررسی اشعار دانلودشده در دستگاه کاربر
-    var allCached = await db.poems.filter(function (p) {
-      return !!p.Verses && p.Verses.length >= 2;
-    }).toArray();
-
-    // اگر کاربر بسته کاملی دانلود کرده (بیش از ۲۰ شعر)، از میان اشعار دانلودشده‌اش شعر روز را انتخاب کن
-    if (allCached.length >= 20) {
+    // ۱. اگر کاربر بسته‌ای دانلود کرده (بیش از ۲۰ شعر)، شعر روز را از میان اشعار دانلودشده انتخاب کن
+    //    (بدون بارگذاری کل جدول؛ فقط یک رکورد با offset خوانده می‌شود)
+    var totalPoems = await db.poems.count();
+    if (totalPoems >= 20) {
       var daySeed = (now.getFullYear() * 372) + ((now.getMonth() + 1) * 31) + now.getDate();
-      var selectedIdx = Math.abs((daySeed * 7919 + 104729) % allCached.length);
-      return allCached[selectedIdx];
+      var seededPoem = await this.readPoemNear(Math.abs((daySeed * 7919 + 104729) % totalPoems), totalPoems);
+      if (seededPoem) return seededPoem;
     }
 
     // ۲. در غیر این صورت، غزل تعیین‌شده برای امروز را در حافظه محلی بررسی کن
-    var cachedToday = allCached.find(function (p) {
-      return p.FullUrl === targetFullUrl || p.FullUrl.endsWith('/' + targetSlug);
-    });
-    if (cachedToday) {
+    var cachedToday = await db.poems.where('FullUrl').equals(targetFullUrl).first();
+    if (cachedToday && cachedToday.Verses && cachedToday.Verses.length >= 2) {
       return cachedToday;
     }
 
@@ -169,8 +164,9 @@ export class FortuneService {
     }
 
     // ۴. در صورت آفلاین بودن، از میان اشعار موجود در دستگاه بر اساس روز سال برگردان
-    if (allCached.length > 0) {
-      return allCached[dayOfYear % allCached.length];
+    if (totalPoems > 0) {
+      var offlinePoem = await this.readPoemNear(dayOfYear % totalPoems, totalPoems);
+      if (offlinePoem) return offlinePoem;
     }
 
     // ۵. آخرین پشتیبان
@@ -185,6 +181,18 @@ export class FortuneService {
     }
 
     return DEFAULT_FALLBACK_POEM;
+  }
+
+  /**
+   * خواندن یک شعر معتبر (حداقل دو مصرع) از موقعیت مشخص جدول، با چرخش به رکوردهای بعدی
+   */
+  private async readPoemNear(startOffset: number, total: number): Promise<GanjoorPoem | null> {
+    var maxAttempts = Math.min(total, 10);
+    for (var attempt = 0; attempt < maxAttempts; attempt++) {
+      var poem = await db.poems.offset((startOffset + attempt) % total).first();
+      if (poem && poem.Verses && poem.Verses.length >= 2) return poem;
+    }
+    return null;
   }
 
   /**

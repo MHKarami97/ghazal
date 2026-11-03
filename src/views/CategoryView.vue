@@ -68,7 +68,7 @@
 import DownloadButton from '../components/common/DownloadButton.vue';
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { cdnClient } from '../services/CDNClient';
+import { loadCategoryData } from '../services/CategoryRepository';
 import { useDataStore } from '../stores/dataStore';
 import { toPersianDigits } from '../utils/persianNormalizer';
 import LoadingState from '../components/common/LoadingState.vue';
@@ -98,7 +98,7 @@ async function loadCategory() {
   if (!poetSlug.value) return;
   isLoading.value = true;
   try {
-    category.value = await cdnClient.getCategory(poetSlug.value, catPath.value);
+    category.value = await loadCategoryData(poetSlug.value, catPath.value);
   } catch (err) {
     console.error('Error loading category:', err);
   } finally {

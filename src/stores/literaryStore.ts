@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { db } from '../db/GhazalDB';
 import { cdnClient } from '../services/CDNClient';
 import type {
@@ -15,6 +15,8 @@ import type {
   GanjoorLiteraryConcept
 } from '../types/ganjoor';
 
+var RETRY_INTERVAL_MS = 60 * 1000;
+
 export const useLiteraryStore = defineStore('literary', () => {
   var devices = ref<GanjoorLiteraryDevice[]>([]);
   var sources = ref<GanjoorLiterarySource[]>([]);
@@ -29,183 +31,95 @@ export const useLiteraryStore = defineStore('literary', () => {
   var isLoaded = ref<boolean>(false);
   var isLoading = ref<boolean>(false);
 
-  async function loadBaseMeta() {
-    if (isLoaded.value) return;
-    isLoading.value = true;
+  var failedKeys: string[] = [];
+  var lastAttemptAt = 0;
+  var loadPromise: Promise<void> | null = null;
 
+  var personById = computed(function () {
+    return new Map<number, GanjoorPerson>(people.value.map(function (p) { return [p.Id, p] as [number, GanjoorPerson]; }));
+  });
+  var locationById = computed(function () {
+    return new Map<number, GanjoorLocation>(locations.value.map(function (l) { return [l.Id, l] as [number, GanjoorLocation]; }));
+  });
+  var deviceById = computed(function () {
+    return new Map<number, GanjoorLiteraryDevice>(devices.value.map(function (d) { return [d.Id, d] as [number, GanjoorLiteraryDevice]; }));
+  });
+
+  interface MetaLoader {
+    key: string;
+    fetch: () => Promise<unknown>;
+    assign: (data: any) => void;
+  }
+
+  var metaLoaders: MetaLoader[] = [
+    { key: 'devices', fetch: function () { return cdnClient.getLiteraryDevices(); }, assign: function (d) { devices.value = d; } },
+    { key: 'sources', fetch: function () { return cdnClient.getLiterarySources(); }, assign: function (d) { sources.value = d; } },
+    { key: 'metres', fetch: function () { return cdnClient.getMetres(); }, assign: function (d) { metres.value = d; } },
+    { key: 'locations', fetch: function () { return cdnClient.getLocations(); }, assign: function (d) { locations.value = d; } },
+    { key: 'people', fetch: function () { return cdnClient.getPeople(); }, assign: function (d) { people.value = d; } },
+    { key: 'relations', fetch: function () { return cdnClient.getPersonRelations(); }, assign: function (d) { relations.value = d; } },
+    { key: 'affiliations', fetch: function () { return cdnClient.getPersonAffiliations(); }, assign: function (d) { affiliations.value = d; } },
+    { key: 'geotags', fetch: function () { return cdnClient.getGeotags(); }, assign: function (d) { geotags.value = d; } },
+    { key: 'languages', fetch: function () { return cdnClient.getLanguages(); }, assign: function (d) { languages.value = d; } },
+    { key: 'concepts', fetch: function () { return cdnClient.getLiteraryConcepts(); }, assign: function (d) { concepts.value = d; } }
+  ];
+
+  /** ابتدا IndexedDB، سپس شبکه؛ نتیجهٔ موفق در IndexedDB ذخیره می‌شود */
+  async function loadMeta(loader: MetaLoader): Promise<boolean> {
     try {
-      // بررسی و بارگذاری ابزارها و صنایع ادبی
-      try {
-        var devRecord = await db.baseMeta.get('devices');
-        if (devRecord && devRecord.data) {
-          devices.value = devRecord.data;
-        } else {
-          var rawDev = await cdnClient.getLiteraryDevices();
-          if (rawDev) {
-            await db.baseMeta.put({ key: 'devices', data: JSON.parse(JSON.stringify(rawDev)), updatedAt: new Date().toISOString() });
-            devices.value = rawDev;
-          }
-        }
-      } catch (eDev) {
-        console.warn('Could not load literary devices:', eDev);
+      var record = await db.baseMeta.get(loader.key);
+      if (record && record.data) {
+        loader.assign(record.data);
+        return true;
       }
 
-      // منابع ادبی
-      try {
-        var srcRecord = await db.baseMeta.get('sources');
-        if (srcRecord && srcRecord.data) {
-          sources.value = srcRecord.data;
-        } else {
-          var rawSrc = await cdnClient.getLiterarySources();
-          if (rawSrc) {
-            await db.baseMeta.put({ key: 'sources', data: JSON.parse(JSON.stringify(rawSrc)), updatedAt: new Date().toISOString() });
-            sources.value = rawSrc;
-          }
-        }
-      } catch (eSrc) {
-        console.warn('Could not load literary sources:', eSrc);
-      }
+      var raw = await loader.fetch();
+      if (!raw) return false;
 
-      // اوزان عروضی
-      try {
-        var metresRecord = await db.baseMeta.get('metres');
-        if (metresRecord && metresRecord.data) {
-          metres.value = metresRecord.data;
-        } else {
-          var rawMetres = await cdnClient.getMetres();
-          if (rawMetres) {
-            await db.baseMeta.put({ key: 'metres', data: JSON.parse(JSON.stringify(rawMetres)), updatedAt: new Date().toISOString() });
-            metres.value = rawMetres;
-          }
-        }
-      } catch (eMetres) {
-        console.warn('Could not load metres:', eMetres);
-      }
-
-      // مکان‌ها و دیارها
-      try {
-        var locsRecord = await db.baseMeta.get('locations');
-        if (locsRecord && locsRecord.data) {
-          locations.value = locsRecord.data;
-        } else {
-          var rawLocs = await cdnClient.getLocations();
-          if (rawLocs) {
-            await db.baseMeta.put({ key: 'locations', data: JSON.parse(JSON.stringify(rawLocs)), updatedAt: new Date().toISOString() });
-            locations.value = rawLocs;
-          }
-        }
-      } catch (eLocs) {
-        console.warn('Could not load locations:', eLocs);
-      }
-
-      // اشخاص و مفاخر
-      try {
-        var peopleRecord = await db.baseMeta.get('people');
-        if (peopleRecord && peopleRecord.data) {
-          people.value = peopleRecord.data;
-        } else {
-          var rawPeople = await cdnClient.getPeople();
-          if (rawPeople) {
-            await db.baseMeta.put({ key: 'people', data: JSON.parse(JSON.stringify(rawPeople)), updatedAt: new Date().toISOString() });
-            people.value = rawPeople;
-          }
-        }
-      } catch (ePeople) {
-        console.warn('Could not load people:', ePeople);
-      }
-
-      // روابط و تبارشناسی اشخاص
-      try {
-        var relsRecord = await db.baseMeta.get('relations');
-        if (relsRecord && relsRecord.data) {
-          relations.value = relsRecord.data;
-        } else {
-          var rawRels = await cdnClient.getPersonRelations();
-          if (rawRels) {
-            await db.baseMeta.put({ key: 'relations', data: JSON.parse(JSON.stringify(rawRels)), updatedAt: new Date().toISOString() });
-            relations.value = rawRels;
-          }
-        }
-      } catch (eRels) {
-        console.warn('Could not load relations:', eRels);
-      }
-
-      // وابستگی‌ها و هم‌پیمانی‌ها
-      try {
-        var affsRecord = await db.baseMeta.get('affiliations');
-        if (affsRecord && affsRecord.data) {
-          affiliations.value = affsRecord.data;
-        } else {
-          var rawAffs = await cdnClient.getPersonAffiliations();
-          if (rawAffs) {
-            await db.baseMeta.put({ key: 'affiliations', data: JSON.parse(JSON.stringify(rawAffs)), updatedAt: new Date().toISOString() });
-            affiliations.value = rawAffs;
-          }
-        }
-      } catch (eAffs) {
-        console.warn('Could not load affiliations:', eAffs);
-      }
-
-      // برچسب‌های جغرافیایی ابیات
-      try {
-        var geoRecord = await db.baseMeta.get('geotags');
-        if (geoRecord && geoRecord.data) {
-          geotags.value = geoRecord.data;
-        } else {
-          var rawGeo = await cdnClient.getGeotags();
-          if (rawGeo) {
-            await db.baseMeta.put({ key: 'geotags', data: JSON.parse(JSON.stringify(rawGeo)), updatedAt: new Date().toISOString() });
-            geotags.value = rawGeo;
-          }
-        }
-      } catch (eGeo) {
-        console.warn('Could not load geotags:', eGeo);
-      }
-
-      // زبان‌ها و گویش‌ها
-      try {
-        var langRecord = await db.baseMeta.get('languages');
-        if (langRecord && langRecord.data) {
-          languages.value = langRecord.data;
-        } else {
-          var rawLang = await cdnClient.getLanguages();
-          if (rawLang) {
-            await db.baseMeta.put({ key: 'languages', data: JSON.parse(JSON.stringify(rawLang)), updatedAt: new Date().toISOString() });
-            languages.value = rawLang;
-          }
-        }
-      } catch (eLang) {
-        console.warn('Could not load languages:', eLang);
-      }
-
-      // مفاهیم ادبی
-      try {
-        var conceptRecord = await db.baseMeta.get('concepts');
-        if (conceptRecord && conceptRecord.data) {
-          concepts.value = conceptRecord.data;
-        } else {
-          var rawConcepts = await cdnClient.getLiteraryConcepts();
-          if (rawConcepts) {
-            await db.baseMeta.put({ key: 'concepts', data: JSON.parse(JSON.stringify(rawConcepts)), updatedAt: new Date().toISOString() });
-            concepts.value = rawConcepts;
-          }
-        }
-      } catch (eConcept) {
-        console.warn('Could not load concepts:', eConcept);
-      }
-
-      isLoaded.value = true;
+      await db.baseMeta.put({
+        key: loader.key,
+        data: JSON.parse(JSON.stringify(raw)),
+        updatedAt: new Date().toISOString()
+      });
+      loader.assign(raw);
+      return true;
     } catch (err) {
-      console.error('Error loading literary base meta:', err);
+      console.warn(`Could not load ${loader.key}:`, err);
+      return false;
+    }
+  }
+
+  async function runLoad(): Promise<void> {
+    isLoading.value = true;
+    try {
+      var results = await Promise.all(metaLoaders.map(loadMeta));
+      failedKeys = metaLoaders
+        .filter(function (_loader, index) { return !results[index]; })
+        .map(function (loader) { return loader.key; });
+      isLoaded.value = true;
     } finally {
+      lastAttemptAt = Date.now();
       isLoading.value = false;
     }
   }
 
-  function getDeviceById(id: number): GanjoorLiteraryDevice | undefined {
-    return devices.value.find(function (d) {
-      return d.Id === id;
+  /**
+   * بارگذاری موازی و بدون تکرار. موارد ناموفق (مثلاً آفلاین) حداکثر هر ۶۰ ثانیه دوباره امتحان می‌شوند.
+   */
+  function loadBaseMeta(): Promise<void> {
+    if (loadPromise) return loadPromise;
+
+    var isFresh = isLoaded.value && (failedKeys.length === 0 || Date.now() - lastAttemptAt < RETRY_INTERVAL_MS);
+    if (isFresh) return Promise.resolve();
+
+    loadPromise = runLoad().finally(function () {
+      loadPromise = null;
     });
+    return loadPromise;
+  }
+
+  function getDeviceById(id: number): GanjoorLiteraryDevice | undefined {
+    return deviceById.value.get(id);
   }
 
   function getSourceByKey(key: string): GanjoorLiterarySource | undefined {
@@ -215,15 +129,11 @@ export const useLiteraryStore = defineStore('literary', () => {
   }
 
   function getPersonById(id: number): GanjoorPerson | undefined {
-    return people.value.find(function (p) {
-      return p.Id === id;
-    });
+    return personById.value.get(id);
   }
 
   function getLocationById(id: number): GanjoorLocation | undefined {
-    return locations.value.find(function (l) {
-      return l.Id === id;
-    });
+    return locationById.value.get(id);
   }
 
   function getGeotagsForLocation(locId: number): GanjoorGeotag[] {

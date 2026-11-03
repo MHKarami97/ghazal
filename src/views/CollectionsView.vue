@@ -240,8 +240,8 @@ onMounted(async function () {
   await loadCollections();
 });
 
-async function loadCollections() {
-  isLoading.value = true;
+async function loadCollections(showSpinner = true) {
+  isLoading.value = showSpinner;
   try {
     collections.value = await collectionService.getCollections();
     if (collections.value.length > 0 && !activeCollectionId.value) {
@@ -266,13 +266,13 @@ async function onDeleteCollection(colId: number) {
   if (confirm('آیا از حذف این مجموعه اطمینان دارید؟')) {
     await collectionService.deleteCollection(colId);
     activeCollectionId.value = undefined;
-    await loadCollections();
+    await loadCollections(false);
   }
 }
 
 async function onRemoveItem(colId: number, poemId: number, coupletIndex?: number) {
   await collectionService.removeItemFromCollection(colId, poemId, coupletIndex);
-  await loadCollections();
+  await loadCollections(false);
 }
 
 function printCollection() {

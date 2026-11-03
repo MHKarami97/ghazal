@@ -72,6 +72,7 @@
 import DownloadButton from '../components/common/DownloadButton.vue';
 import { ref, computed, onMounted } from 'vue';
 import { useDataStore } from '../stores/dataStore';
+import { normalizePersian } from '../utils/persianNormalizer';
 import LoadingState from '../components/common/LoadingState.vue';
 import type { GanjoorPoetRef } from '../types/ganjoor';
 import { Search, Download, CheckCircle } from 'lucide-vue-next';
@@ -86,9 +87,9 @@ onMounted(async function () {
 var filteredPoets = computed(function () {
   var list = dataStore.poets;
   if (!search.value.trim()) return list;
-  var q = search.value.trim();
+  var q = normalizePersian(search.value);
   return list.filter(function (p) {
-    return p.Nickname.includes(q);
+    return normalizePersian(p.Nickname).includes(q);
   });
 });
 
