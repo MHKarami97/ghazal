@@ -45,7 +45,21 @@
         </div>
       </div>
 
-      <div class="flex items-center justify-center gap-3 pt-4">
+      <div v-if="wrongAnswers.length > 0" class="text-right space-y-2">
+        <h4 class="text-sm font-bold text-ink-900 dark:text-ink-100">موارد نیازمند مرور</h4>
+        <div
+          v-for="item in wrongAnswers"
+          :key="item.question.id"
+          class="p-3 rounded-xl bg-rose-500/5 border border-rose-500/20 text-xs leading-relaxed"
+        >
+          <div class="font-bold text-brand-700 dark:text-brand-300 mb-1">
+            {{ item.question.poetName }} » {{ item.question.poemTitle }}
+          </div>
+          <div class="text-ink-700 dark:text-ink-300">{{ item.question.answer }}</div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-center gap-3 pt-4">
         <button
           @click="restartQuiz"
           class="py-3 px-6 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md transition-colors"
@@ -76,7 +90,7 @@
       </div>
 
       <!-- کامپوننت آزمون متناسب با Mode -->
-      <div class="mt-6">
+      <div class="mt-6" :key="currentQuestion.id">
         <QuizCloze
           v-if="mode === 'cloze'"
           :question="currentQuestion"
@@ -120,9 +134,13 @@
       v-else
       class="p-8 rounded-3xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border text-center space-y-4"
     >
-      <h4 class="font-bold text-base text-ink-900 dark:text-ink-100">سؤالی برای این آزمون یافت نشد</h4>
+      <h4 class="font-bold text-base text-ink-900 dark:text-ink-100">
+        {{ isDueOnly ? 'کارتی برای مرور امروز وجود ندارد' : 'سؤالی برای این آزمون یافت نشد' }}
+      </h4>
       <p class="text-xs text-ink-500 max-w-md mx-auto leading-relaxed">
-        برای تمرین در این حالت، می‌توانید ابیاتی را به فهرست حفظ اضافه نمایید یا از بخش شاعران، دیوان شعر دلخواهتان را برای استفاده آفلاین دانلود فرمایید.
+        {{ isDueOnly
+          ? 'همهٔ کارت‌های این فهرست مرور شده‌اند. می‌توانید یکی از حالت‌های تمرین آزاد را انتخاب کنید.'
+          : 'برای تمرین در این حالت، می‌توانید ابیاتی را به فهرست حفظ اضافه نمایید یا از بخش شاعران، دیوان شعر دلخواهتان را برای استفاده آفلاین دانلود فرمایید.' }}
       </p>
       <router-link
         to="/memorize"
@@ -135,7 +153,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { quizService } from '../services/QuizService';
 import { useMemorizeStore } from '../stores/memorizeStore';
@@ -151,6 +169,15 @@ import QuizGuessDevice from '../components/memorize/QuizGuessDevice.vue';
 import QuizWordHiding from '../components/memorize/QuizWordHiding.vue';
 import { Award } from 'lucide-vue-next';
 
+interface WrongAnswer {
+  question: QuizQuestion;
+  answer: string;
+}
+
+var QUESTION_COUNT = 10;
+var GRADE_CORRECT = 4;
+var GRADE_WRONG = 0;
+
 var route = useRoute();
 var memorizeStore = useMemorizeStore();
 
@@ -158,26 +185,57 @@ var mode = computed(function () {
   return (route.params.mode as QuizMode) || 'multiple_choice';
 });
 
+var deckId = computed<number | undefined>(function () {
+  var raw = Array.isArray(route.query.deck) ? route.query.deck[0] : route.query.deck;
+  if (raw === undefined || raw === null || raw === '') return undefined;
+  var parsed = Number(raw);
+  return Number.isFinite(parsed) ? parsed : undefined;
+});
+
+var isDueOnly = computed(function () {
+  return route.query.due === '1';
+});
+
 var questions = ref<QuizQuestion[]>([]);
+var wrongAnswers = ref<WrongAnswer[]>([]);
 var currentIndex = ref<number>(0);
 var correctCount = ref<number>(0);
 var answeredCount = ref<number>(0);
 var isLoading = ref<boolean>(true);
 var isFinished = ref<boolean>(false);
+var isProcessing = ref<boolean>(false);
+var sessionToken = 0;
 
 onMounted(startQuiz);
 
+watch(
+  function () {
+    return route.fullPath;
+  },
+  function () {
+    startQuiz();
+  }
+);
+
 async function startQuiz() {
+  var token = ++sessionToken;
   isLoading.value = true;
   isFinished.value = false;
+  isProcessing.value = false;
   currentIndex.value = 0;
   correctCount.value = 0;
   answeredCount.value = 0;
+  wrongAnswers.value = [];
 
   try {
-    questions.value = await quizService.generateQuestions(mode.value, 10);
+    var generated = await quizService.generateQuestions(mode.value, QUESTION_COUNT, deckId.value, isDueOnly.value);
+    if (token !== sessionToken) return;
+    questions.value = generated;
+  } catch (error) {
+    console.error('Quiz generation failed', error);
+    if (token === sessionToken) questions.value = [];
   } finally {
-    isLoading.value = false;
+    if (token === sessionToken) isLoading.value = false;
   }
 }
 
@@ -190,30 +248,38 @@ var accuracyPercent = computed(function () {
   return Math.min(100, Math.round((correctCount.value / answeredCount.value) * 100));
 });
 
+async function updateSchedule(question: QuizQuestion, isCorrect: boolean) {
+  if (question.cardId === undefined) return;
+  try {
+    await memorizeStore.reviewCardById(question.cardId, isCorrect ? GRADE_CORRECT : GRADE_WRONG);
+  } catch (error) {
+    console.error('SM-2 update failed', error);
+  }
+}
+
 async function handleAnswer(payload: { isCorrect: boolean; answer: string }) {
-  if (isFinished.value) return;
+  var question = currentQuestion.value;
+  if (!question || isFinished.value || isProcessing.value) return;
 
-  answeredCount.value++;
-  if (payload.isCorrect) {
-    correctCount.value++;
-  }
-
-  // اگر سوال مربوط به کارت است، الگوریتم SM-2 را به روزرسانی کن
-  if (currentQuestion.value?.cardId) {
-    var card = memorizeStore.cards.find(function (c) {
-      return c.id === currentQuestion.value?.cardId;
-    });
-    if (card) {
-      var grade = payload.isCorrect ? 4 : 0;
-      await memorizeStore.reviewCard(card, grade as any);
+  isProcessing.value = true;
+  try {
+    answeredCount.value++;
+    if (payload.isCorrect) {
+      correctCount.value++;
+    } else {
+      wrongAnswers.value.push({ question: question, answer: payload.answer });
     }
-  }
 
-  if (currentIndex.value < questions.value.length - 1) {
-    currentIndex.value++;
-  } else {
-    isFinished.value = true;
-    triggerConfetti();
+    await updateSchedule(question, payload.isCorrect);
+
+    if (currentIndex.value < questions.value.length - 1) {
+      currentIndex.value++;
+    } else {
+      isFinished.value = true;
+      triggerConfetti();
+    }
+  } finally {
+    isProcessing.value = false;
   }
 }
 
@@ -222,6 +288,7 @@ function restartQuiz() {
 }
 
 function triggerConfetti() {
+  if (correctCount.value === 0) return;
   import('canvas-confetti').then(function (confetti) {
     confetti.default({
       particleCount: 80,

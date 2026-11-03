@@ -101,10 +101,6 @@ function submit() {
 
   setTimeout(function () {
     emit('answered', { isCorrect: isCorrect, answer: inputAnswer.value });
-    inputAnswer.value = '';
-    isSubmitted.value = false;
-    hintText.value = '';
-    feedback.value = null;
   }, 1800);
 }
 </script>

@@ -1,5 +1,6 @@
 import { db } from '../db/GhazalDB';
 import type { MemorizeCard, CardStatus } from '../types/user';
+import { addDaysToToday, toLocalDateString } from '../utils/dateUtils';
 
 export type ReviewGrade = 0 | 3 | 4 | 5; // 0: دوباره (Again), 3: سخت (Hard), 4: خوب (Good), 5: آسان (Easy)
 
@@ -9,52 +10,40 @@ export interface ReviewResult {
   nextDueDate: string;
 }
 
+var MASTERED_REP_COUNT = 5;
+var MIN_EASE_FACTOR = 1.3;
+var DEFAULT_EASE_FACTOR = 2.5;
+
 export class SpacedRepetitionService {
   /**
-   * محاسبه وضعیت بعدی کارت با الگوریتم تکرار فاصله‌دار SM-2
+   * محاسبه وضعیت بعدی کارت بر اساس الگوریتم SM-2 (Wozniak, 1990)
    */
   calculateNextSchedule(card: MemorizeCard, grade: ReviewGrade): ReviewResult {
     var repCount = card.repCount || 0;
     var intervalDays = card.intervalDays || 1;
-    var easeFactor = card.easeFactor || 2.5;
+    var easeFactor = card.easeFactor || DEFAULT_EASE_FACTOR;
     var status: CardStatus = card.status;
 
     if (grade < 3) {
-      // پاسخ ناموفق: ریست دوره‌ها و تکرار در روز بعد
+      // طبق SM-2: بدون تغییر E-Factor، تکرارها از ابتدا شروع می‌شوند
       repCount = 0;
       intervalDays = 1;
       status = 'learning';
     } else {
-      // پاسخ موفق: محاسبه فواصل زمانی
       if (repCount === 0) {
         intervalDays = 1;
       } else if (repCount === 1) {
         intervalDays = 6;
       } else {
-        intervalDays = Math.round(intervalDays * easeFactor);
+        intervalDays = Math.ceil(intervalDays * easeFactor);
       }
 
       repCount++;
-
-      if (repCount >= 5) {
-        status = 'mastered';
-      } else {
-        status = 'review';
-      }
+      status = repCount >= MASTERED_REP_COUNT ? 'mastered' : 'review';
+      easeFactor = this.nextEaseFactor(easeFactor, grade);
     }
 
-    // به‌روزرسانی ضریب آسانی (Ease Factor) با فرمول استاندارد SM-2
-    // EF' = EF + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02))
-    var q = grade;
-    easeFactor = easeFactor + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02));
-    if (easeFactor < 1.3) {
-      easeFactor = 1.3;
-    }
-
-    // محاسبه تاریخ سررسید بعدی (YYYY-MM-DD)
-    var nextDate = new Date();
-    nextDate.setDate(nextDate.getDate() + intervalDays);
-    var nextDueDateStr = nextDate.toISOString().split('T')[0];
+    var nextDueDate = addDaysToToday(intervalDays);
 
     var updatedCard: MemorizeCard = {
       ...card,
@@ -62,43 +51,54 @@ export class SpacedRepetitionService {
       intervalDays: intervalDays,
       easeFactor: Number(easeFactor.toFixed(2)),
       status: status,
-      dueDate: nextDueDateStr,
+      dueDate: nextDueDate,
       lastReviewDate: new Date().toISOString()
     };
 
     return {
       card: updatedCard,
       nextIntervalDays: intervalDays,
-      nextDueDate: nextDueDateStr
+      nextDueDate: nextDueDate
     };
   }
 
   /**
-   * دریافت کارت‌های نیازمند مرور برای امروز
+   * EF' = EF + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02)) با کف ۱.۳
    */
-  async getDueCards(deckId?: number): Promise<MemorizeCard[]> {
-    var todayStr = new Date().toISOString().split('T')[0];
-    var query = db.memorizeCards.where('dueDate').belowOrEqual(todayStr);
-
-    var cards = await query.toArray();
-    if (deckId !== undefined) {
-      cards = cards.filter(function (c) {
-        return c.deckId === deckId;
-      });
-    }
-
-    return cards;
+  private nextEaseFactor(easeFactor: number, grade: number): number {
+    var distance = 5 - grade;
+    var next = easeFactor + (0.1 - distance * (0.08 + distance * 0.02));
+    return Math.max(MIN_EASE_FACTOR, next);
   }
 
   /**
-   * ثبت نتیجه مرور یک کارت در دیتابیس
+   * دریافت کارت‌های نیازمند مرور تا امروز (به وقت محلی کاربر)
    */
-  async reviewCard(card: MemorizeCard, grade: ReviewGrade): Promise<MemorizeCard> {
-    var res = this.calculateNextSchedule(card, grade);
-    if (card.id) {
-      await db.memorizeCards.update(card.id, res.card);
+  async getDueCards(deckId?: number): Promise<MemorizeCard[]> {
+    var collection = db.memorizeCards.where('dueDate').belowOrEqual(toLocalDateString());
+    if (deckId !== undefined) {
+      collection = collection.and(function (card) {
+        return card.deckId === deckId;
+      });
     }
-    return res.card;
+    return collection.toArray();
+  }
+
+  async reviewCard(card: MemorizeCard, grade: ReviewGrade): Promise<MemorizeCard> {
+    var result = this.calculateNextSchedule(card, grade);
+    if (card.id !== undefined) {
+      await db.memorizeCards.update(card.id, result.card);
+    }
+    return result.card;
+  }
+
+  /**
+   * ثبت نتیجه مرور با شناسهٔ کارت؛ همیشه آخرین نسخهٔ کارت را از دیتابیس می‌خواند
+   */
+  async reviewCardById(cardId: number, grade: ReviewGrade): Promise<MemorizeCard | null> {
+    var card = await db.memorizeCards.get(cardId);
+    if (!card) return null;
+    return this.reviewCard(card, grade);
   }
 }
 

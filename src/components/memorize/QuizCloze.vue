@@ -50,7 +50,6 @@ function selectOption(opt: string) {
   var isCorrect = opt === props.question.answer;
   setTimeout(function () {
     emit('answered', { isCorrect: isCorrect, answer: opt });
-    selectedOption.value = null;
   }, 1000);
 }
 </script>

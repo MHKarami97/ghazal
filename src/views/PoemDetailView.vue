@@ -213,6 +213,7 @@ import { useLiteraryStore } from '../stores/literaryStore';
 import { poetAnalytics } from '../services/PoetAnalyticsService';
 import { collectionService } from '../services/CollectionService';
 import { groupVersesIntoCouplets, getPoemMetreRhythm } from '../utils/formatters';
+import { toLocalDateString } from '../utils/dateUtils';
 import CoupletView from '../components/poem/CoupletView.vue';
 import LiteraryPanel from '../components/poem/LiteraryPanel.vue';
 import ReaderToolbar from '../components/poem/ReaderToolbar.vue';
@@ -327,7 +328,7 @@ async function onAddToMemorize(coupletIndex: number) {
   var pair = coupletPairs.value.find(function (p) { return p.coupletIndex === coupletIndex; });
   if (!pair || !readingStore.currentPoem) return;
 
-  await memorizeStore.addCardToDeck({
+  var result = await memorizeStore.addCardToDeck({
     poemId: readingStore.currentPoem.Id,
     coupletIndex: coupletIndex,
     poemTitle: readingStore.currentPoem.Title,
@@ -336,15 +337,20 @@ async function onAddToMemorize(coupletIndex: number) {
     textSecond: pair.leftVerse?.Text || ''
   });
 
-  alert('این بیت به فهرست حفظ شما اضافه شد.');
+  alert(
+    result === 'exists'
+      ? 'این بیت قبلاً در فهرست حفظ شما وجود دارد. برای حذف آن به بخش «حفظ» بروید.'
+      : 'این بیت به فهرست حفظ شما اضافه شد.'
+  );
 }
 
-function onStepMemorize(coupletIndex: number) {
+async function onStepMemorize(coupletIndex: number) {
   var pair = coupletPairs.value.find(function (p) { return p.coupletIndex === coupletIndex; });
   if (!pair || !readingStore.currentPoem) return;
 
-  activeStepCard.value = {
-    deckId: 1,
+  var existingCard = await memorizeStore.findCard(readingStore.currentPoem.Id, coupletIndex);
+  activeStepCard.value = existingCard || {
+    deckId: memorizeStore.activeDeckId ?? 0,
     poemId: readingStore.currentPoem.Id,
     coupletIndex: coupletIndex,
     poemTitle: readingStore.currentPoem.Title,
@@ -355,7 +361,7 @@ function onStepMemorize(coupletIndex: number) {
     repCount: 0,
     intervalDays: 1,
     easeFactor: 2.5,
-    dueDate: new Date().toISOString().split('T')[0]
+    dueDate: toLocalDateString()
   };
   showStepMemorizer.value = true;
 }

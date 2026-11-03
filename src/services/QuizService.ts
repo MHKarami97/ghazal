@@ -1,441 +1,41 @@
 import { db } from '../db/GhazalDB';
 import { fuzzyMatch, normalizePersian } from '../utils/persianNormalizer';
+import { groupVersesIntoCouplets, getPoemMetreRhythm } from '../utils/formatters';
+import { randomInt, shuffle } from '../utils/random';
+import { spacedRepetitionService } from './SpacedRepetitionService';
 import type { QuizMode, QuizQuestion } from '../types/quiz';
 import type { MemorizeCard } from '../types/user';
 import type { GanjoorPoem, GanjoorLiteraryDevice } from '../types/ganjoor';
 
+interface CoupletItem {
+  cardId?: number;
+  poemId: number;
+  poetName: string;
+  poemTitle: string;
+  coupletIndex: number;
+  textFirst: string;
+  textSecond: string;
+}
+
+var OPTION_COUNT = 4;
+var POEM_SAMPLE_SIZE = 80;
+var POEM_SAMPLE_CHUNKS = 4;
+var MIN_DISTRACTOR_POOL = 8;
+var PUNCTUATION = /[.,،؛:!؟?«»()\[\]]/g;
+var FALLBACK_WORDS = ['دل', 'عشق', 'یار', 'جان', 'چشم', 'گل', 'می', 'ساقی', 'جام', 'شب'];
+var FALLBACK_POETS = ['حافظ', 'سعدی', 'مولانا', 'فردوسی', 'خیام', 'عطار', 'نظامی', 'شهریار'];
+var CARD_MODES: QuizMode[] = ['cloze', 'reorder', 'multiple_choice', 'typing', 'word_hiding'];
+
 export class QuizService {
   /**
-   * تولید سؤالات آزمون بر اساس حالت انتخابی
+   * تولید سؤالات آزمون. حالت‌های مبتنی بر کارت از فهرست حفظ (یا فقط کارت‌های سررسید) ساخته می‌شوند
+   * و در نبود کارت، از اشعار دانلودشده نمونه‌گیری می‌شود.
    */
-  async generateQuestions(mode: QuizMode, count = 10, deckId?: number): Promise<QuizQuestion[]> {
-    var cards: MemorizeCard[] = [];
-    if (deckId !== undefined) {
-      cards = await db.memorizeCards.where('deckId').equals(deckId).toArray();
-    } else {
-      cards = await db.memorizeCards.toArray();
+  async generateQuestions(mode: QuizMode, count = 10, deckId?: number, dueOnly = false): Promise<QuizQuestion[]> {
+    if (CARD_MODES.indexOf(mode) !== -1) {
+      return this.generateCardQuestions(mode, count, deckId, dueOnly);
     }
-
-    // اگر کارتی در حفظ نبود، از اشعار دانلود شده استفاده کن
-    var allPoems = await db.poems.toArray();
-
-    switch (mode) {
-      case 'cloze':
-        return this.generateClozeQuestions(cards, allPoems, count);
-      case 'reorder':
-        return this.generateReorderQuestions(cards, allPoems, count);
-      case 'multiple_choice':
-        return this.generateMultipleChoiceQuestions(cards, allPoems, count);
-      case 'typing':
-        return this.generateTypingQuestions(cards, allPoems, count);
-      case 'guess_poet':
-        return this.generateGuessPoetQuestions(allPoems, count);
-      case 'guess_device':
-        return this.generateGuessDeviceQuestions(allPoems, count);
-      case 'guess_metre':
-        return this.generateGuessMetreQuestions(allPoems, count);
-      case 'next_couplet':
-        return this.generateNextCoupletQuestions(allPoems, count);
-      case 'rhyme_match':
-        return this.generateRhymeMatchQuestions(allPoems, count);
-      case 'word_hiding':
-        return this.generateWordHidingQuestions(cards, allPoems, count);
-      default:
-        return [];
-    }
-  }
-
-  private generateClozeQuestions(cards: MemorizeCard[], poems: GanjoorPoem[], count: number): QuizQuestion[] {
-    var questions: QuizQuestion[] = [];
-    var pool = cards.length >= 3 ? cards : this.convertPoemsToCardPool(poems);
-    if (!pool.length) return [];
-
-    var shuffled = [...pool].sort(function () { return 0.5 - Math.random(); });
-    for (var i = 0; i < Math.min(count, shuffled.length); i++) {
-      var item = shuffled[i];
-      var text = item.textFirst || item.textSecond;
-      var words = text.split(/\s+/).filter(Boolean);
-      if (words.length < 3) continue;
-
-      var targetIndex = Math.floor(Math.random() * words.length);
-      var answer = words[targetIndex].replace(/[.,،؛:!؟?]/g, '');
-      var prompt = words.map(function (w, idx) {
-        return idx === targetIndex ? '(___)' : w;
-      }).join(' ');
-
-      // گزینه‌های ساختگی
-      var options = [answer];
-      var distractorPool = ['دل', 'عشق', 'یار', 'جان', 'چشم', 'گل', 'می', 'ساقی', 'جام', 'شب'];
-      for (var d = 0; d < distractorPool.length && options.length < 4; d++) {
-        var word = distractorPool[d];
-        if (!options.includes(word)) options.push(word);
-      }
-      options.sort(function () { return 0.5 - Math.random(); });
-
-      questions.push({
-        id: `cloze-${i}`,
-        mode: 'cloze',
-        cardId: item.id,
-        poemId: item.poemId,
-        poetName: item.poetName,
-        poemTitle: item.poemTitle,
-        coupletIndex: item.coupletIndex,
-        prompt: prompt,
-        firstMisra: item.textFirst,
-        secondMisra: item.textSecond,
-        options: options,
-        answer: answer
-      });
-    }
-
-    return questions;
-  }
-
-  private generateReorderQuestions(cards: MemorizeCard[], poems: GanjoorPoem[], count: number): QuizQuestion[] {
-    var questions: QuizQuestion[] = [];
-    var pool = cards.length >= 3 ? cards : this.convertPoemsToCardPool(poems);
-    if (!pool.length) return [];
-
-    var shuffled = [...pool].sort(function () { return 0.5 - Math.random(); });
-    for (var i = 0; i < Math.min(count, shuffled.length); i++) {
-      var item = shuffled[i];
-      var fullCouplet = `${item.textFirst} * ${item.textSecond}`;
-      var words = `${item.textFirst} ${item.textSecond}`.split(/\s+/).filter(Boolean);
-      var scrambled = [...words].sort(function () { return 0.5 - Math.random(); });
-
-      questions.push({
-        id: `reorder-${i}`,
-        mode: 'reorder',
-        cardId: item.id,
-        poemId: item.poemId,
-        poetName: item.poetName,
-        poemTitle: item.poemTitle,
-        coupletIndex: item.coupletIndex,
-        prompt: 'کلمات بیت زیر را به ترتیب صحیح مرتب کنید:',
-        firstMisra: item.textFirst,
-        secondMisra: item.textSecond,
-        fullCouplet: fullCouplet,
-        scrambledItems: scrambled,
-        answer: `${item.textFirst} ${item.textSecond}`
-      });
-    }
-
-    return questions;
-  }
-
-  private generateMultipleChoiceQuestions(cards: MemorizeCard[], poems: GanjoorPoem[], count: number): QuizQuestion[] {
-    var questions: QuizQuestion[] = [];
-    var pool = cards.length >= 3 ? cards : this.convertPoemsToCardPool(poems);
-    if (!pool.length) return [];
-
-    var shuffled = [...pool].sort(function () { return 0.5 - Math.random(); });
-    for (var i = 0; i < Math.min(count, shuffled.length); i++) {
-      var item = shuffled[i];
-      var answer = item.textSecond;
-      var options = [answer];
-
-      // انتخاب ۳ گزینه انحرافی از سایر ابیات
-      for (var j = 0; j < pool.length && options.length < 4; j++) {
-        var other = pool[j];
-        if (other.poemId !== item.poemId && other.textSecond && !options.includes(other.textSecond)) {
-          options.push(other.textSecond);
-        }
-      }
-
-      options.sort(function () { return 0.5 - Math.random(); });
-
-      questions.push({
-        id: `mc-${i}`,
-        mode: 'multiple_choice',
-        cardId: item.id,
-        poemId: item.poemId,
-        poetName: item.poetName,
-        poemTitle: item.poemTitle,
-        coupletIndex: item.coupletIndex,
-        prompt: `مصرع دوم این بیت کدام است؟\n«${item.textFirst}»`,
-        firstMisra: item.textFirst,
-        secondMisra: item.textSecond,
-        options: options,
-        answer: answer
-      });
-    }
-
-    return questions;
-  }
-
-  private generateTypingQuestions(cards: MemorizeCard[], poems: GanjoorPoem[], count: number): QuizQuestion[] {
-    var questions: QuizQuestion[] = [];
-    var pool = cards.length >= 3 ? cards : this.convertPoemsToCardPool(poems);
-    if (!pool.length) return [];
-
-    var shuffled = [...pool].sort(function () { return 0.5 - Math.random(); });
-    for (var i = 0; i < Math.min(count, shuffled.length); i++) {
-      var item = shuffled[i];
-      questions.push({
-        id: `type-${i}`,
-        mode: 'typing',
-        cardId: item.id,
-        poemId: item.poemId,
-        poetName: item.poetName,
-        poemTitle: item.poemTitle,
-        coupletIndex: item.coupletIndex,
-        prompt: `مصرع دوم را از حفظ تایپ کنید:\n«${item.textFirst}»`,
-        firstMisra: item.textFirst,
-        secondMisra: item.textSecond,
-        answer: item.textSecond
-      });
-    }
-
-    return questions;
-  }
-
-  private generateGuessPoetQuestions(poems: GanjoorPoem[], count: number): QuizQuestion[] {
-    var questions: QuizQuestion[] = [];
-    var pool = this.convertPoemsToCardPool(poems);
-    if (!pool.length) return [];
-
-    var shuffled = [...pool].sort(function () { return 0.5 - Math.random(); });
-    var poetNamesPool = ['حافظ', 'سعدی', 'مولانا', 'فردوسی', 'خیام', 'عطار', 'نظامی', 'شهریار'];
-
-    for (var i = 0; i < Math.min(count, shuffled.length); i++) {
-      var item = shuffled[i];
-      var poetName = item.poetName || 'حافظ';
-      var v1 = item.textFirst || '';
-      var v2 = item.textSecond || '';
-
-      var options = [poetName];
-      for (var p = 0; p < poetNamesPool.length && options.length < 4; p++) {
-        var opt = poetNamesPool[p];
-        if (!options.includes(opt)) options.push(opt);
-      }
-      options.sort(function () { return 0.5 - Math.random(); });
-
-      questions.push({
-        id: `poet-${i}`,
-        mode: 'guess_poet',
-        poemId: item.poemId,
-        poetName: poetName,
-        poemTitle: item.poemTitle,
-        coupletIndex: item.coupletIndex,
-        prompt: `این بیت سرودهٔ کدام شاعر است؟\n\n«${v1} / ${v2}»`,
-        firstMisra: v1,
-        secondMisra: v2,
-        options: options,
-        answer: poetName
-      });
-    }
-
-    return questions;
-  }
-
-  private async generateGuessDeviceQuestions(poems: GanjoorPoem[], count: number): Promise<QuizQuestion[]> {
-    var questions: QuizQuestion[] = [];
-    var devicesRecord = await db.baseMeta.get('devices');
-    var devices: GanjoorLiteraryDevice[] = devicesRecord?.data || [];
-    var deviceMap = new Map<number, GanjoorLiteraryDevice>();
-    for (var d = 0; d < devices.length; d++) {
-      deviceMap.set(devices[d].Id, devices[d]);
-    }
-
-    // جست‌وجوی اشعار دارای برچسب آرایه
-    var taggedPoems = poems.filter(function (p) {
-      return p.LiteraryTags && p.LiteraryTags.length > 0;
-    });
-
-    for (var i = 0; i < Math.min(count, taggedPoems.length); i++) {
-      var poem = taggedPoems[i];
-      var tag = poem.LiteraryTags![0];
-      var device = deviceMap.get(tag.DeviceId);
-      var deviceName = device?.Name || 'تشبیه';
-
-      var coupletIndex = tag.CoupletIndex;
-      var verses = poem.Verses.filter(function (v) {
-        return v.CoupletIndex === coupletIndex;
-      });
-      var coupletText = verses.map(function (v) { return v.Text; }).join(' / ');
-
-      var options = [deviceName];
-      for (var k = 0; k < devices.length && options.length < 4; k++) {
-        var dev = devices[k];
-        if (!options.includes(dev.Name)) options.push(dev.Name);
-      }
-      options.sort(function () { return 0.5 - Math.random(); });
-
-      questions.push({
-        id: `device-${i}`,
-        mode: 'guess_device',
-        poemId: poem.Id,
-        poetName: poem.FullTitle?.split('»')?.[0]?.trim() || '',
-        poemTitle: poem.Title,
-        coupletIndex: coupletIndex,
-        prompt: `در بیت زیر کدام آرایهٔ ادبی به کار رفته است؟\n\n«${coupletText}»`,
-        fullCouplet: coupletText,
-        literaryDeviceName: deviceName,
-        literaryExplanation: device?.Definition,
-        options: options,
-        answer: deviceName
-      });
-    }
-
-    return questions;
-  }
-
-  private generateWordHidingQuestions(cards: MemorizeCard[], poems: GanjoorPoem[], count: number): QuizQuestion[] {
-    var questions: QuizQuestion[] = [];
-    var pool = cards.length >= 3 ? cards : this.convertPoemsToCardPool(poems);
-    if (!pool.length) return [];
-
-    var shuffled = [...pool].sort(function () { return 0.5 - Math.random(); });
-    for (var i = 0; i < Math.min(count, shuffled.length); i++) {
-      var item = shuffled[i];
-      questions.push({
-        id: `hiding-${i}`,
-        mode: 'word_hiding',
-        cardId: item.id,
-        poemId: item.poemId,
-        poetName: item.poetName,
-        poemTitle: item.poemTitle,
-        coupletIndex: item.coupletIndex,
-        prompt: 'تمرین محوشدن تدریجی کلمات برای مرور در ذهن:',
-        firstMisra: item.textFirst,
-        secondMisra: item.textSecond,
-        answer: `${item.textFirst} * ${item.textSecond}`
-      });
-    }
-
-    return questions;
-  }
-
-  private generateGuessMetreQuestions(poems: GanjoorPoem[], count: number): QuizQuestion[] {
-    var questions: QuizQuestion[] = [];
-    var namedMetresPool = [
-      { name: 'متقارب مثمن محذوف (وزن شاهنامه و بوستان)', rhythm: 'فعولن فعولن فعولن فعل' },
-      { name: 'هزج مسدس محذوف (وزن دوبیتی و فهلویات)', rhythm: 'مفاعیلن مفاعیلن فعولن' },
-      { name: 'رمل مسدس محذوف (وزن مثنوی معنوی)', rhythm: 'فاعلاتن فاعلاتن فاعلن' },
-      { name: 'مجتث مثمن مخبون محذوف (غزلیات حافظ و سعدی)', rhythm: 'مفاعلن فعلاتن مفاعلن فعلن' },
-      { name: 'هزج مسدس مقصور (وزن خسرو و شیرین)', rhythm: 'مفاعیلن مفاعیلن مفاعیل' },
-      { name: 'رجز مثمن مطوی (دیوان شمس مولانا)', rhythm: 'مفتعلن مفتعلن مفتعلن مفتعلن' },
-      { name: 'رمل مثمن مخبون محذوف', rhythm: 'فاعلاتن فعلاتن فعلاتن فعلن' },
-      { name: 'مضارع مثمن اخرب مکفوف محذوف', rhythm: 'مفعول فاعلات مفاعیل فاعلن' }
-    ];
-
-    var pool = this.convertPoemsToCardPool(poems);
-    if (!pool.length) return [];
-
-    var shuffled = [...pool].sort(function () { return 0.5 - Math.random(); });
-    for (var i = 0; i < Math.min(count, shuffled.length); i++) {
-      var item = shuffled[i];
-      // انتخاب تصادفی یک وزن نام‌دار برای سوال یا از متادیتای شعر
-      var targetMetre = namedMetresPool[i % namedMetresPool.length];
-      var answer = `${targetMetre.name} [${targetMetre.rhythm}]`;
-
-      var options = [answer];
-      for (var m = 0; m < namedMetresPool.length && options.length < 4; m++) {
-        var opt = `${namedMetresPool[m].name} [${namedMetresPool[m].rhythm}]`;
-        if (!options.includes(opt)) options.push(opt);
-      }
-      options.sort(function () { return 0.5 - Math.random(); });
-
-      questions.push({
-        id: `metre-${i}`,
-        mode: 'guess_metre',
-        poemId: item.poemId,
-        poetName: item.poetName,
-        poemTitle: item.poemTitle,
-        coupletIndex: item.coupletIndex,
-        prompt: `این بیت در چه وزنی سروده شده است؟\n\n«${item.textFirst} / ${item.textSecond}»`,
-        firstMisra: item.textFirst,
-        secondMisra: item.textSecond,
-        options: options,
-        answer: answer
-      });
-    }
-
-    return questions;
-  }
-
-  private generateNextCoupletQuestions(poems: GanjoorPoem[], count: number): QuizQuestion[] {
-    var questions: QuizQuestion[] = [];
-    var pool = this.convertPoemsToCardPool(poems);
-    if (!pool.length) return [];
-
-    var shuffled = [...pool].sort(function () { return 0.5 - Math.random(); });
-    for (var i = 0; i < Math.min(count, shuffled.length); i++) {
-      var item = shuffled[i];
-      var nextIndex = (i + 1) % shuffled.length;
-      var nextCouplet = shuffled[nextIndex];
-      var answer = `${nextCouplet.textFirst} / ${nextCouplet.textSecond}`;
-
-      var options = [answer];
-      for (var j = 0; j < shuffled.length && options.length < 4; j++) {
-        var other = shuffled[j];
-        var opt = `${other.textFirst} / ${other.textSecond}`;
-        if (!options.includes(opt) && opt !== `${item.textFirst} / ${item.textSecond}`) {
-          options.push(opt);
-        }
-      }
-      options.sort(function () { return 0.5 - Math.random(); });
-
-      questions.push({
-        id: `next-${i}`,
-        mode: 'next_couplet',
-        poemId: item.poemId,
-        poetName: item.poetName,
-        poemTitle: item.poemTitle,
-        coupletIndex: item.coupletIndex,
-        prompt: `بیت بعدی این شعر کدام است؟\n\n«${item.textFirst} / ${item.textSecond}»`,
-        firstMisra: item.textFirst,
-        secondMisra: item.textSecond,
-        options: options,
-        answer: answer
-      });
-    }
-
-    return questions;
-  }
-
-  private generateRhymeMatchQuestions(poems: GanjoorPoem[], count: number): QuizQuestion[] {
-    var questions: QuizQuestion[] = [];
-    var pool = this.convertPoemsToCardPool(poems);
-    if (!pool.length) return [];
-
-    var shuffled = [...pool].sort(function () { return 0.5 - Math.random(); });
-    for (var i = 0; i < Math.min(count, shuffled.length); i++) {
-      var item = shuffled[i];
-      // استخراج حروف پایانی مصرع دوم به عنوان نشانه قافیه
-      var lastWord = item.textSecond.trim().replace(/[.,،؛:!؟?]/g, '').split(/\s+/).pop() || '';
-      var rhymeEnding = lastWord.slice(-2);
-
-      // بیت هم‌قافیه (دارای همان هجاهای پایانی) یا بیت بعدی همان شاعر
-      var answerItem = shuffled[(i + 1) % shuffled.length];
-      var answer = `${answerItem.textFirst} / ${answerItem.textSecond}`;
-
-      var options = [answer];
-      for (var j = 0; j < shuffled.length && options.length < 4; j++) {
-        var other = shuffled[j];
-        var opt = `${other.textFirst} / ${other.textSecond}`;
-        if (!options.includes(opt) && opt !== `${item.textFirst} / ${item.textSecond}`) {
-          options.push(opt);
-        }
-      }
-      options.sort(function () { return 0.5 - Math.random(); });
-
-      questions.push({
-        id: `rhyme-${i}`,
-        mode: 'rhyme_match',
-        poemId: item.poemId,
-        poetName: item.poetName,
-        poemTitle: item.poemTitle,
-        coupletIndex: item.coupletIndex,
-        prompt: `کدام بیت با بیت زیر هم‌قافیه است (قافیه: «${rhymeEnding}»)?\n\n«${item.textFirst} / ${item.textSecond}»`,
-        firstMisra: item.textFirst,
-        secondMisra: item.textSecond,
-        options: options,
-        answer: answer
-      });
-    }
-
-    return questions;
+    return this.generatePoemQuestions(mode, count);
   }
 
   /**
@@ -448,61 +48,494 @@ export class QuizService {
     return normalizePersian(userAnswer, true) === normalizePersian(question.answer, true);
   }
 
-  private convertPoemsToCardPool(poems: GanjoorPoem[]): MemorizeCard[] {
-    var cards: MemorizeCard[] = [];
+  // ───────────── حالت‌های مبتنی بر کارت ─────────────
+
+  private async generateCardQuestions(mode: QuizMode, count: number, deckId?: number, dueOnly = false): Promise<QuizQuestion[]> {
+    var items = await this.loadCardItems(deckId, dueOnly);
+    if (items.length === 0 && !dueOnly) {
+      items = this.poemsToCouplets(await this.samplePoems(POEM_SAMPLE_SIZE));
+    }
+    if (items.length === 0) return [];
+
+    var pool = items;
+    if (items.length < MIN_DISTRACTOR_POOL && mode !== 'typing' && mode !== 'word_hiding' && mode !== 'reorder') {
+      pool = items.concat(this.poemsToCouplets(await this.samplePoems(30)));
+    }
+
+    var vocabulary = mode === 'cloze' ? this.buildVocabulary(pool) : [];
+    var selected = shuffle(items).slice(0, count);
+    var questions: QuizQuestion[] = [];
+
+    for (var i = 0; i < selected.length; i++) {
+      var id = `${mode}-${questions.length}`;
+      var question = this.buildCardQuestion(mode, id, selected[i], pool, vocabulary);
+      if (question) questions.push(question);
+    }
+    return questions;
+  }
+
+  private buildCardQuestion(mode: QuizMode, id: string, item: CoupletItem, pool: CoupletItem[], vocabulary: string[]): QuizQuestion | null {
+    switch (mode) {
+      case 'cloze':
+        return this.buildCloze(id, item, vocabulary);
+      case 'reorder':
+        return this.buildReorder(id, item);
+      case 'multiple_choice':
+        return this.buildMultipleChoice(id, item, pool);
+      case 'typing':
+        return this.buildTyping(id, item);
+      case 'word_hiding':
+        return this.buildWordHiding(id, item);
+      default:
+        return null;
+    }
+  }
+
+  private baseQuestion(id: string, mode: QuizMode, item: CoupletItem): QuizQuestion {
+    return {
+      id: id,
+      mode: mode,
+      cardId: item.cardId,
+      poemId: item.poemId,
+      poetName: item.poetName,
+      poemTitle: item.poemTitle,
+      coupletIndex: item.coupletIndex,
+      prompt: '',
+      firstMisra: item.textFirst,
+      secondMisra: item.textSecond,
+      answer: ''
+    };
+  }
+
+  private buildCloze(id: string, item: CoupletItem, vocabulary: string[]): QuizQuestion | null {
+    var useFirst = Math.random() < 0.5;
+    var misra = useFirst ? item.textFirst : item.textSecond;
+    var words = misra.split(/\s+/).filter(Boolean);
+    if (words.length < 3) {
+      useFirst = !useFirst;
+      misra = useFirst ? item.textFirst : item.textSecond;
+      words = misra.split(/\s+/).filter(Boolean);
+      if (words.length < 3) return null;
+    }
+
+    var candidates: number[] = [];
+    for (var w = 0; w < words.length; w++) {
+      if (this.cleanWord(words[w]).length >= 2) candidates.push(w);
+    }
+    if (candidates.length === 0) return null;
+
+    var targetIndex = candidates[randomInt(candidates.length)];
+    var answer = this.cleanWord(words[targetIndex]);
+    var blanked = words.map(function (word, idx) {
+      return idx === targetIndex ? '(___)' : word;
+    }).join(' ');
+
+    var options = [answer].concat(this.pickWordDistractors(answer, vocabulary));
+    var question = this.baseQuestion(id, 'cloze', item);
+    question.prompt = useFirst ? `${blanked} / ${item.textSecond}` : `${item.textFirst} / ${blanked}`;
+    question.options = shuffle(options);
+    question.answer = answer;
+    return question;
+  }
+
+  private buildReorder(id: string, item: CoupletItem): QuizQuestion | null {
+    var words = `${item.textFirst} ${item.textSecond}`.split(/\s+/).filter(Boolean);
+    if (words.length < 2) return null;
+
+    var scrambled = shuffle(words);
+    for (var attempt = 0; attempt < 5 && scrambled.join(' ') === words.join(' '); attempt++) {
+      scrambled = shuffle(words);
+    }
+
+    var question = this.baseQuestion(id, 'reorder', item);
+    question.prompt = 'کلمات بیت زیر را به ترتیب صحیح مرتب کنید:';
+    question.fullCouplet = `${item.textFirst} * ${item.textSecond}`;
+    question.scrambledItems = scrambled;
+    question.answer = words.join(' ');
+    return question;
+  }
+
+  private buildMultipleChoice(id: string, item: CoupletItem, pool: CoupletItem[]): QuizQuestion | null {
+    var seen = new Set<string>([normalizePersian(item.textSecond, true)]);
+    var distractors: string[] = [];
+    var candidates = shuffle(pool);
+
+    for (var i = 0; i < candidates.length && distractors.length < OPTION_COUNT - 1; i++) {
+      var text = candidates[i].textSecond;
+      var key = normalizePersian(text, true);
+      if (!text || seen.has(key)) continue;
+      seen.add(key);
+      distractors.push(text);
+    }
+    if (distractors.length < OPTION_COUNT - 1) return null;
+
+    var question = this.baseQuestion(id, 'multiple_choice', item);
+    question.prompt = `مصرع دوم این بیت کدام است؟\n«${item.textFirst}»`;
+    question.options = shuffle([item.textSecond].concat(distractors));
+    question.answer = item.textSecond;
+    return question;
+  }
+
+  private buildTyping(id: string, item: CoupletItem): QuizQuestion {
+    var question = this.baseQuestion(id, 'typing', item);
+    question.prompt = `مصرع دوم را از حفظ تایپ کنید:\n«${item.textFirst}»`;
+    question.answer = item.textSecond;
+    return question;
+  }
+
+  private buildWordHiding(id: string, item: CoupletItem): QuizQuestion {
+    var question = this.baseQuestion(id, 'word_hiding', item);
+    question.prompt = 'تمرین محوشدن تدریجی کلمات برای مرور در ذهن:';
+    question.answer = `${item.textFirst} * ${item.textSecond}`;
+    return question;
+  }
+
+  // ───────────── حالت‌های مبتنی بر شعر ─────────────
+
+  private async generatePoemQuestions(mode: QuizMode, count: number): Promise<QuizQuestion[]> {
+    if (mode === 'guess_device') {
+      return this.generateGuessDevice(count);
+    }
+
+    var poems = await this.samplePoems(POEM_SAMPLE_SIZE);
+    if (poems.length === 0) return [];
+
+    switch (mode) {
+      case 'guess_poet':
+        return this.generateGuessPoet(poems, count);
+      case 'guess_metre':
+        return this.generateGuessMetre(poems, count);
+      case 'next_couplet':
+        return this.generateNextCouplet(poems, count);
+      case 'rhyme_match':
+        return this.generateRhymeMatch(poems, count);
+      default:
+        return [];
+    }
+  }
+
+  private generateGuessPoet(poems: GanjoorPoem[], count: number): QuizQuestion[] {
+    var poetNames = this.uniqueStrings(poems.map((p) => this.poetNameOf(p)));
+    var items = shuffle(this.poemsToCouplets(poems));
+    var questions: QuizQuestion[] = [];
+
+    for (var i = 0; i < items.length && questions.length < count; i++) {
+      var item = items[i];
+      if (!item.poetName) continue;
+
+      var others = shuffle(poetNames.concat(FALLBACK_POETS)).filter(function (name) {
+        return name !== item.poetName;
+      });
+      var distractors = this.uniqueStrings(others).slice(0, OPTION_COUNT - 1);
+
+      var question = this.baseQuestion(`guess_poet-${questions.length}`, 'guess_poet', item);
+      question.cardId = undefined;
+      question.prompt = `این بیت سرودهٔ کدام شاعر است؟\n\n«${item.textFirst} / ${item.textSecond}»`;
+      question.options = shuffle([item.poetName].concat(distractors));
+      question.answer = item.poetName;
+      questions.push(question);
+    }
+    return questions;
+  }
+
+  private generateGuessMetre(poems: GanjoorPoem[], count: number): QuizQuestion[] {
+    var withRhythm = poems.filter((p) => getPoemMetreRhythm(p) !== '');
+    var rhythms = this.uniqueStrings(withRhythm.map((p) => getPoemMetreRhythm(p)));
+    if (rhythms.length < 2) return [];
+
+    var questions: QuizQuestion[] = [];
+    var shuffled = shuffle(withRhythm);
+
+    for (var i = 0; i < shuffled.length && questions.length < count; i++) {
+      var poem = shuffled[i];
+      var couplet = this.randomCoupletOf(poem);
+      if (!couplet) continue;
+
+      var answer = getPoemMetreRhythm(poem);
+      var distractors = shuffle(rhythms).filter(function (r) {
+        return r !== answer;
+      }).slice(0, OPTION_COUNT - 1);
+
+      var question = this.baseQuestion(`guess_metre-${questions.length}`, 'guess_metre', couplet);
+      question.cardId = undefined;
+      question.prompt = `این بیت در چه وزنی سروده شده است؟\n\n«${couplet.textFirst} / ${couplet.textSecond}»`;
+      question.options = shuffle([answer].concat(distractors));
+      question.answer = answer;
+      questions.push(question);
+    }
+    return questions;
+  }
+
+  private generateNextCouplet(poems: GanjoorPoem[], count: number): QuizQuestion[] {
+    var allItems = this.poemsToCouplets(poems);
+    var questions: QuizQuestion[] = [];
+    var shuffled = shuffle(poems);
+
+    for (var p = 0; p < shuffled.length && questions.length < count; p++) {
+      var couplets = this.poemsToCouplets([shuffled[p]]);
+      if (couplets.length < 3) continue;
+
+      var index = randomInt(couplets.length - 1);
+      var current = couplets[index];
+      var next = couplets[index + 1];
+      var answer = this.formatCouplet(next);
+
+      var sameLine = couplets.filter(function (_c, idx) {
+        return idx !== index && idx !== index + 1;
+      });
+      var distractors = this.pickDistinctCouplets(shuffle(sameLine).concat(shuffle(allItems)), [current, next], OPTION_COUNT - 1);
+      if (distractors.length < OPTION_COUNT - 1) continue;
+
+      var question = this.baseQuestion(`next_couplet-${questions.length}`, 'next_couplet', current);
+      question.cardId = undefined;
+      question.prompt = `بیت بعدی این شعر کدام است؟\n\n«${this.formatCouplet(current)}»`;
+      question.options = shuffle([answer].concat(distractors.map((c) => this.formatCouplet(c))));
+      question.answer = answer;
+      questions.push(question);
+    }
+    return questions;
+  }
+
+  /**
+   * هم‌قافیه بودن با تطبیق حروف پایانی آخرین کلمهٔ مصرع دوم تشخیص داده می‌شود (روش تقریبی)
+   */
+  private generateRhymeMatch(poems: GanjoorPoem[], count: number): QuizQuestion[] {
+    var items = this.poemsToCouplets(poems);
+    var groups = new Map<string, CoupletItem[]>();
+    for (var i = 0; i < items.length; i++) {
+      var key = this.rhymeKey(items[i]);
+      if (key.length < 2) continue;
+      var group = groups.get(key) || [];
+      group.push(items[i]);
+      groups.set(key, group);
+    }
+
+    var questions: QuizQuestion[] = [];
+    var shuffled = shuffle(items);
+
+    for (var j = 0; j < shuffled.length && questions.length < count; j++) {
+      var target = shuffled[j];
+      var targetKey = this.rhymeKey(target);
+      var matches = (groups.get(targetKey) || []).filter((c) => c !== target);
+      if (targetKey.length < 2 || matches.length === 0) continue;
+
+      var others = shuffled.filter((c) => this.rhymeKey(c) !== targetKey);
+      var distractors = this.pickDistinctCouplets(others, [target], OPTION_COUNT - 1);
+      if (distractors.length < OPTION_COUNT - 1) continue;
+
+      var answer = this.formatCouplet(matches[randomInt(matches.length)]);
+      var question = this.baseQuestion(`rhyme_match-${questions.length}`, 'rhyme_match', target);
+      question.cardId = undefined;
+      question.prompt = `کدام بیت با بیت زیر هم‌قافیه است (پایان: «${targetKey}»)؟\n\n«${this.formatCouplet(target)}»`;
+      question.options = shuffle([answer].concat(distractors.map((c) => this.formatCouplet(c))));
+      question.answer = answer;
+      questions.push(question);
+    }
+    return questions;
+  }
+
+  private async generateGuessDevice(count: number): Promise<QuizQuestion[]> {
+    var record = await db.baseMeta.get('devices');
+    var devices: GanjoorLiteraryDevice[] = record?.data || [];
+    if (devices.length < 2) return [];
+
+    var deviceMap = new Map<number, GanjoorLiteraryDevice>();
+    for (var d = 0; d < devices.length; d++) {
+      deviceMap.set(devices[d].Id, devices[d]);
+    }
+
+    var tagged = await db.poems
+      .filter(function (p) {
+        return !!p.LiteraryTags && p.LiteraryTags.length > 0;
+      })
+      .limit(60)
+      .toArray();
+
+    var questions: QuizQuestion[] = [];
+    var shuffled = shuffle(tagged);
+
+    for (var i = 0; i < shuffled.length && questions.length < count; i++) {
+      var poem = shuffled[i];
+      var tags = shuffle(poem.LiteraryTags || []);
+      var tag = tags.find(function (t) {
+        return deviceMap.has(t.DeviceId);
+      });
+      if (!tag) continue;
+
+      var pair = groupVersesIntoCouplets(poem.Verses).find(function (c) {
+        return c.coupletIndex === tag!.CoupletIndex;
+      });
+      if (!pair || !pair.rightVerse || !pair.leftVerse) continue;
+
+      var device = deviceMap.get(tag.DeviceId)!;
+      var coupletText = `${pair.rightVerse.Text} / ${pair.leftVerse.Text}`;
+      var distractors = shuffle(devices).filter(function (dev) {
+        return dev.Name !== device.Name;
+      }).slice(0, OPTION_COUNT - 1).map(function (dev) {
+        return dev.Name;
+      });
+
+      questions.push({
+        id: `guess_device-${questions.length}`,
+        mode: 'guess_device',
+        poemId: poem.Id,
+        poetName: this.poetNameOf(poem),
+        poemTitle: poem.Title,
+        coupletIndex: tag.CoupletIndex,
+        prompt: `در بیت زیر کدام آرایهٔ ادبی به کار رفته است؟\n\n«${coupletText}»`,
+        fullCouplet: coupletText,
+        literaryDeviceName: device.Name,
+        literaryExplanation: device.Definition,
+        options: shuffle([device.Name].concat(distractors)),
+        answer: device.Name
+      });
+    }
+    return questions;
+  }
+
+  // ───────────── ابزارهای داخلی ─────────────
+
+  private async loadCardItems(deckId?: number, dueOnly = false): Promise<CoupletItem[]> {
+    var cards: MemorizeCard[];
+    if (dueOnly) {
+      cards = await spacedRepetitionService.getDueCards(deckId);
+    } else if (deckId !== undefined) {
+      cards = await db.memorizeCards.where('deckId').equals(deckId).toArray();
+    } else {
+      cards = await db.memorizeCards.toArray();
+    }
+
+    return cards
+      .filter(function (c) {
+        return !!c.textFirst && !!c.textSecond;
+      })
+      .map(function (c) {
+        return {
+          cardId: c.id,
+          poemId: c.poemId,
+          poetName: c.poetName,
+          poemTitle: c.poemTitle,
+          coupletIndex: c.coupletIndex,
+          textFirst: c.textFirst,
+          textSecond: c.textSecond
+        };
+      });
+  }
+
+  /**
+   * نمونه‌گیری تصادفی از چند بازهٔ جدول اشعار به‌جای بارگذاری کل جدول در حافظه
+   */
+  private async samplePoems(size: number): Promise<GanjoorPoem[]> {
+    var total = await db.poems.count();
+    if (total === 0) return [];
+
+    var chunkSize = Math.ceil(size / POEM_SAMPLE_CHUNKS);
+    var requests: Promise<GanjoorPoem[]>[] = [];
+    for (var c = 0; c < POEM_SAMPLE_CHUNKS; c++) {
+      var start = randomInt(Math.max(1, total - chunkSize + 1));
+      requests.push(db.poems.offset(start).limit(chunkSize).toArray());
+    }
+
+    var chunks = await Promise.all(requests);
+    var byId = new Map<number, GanjoorPoem>();
+    chunks.forEach(function (chunk) {
+      chunk.forEach(function (poem) {
+        byId.set(poem.Id, poem);
+      });
+    });
+    return Array.from(byId.values());
+  }
+
+  private poemsToCouplets(poems: GanjoorPoem[]): CoupletItem[] {
+    var items: CoupletItem[] = [];
     for (var i = 0; i < poems.length; i++) {
-      var p = poems[i];
-      if (p.Verses && p.Verses.length >= 2) {
-        cards.push({
-          deckId: 0,
-          poemId: p.Id,
-          coupletIndex: 0,
-          poemTitle: p.Title,
-          poetName: p.FullTitle?.split('»')?.[0]?.trim() || '',
-          textFirst: p.Verses[0]?.Text || '',
-          textSecond: p.Verses[1]?.Text || '',
-          status: 'new',
-          repCount: 0,
-          intervalDays: 1,
-          easeFactor: 2.5,
-          dueDate: new Date().toISOString().split('T')[0]
+      var poem = poems[i];
+      var pairs = groupVersesIntoCouplets(poem.Verses || []);
+      for (var j = 0; j < pairs.length; j++) {
+        var pair = pairs[j];
+        if (!pair.rightVerse?.Text || !pair.leftVerse?.Text) continue;
+        items.push({
+          poemId: poem.Id,
+          poetName: this.poetNameOf(poem),
+          poemTitle: poem.Title,
+          coupletIndex: pair.coupletIndex,
+          textFirst: pair.rightVerse.Text,
+          textSecond: pair.leftVerse.Text
         });
       }
     }
+    return items;
+  }
 
-    // در صورتی که دیتابیس خالی باشد، یک مجموعه نمونه از شاهکارهای ادبیات فراهم کن
-    if (cards.length === 0) {
-      var sampleVerses = [
-        { poet: 'حافظ', title: 'غزل ۱', v1: 'الا یا ایها الساقی ادر کأسا و ناولها', v2: 'که عشق آسان نمود اول ولی افتاد مشکل‌ها' },
-        { poet: 'سعدی', title: 'گلستان', v1: 'بنی آدم اعضای یکدیگرند', v2: 'که در آفرینش ز یک گوهرند' },
-        { poet: 'مولانا', title: 'مثنوی معنوی', v1: 'بشنو این نی چون شکایت می‌کند', v2: 'از جدایی‌ها حکایت می‌کند' },
-        { poet: 'فردوسی', title: 'شاهنامه', v1: 'توانا بود هر که دانا بود', v2: 'ز دانش دل پیر برنا بود' },
-        { poet: 'حافظ', title: 'غزل ۱۸۴', v1: 'دوش دیدم که ملائک در میخانه زدند', v2: 'گل آدم بسرشتند و به پیمانه زدند' },
-        { poet: 'سعدی', title: 'دیوان اشعار', v1: 'تن آدمی شریف است به جان آدمیت', v2: 'نه همین لباس زیباست نشان آدمیت' },
-        { poet: 'خیام', title: 'رباعیات', v1: 'ابر آمد و زار بر سر سبزه گریست', v2: 'بی بادهٔ گلرنگ نمی‌شاید زیست' },
-        { poet: 'نظامی', title: 'مخزن‌الاسرار', v1: 'ای نام تو بهترین سرآغاز', v2: 'بی‌نام تو نامه کی کنم باز' }
-      ];
+  private randomCoupletOf(poem: GanjoorPoem): CoupletItem | null {
+    var couplets = this.poemsToCouplets([poem]);
+    return couplets.length ? couplets[randomInt(couplets.length)] : null;
+  }
 
-      for (var s = 0; s < sampleVerses.length; s++) {
-        var sv = sampleVerses[s];
-        cards.push({
-          deckId: 0,
-          poemId: 1000 + s,
-          coupletIndex: 0,
-          poemTitle: sv.title,
-          poetName: sv.poet,
-          textFirst: sv.v1,
-          textSecond: sv.v2,
-          status: 'new',
-          repCount: 0,
-          intervalDays: 1,
-          easeFactor: 2.5,
-          dueDate: new Date().toISOString().split('T')[0]
-        });
+  private pickDistinctCouplets(candidates: CoupletItem[], excluded: CoupletItem[], limit: number): CoupletItem[] {
+    var seen = new Set<string>(excluded.map((c) => this.formatCouplet(c)));
+    var result: CoupletItem[] = [];
+    for (var i = 0; i < candidates.length && result.length < limit; i++) {
+      var text = this.formatCouplet(candidates[i]);
+      if (seen.has(text)) continue;
+      seen.add(text);
+      result.push(candidates[i]);
+    }
+    return result;
+  }
+
+  private buildVocabulary(items: CoupletItem[]): string[] {
+    var words = new Set<string>();
+    for (var i = 0; i < items.length; i++) {
+      var tokens = `${items[i].textFirst} ${items[i].textSecond}`.split(/\s+/);
+      for (var j = 0; j < tokens.length; j++) {
+        var word = this.cleanWord(tokens[j]);
+        if (word.length >= 2) words.add(word);
       }
     }
+    return Array.from(words);
+  }
 
-    return cards;
+  private pickWordDistractors(answer: string, vocabulary: string[]): string[] {
+    var normalizedAnswer = normalizePersian(answer, true);
+    var pool = shuffle(vocabulary).filter(function (word) {
+      return normalizePersian(word, true) !== normalizedAnswer;
+    });
+
+    var similar = pool.filter(function (word) {
+      return Math.abs(word.length - answer.length) <= 2;
+    });
+    var rest = pool.filter(function (word) {
+      return similar.indexOf(word) === -1;
+    });
+
+    var fallback = FALLBACK_WORDS.filter(function (word) {
+      return normalizePersian(word, true) !== normalizedAnswer;
+    });
+
+    return this.uniqueStrings(similar.concat(rest, shuffle(fallback))).slice(0, OPTION_COUNT - 1);
+  }
+
+  private rhymeKey(item: CoupletItem): string {
+    var words = item.textSecond.split(/\s+/).filter(Boolean);
+    var last = normalizePersian(this.cleanWord(words[words.length - 1] || ''), true);
+    return last.slice(-2);
+  }
+
+  private formatCouplet(item: CoupletItem): string {
+    return `${item.textFirst} / ${item.textSecond}`;
+  }
+
+  private cleanWord(word: string): string {
+    return word.replace(PUNCTUATION, '').trim();
+  }
+
+  private poetNameOf(poem: GanjoorPoem): string {
+    return poem.FullTitle?.split('»')?.[0]?.trim() || '';
+  }
+
+  private uniqueStrings(values: string[]): string[] {
+    return Array.from(new Set(values.filter(Boolean)));
   }
 }
 

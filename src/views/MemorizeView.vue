@@ -45,7 +45,7 @@
         <!-- دکمه مرور کارت‌های امروز -->
         <router-link
           v-if="memorizeStore.dueCards.length > 0"
-          to="/memorize/quiz/multiple_choice"
+          :to="reviewLink"
           class="py-3 px-6 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md transition-all active:scale-95"
         >
           شروع جلسه مرور ({{ toPersianDigits(memorizeStore.dueCards.length) }} کارت)
@@ -93,7 +93,7 @@
         <router-link
           v-for="mode in quizModes"
           :key="mode.key"
-          :to="`/memorize/quiz/${mode.key}`"
+          :to="quizLink(mode.key)"
           class="p-4 rounded-2xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border hover:border-brand-500/50 hover:shadow-sm transition-all group flex items-start gap-3.5"
         >
           <div class="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-600 group-hover:bg-brand-600 group-hover:text-white flex items-center justify-center font-bold transition-colors flex-shrink-0">
@@ -148,11 +148,12 @@
       </div>
 
       <!-- تب‌های دسته‌ها -->
-      <div class="flex flex-wrap gap-2 mb-4">
+      <div class="flex flex-wrap items-center gap-2 mb-4">
         <button
           v-for="deck in memorizeStore.decks"
           :key="deck.id"
-          @click="memorizeStore.activeDeckId = deck.id || null; memorizeStore.loadCards()"
+          type="button"
+          @click="deck.id !== undefined && memorizeStore.selectDeck(deck.id)"
           class="px-4 py-2 rounded-xl text-xs font-bold transition-all border"
           :class="[
             memorizeStore.activeDeckId === deck.id
@@ -161,6 +162,17 @@
           ]"
         >
           {{ deck.title }}
+        </button>
+
+        <button
+          v-if="canDeleteActiveDeck"
+          type="button"
+          @click="onDeleteActiveDeck"
+          class="p-2 rounded-xl text-rose-600 border border-rose-500/30 hover:bg-rose-500/10 transition-colors"
+          title="حذف فهرست فعال"
+          aria-label="حذف فهرست فعال"
+        >
+          <Trash2 class="w-3.5 h-3.5" />
         </button>
       </div>
 
@@ -173,12 +185,23 @@
         >
           <div class="flex items-center justify-between text-xs text-ink-500 mb-2">
             <span class="font-bold text-brand-700 dark:text-brand-300">{{ card.poetName }} » {{ card.poemTitle }}</span>
-            <span
-              class="px-2 py-0.5 rounded-full text-[10px] font-bold"
-              :class="card.status === 'mastered' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'"
-            >
-              {{ card.status === 'mastered' ? 'حفظ کامل' : 'در حال مرور' }}
-            </span>
+            <div class="flex items-center gap-2">
+              <span
+                class="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                :class="card.status === 'mastered' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'"
+              >
+                {{ statusLabel(card.status) }}
+              </span>
+              <button
+                type="button"
+                @click="onDeleteCard(card)"
+                class="p-1 rounded-lg text-ink-400 hover:text-rose-600 hover:bg-rose-500/10 transition-colors"
+                title="حذف این بیت از فهرست حفظ"
+                aria-label="حذف این بیت از فهرست حفظ"
+              >
+                <Trash2 class="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
 
           <div class="text-sm font-medium text-ink-900 dark:text-ink-100 leading-loose my-2">
@@ -204,10 +227,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useMemorizeStore } from '../stores/memorizeStore';
 import { toPersianDigits } from '../utils/persianNormalizer';
 import EmptyState from '../components/common/EmptyState.vue';
+import type { CardStatus, MemorizeCard } from '../types/user';
 import {
   Brain,
   HelpCircle,
@@ -220,7 +244,8 @@ import {
   CalendarDays,
   ArrowLeft,
   Music,
-  ArrowDownCircle
+  ArrowDownCircle,
+  Trash2
 } from 'lucide-vue-next';
 
 var memorizeStore = useMemorizeStore();
@@ -244,11 +269,58 @@ var quizModes = [
   { key: 'word_hiding', title: 'محوشدن تدریجی کلمات', desc: 'کلمات بیت به تدریج محو می‌شوند تا حافظه به چالش کشیده شود.', icon: EyeOff }
 ];
 
-async function onCreateDeck() {
-  if (newDeckTitle.value.trim()) {
-    await memorizeStore.createDeck(newDeckTitle.value.trim());
-    newDeckTitle.value = '';
-    showCreateDeck.value = false;
+var CARD_BASED_MODES = ['cloze', 'reorder', 'multiple_choice', 'typing', 'word_hiding'];
+
+var STATUS_LABELS: Record<CardStatus, string> = {
+  new: 'جدید',
+  learning: 'در حال یادگیری',
+  review: 'در حال مرور',
+  mastered: 'حفظ کامل'
+};
+
+var reviewLink = computed(function () {
+  var query: Record<string, string> = { due: '1' };
+  if (memorizeStore.activeDeckId !== null) query.deck = String(memorizeStore.activeDeckId);
+  return { path: '/memorize/quiz/multiple_choice', query: query };
+});
+
+var canDeleteActiveDeck = computed(function () {
+  return memorizeStore.decks.length > 1 && memorizeStore.activeDeckId !== null;
+});
+
+function quizLink(modeKey: string) {
+  var query: Record<string, string> = {};
+  var isCardBased = CARD_BASED_MODES.indexOf(modeKey) !== -1;
+  if (isCardBased && memorizeStore.activeDeckId !== null) {
+    query.deck = String(memorizeStore.activeDeckId);
   }
+  return { path: `/memorize/quiz/${modeKey}`, query: query };
+}
+
+function statusLabel(status: CardStatus): string {
+  return STATUS_LABELS[status] || STATUS_LABELS.learning;
+}
+
+async function onCreateDeck() {
+  var title = newDeckTitle.value.trim();
+  if (!title) return;
+
+  var deckId = await memorizeStore.createDeck(title);
+  await memorizeStore.selectDeck(deckId);
+  newDeckTitle.value = '';
+  showCreateDeck.value = false;
+}
+
+async function onDeleteCard(card: MemorizeCard) {
+  if (card.id === undefined) return;
+  if (!window.confirm('این بیت از فهرست حفظ حذف شود؟')) return;
+  await memorizeStore.deleteCard(card.id);
+}
+
+async function onDeleteActiveDeck() {
+  var deckId = memorizeStore.activeDeckId;
+  if (deckId === null) return;
+  if (!window.confirm('این فهرست و همهٔ ابیات داخل آن حذف شود؟ این کار قابل بازگشت نیست.')) return;
+  await memorizeStore.deleteDeck(deckId);
 }
 </script>
