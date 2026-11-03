@@ -26,8 +26,13 @@
 
       (function () {
         try {
-          var theme = localStorage.getItem('ghazal-theme');
+          var urlParams = new URLSearchParams(window.location.search);
+          var queryTheme = urlParams.get('theme');
+          var theme = queryTheme || localStorage.getItem('ghazal-theme');
           var isDark = theme === 'dark' || (!theme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (theme === 'light') {
+            isDark = false;
+          }
           if (isDark) {
             document.documentElement.classList.add('dark');
           } else {

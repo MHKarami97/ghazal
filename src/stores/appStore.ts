@@ -4,7 +4,9 @@ import { ref, watch } from 'vue';
 export type ThemeMode = 'light' | 'dark' | 'system';
 
 export const useAppStore = defineStore('app', () => {
-  var savedTheme = (localStorage.getItem('ghazal-theme') as ThemeMode) || 'system';
+  var urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  var queryTheme = urlParams ? (urlParams.get('theme') as ThemeMode | null) : null;
+  var savedTheme = queryTheme || (localStorage.getItem('ghazal-theme') as ThemeMode) || 'system';
   var theme = ref<ThemeMode>(savedTheme);
   var isOnline = ref<boolean>(navigator.onLine);
   var fontSize = ref<number>(Number(localStorage.getItem('ghazal-font-size')) || 20);

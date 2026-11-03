@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>بسته رسانه‌ای و معرفی برنامه غزل | Ghazal Media Kit</title>
+  <link rel="stylesheet" href="../fonts/fonts.css">
+  <style>
+    :root[data-theme="light"] {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-sub: #f1f5f9;
+      --surface-border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --primary: #c2410c;
+      --primary-hover: #ea580c;
+      --primary-light: #ffedd5;
+      --accent: #d97706;
+      --card-bg: #ffffff;
+      --code-bg: #f1f5f9;
+      --quote-bg: #fff7ed;
+      --quote-border: #f97316;
+      --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+      --header-gradient: linear-gradient(135deg, #fff7ed 0%, #ffedd5 50%, #fef3c7 100%);
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface-sub: #0f172a;
+      --surface-border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #ea580c;
+      --primary-hover: #f97316;
+      --primary-light: rgba(234, 88, 12, 0.2);
+      --accent: #f59e0b;
+      --card-bg: #0f172a;
+      --code-bg: #0b1120;
+      --quote-bg: rgba(69, 26, 3, 0.35);
+      --quote-border: #ea580c;
+      --shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+      --header-gradient: linear-gradient(135deg, rgba(154, 52, 18, 0.35) 0%, rgba(30, 41, 59, 0.9) 100%);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Vazirmatn', Tahoma, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.8;
+      padding: 24px;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    header {
+      text-align: center;
+      padding: 40px 20px;
+      background: var(--header-gradient);
+      border: 1px solid var(--surface-border);
+      border-radius: 24px;
+      margin-bottom: 32px;
+      position: relative;
+      box-shadow: var(--shadow);
+    }
+    .logo-badge {
+      width: 84px;
+      height: 84px;
+      border-radius: 22px;
+      box-shadow: 0 10px 25px rgba(234, 88, 12, 0.25);
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .tagline {
+      font-size: 18px;
+      color: var(--primary);
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+    .action-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 14px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(234, 88, 12, 0.3);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(234, 88, 12, 0.4);
+      color: #fff;
+    }
+    .btn-secondary {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      color: var(--text);
+    }
+    .btn-secondary:hover {
+      background: var(--surface-sub);
+      color: var(--text);
+      transform: translateY(-2px);
+    }
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 20px;
+      padding: 30px;
+      margin-bottom: 32px;
+      box-shadow: var(--shadow);
+    }
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--surface-border);
+      padding-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .theme-toggle-group {
+      display: inline-flex;
+      background: var(--surface-sub);
+      padding: 4px;
+      border-radius: 12px;
+      border: 1px solid var(--surface-border);
+      gap: 4px;
+    }
+    .theme-btn {
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+    }
+    .theme-btn.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
+    }
+    .tab-bar {
+      display: flex;
+      gap: 8px;
+      border-bottom: 2px solid var(--surface-border);
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .tab-item {
+      padding: 10px 20px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.2s ease;
+    }
+    .tab-item:hover {
+      color: var(--primary);
+    }
+    .tab-item.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Formatted Intro Styling */
+    .article-body {
+      font-size: 15px;
+      color: var(--text);
+      line-height: 1.9;
+    }
+    .article-body h2 {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--primary);
+      margin: 28px 0 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--surface-border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .article-body h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 20px 0 10px;
+    }
+    .article-body p {
+      margin-bottom: 14px;
+      color: var(--text);
+    }
+    .article-body blockquote {
+      background: var(--quote-bg);
+      border-right: 4px solid var(--quote-border);
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin: 20px 0;
+      font-weight: 600;
+      color: var(--text);
+    }
+    [dir="ltr"] .article-body blockquote {
+      border-right: none;
+      border-left: 4px solid var(--quote-border);
+    }
+    .article-body ul {
+      margin: 12px 24px 20px;
+    }
+    .article-body li {
+      margin-bottom: 8px;
+    }
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--surface-border);
+    }
+    .article-body th, .article-body td {
+      padding: 12px 16px;
+      border: 1px solid var(--surface-border);
+      text-align: right;
+    }
+    [dir="ltr"] .article-body th, [dir="ltr"] .article-body td {
+      text-align: left;
+    }
+    .article-body th {
+      background: var(--surface-sub);
+      font-weight: 700;
+      color: var(--text);
+    }
+    .article-body a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .article-body a:hover {
+      text-decoration: underline;
+    }
+
+    .copy-box {
+      background: var(--code-bg);
+      border: 1px solid var(--surface-border);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .copy-box-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .copy-box-title {
+      font-weight: 700;
+      color: var(--accent);
+      font-size: 14px;
+    }
+    .copy-btn {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+    .copy-box pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 13.5px;
+      color: var(--text);
+      font-family: inherit;
+      line-height: 1.8;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--surface-border);
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: var(--shadow);
+    }
+    .card:hover {
+      transform: translateY(-4px);
+    }
+    .card-preview {
+      width: 100%;
+      height: 180px;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .card-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .card-body {
+      padding: 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .card-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .card-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .downloads-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .screen-item {
+      background: var(--card-bg);
+      border: 1px solid var(--surface-border);
+      border-radius: 14px;
+      overflow: hidden;
+      text-align: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: var(--shadow);
+    }
+    .screen-item:hover {
+      transform: translateY(-4px);
+    }
+    .screen-item img {
+      width: 100%;
+      height: 380px;
+      object-fit: cover;
+      object-position: top;
+      display: block;
+      background: #000;
+    }
+    .screen-item-body {
+      padding: 14px;
+    }
+    .screen-item-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+    .desktop-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 20px;
+    }
+    .desktop-item {
+      background: var(--card-bg);
+      border: 1px solid var(--surface-border);
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow);
+    }
+    .desktop-item img {
+      width: 100%;
+      height: 210px;
+      object-fit: cover;
+      object-position: top;
+      display: block;
+      background: #000;
+    }
+    .desktop-item-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      flex: 1;
+    }
+    footer {
+      text-align: center;
+      padding: 30px;
+      color: var(--text-muted);
+      font-size: 14px;
+      border-top: 1px solid var(--surface-border);
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <img src="../icons/icon-512.png" alt="آیکون غزل" class="logo-badge">
+    <h1>بسته رسانه‌ای و معرفی برنامه «غزل»</h1>
+    <div class="tagline">گنجینه هوشمند، زیبا و تماماً آفلاین شعر و ادب پارسی</div>
+    <div class="action-links">
+      <a href="https://ghazal.mhkarami97.ir/" target="_blank" class="btn btn-primary">🌐 وب‌اپلیکیشن (PWA)</a>
+      <a href="https://cafebazaar.ir/app/mhk.ghazal" target="_blank" class="btn btn-secondary">📱 صفحه در کافه بازار</a>
+      <a href="https://github.com/MHKarami97/ghazal" target="_blank" class="btn btn-secondary">💻 سورس کد در گیت‌هاب</a>
+      <a href="INTRO_FA.md" target="_blank" class="btn btn-secondary">📄 متن خام فارسی (MD)</a>
+      <a href="INTRO_EN.md" target="_blank" class="btn btn-secondary">📄 English Markdown</a>
+    </div>
+  </header>
+
+  <!-- Section: Formatted Intro Article -->
+  <div class="section">
+    <div class="section-title">
+      <span>📖 متن کامل معرفی و امکانات (فرمت‌شده و آماده مطالعه)</span>
+      <div class="theme-toggle-group">
+        <button id="btn-theme-light" class="theme-btn active" onclick="switchTheme('light')">☀️ حالت روشن (Light)</button>
+        <button id="btn-theme-dark" class="theme-btn" onclick="switchTheme('dark')">🌙 حالت تاریک (Dark)</button>
+      </div>
+    </div>
+
+    <!-- Tabs for Formatted Intro -->
+    <div class="tab-bar">
+      <button class="tab-item active" onclick="switchIntroTab('tab-intro-fa', this)">🇮🇷 متن کامل معرفی فارسی</button>
+      <button class="tab-item" onclick="switchIntroTab('tab-intro-en', this)">🇬🇧 English Formatted Intro</button>
+      <button class="tab-item" onclick="switchIntroTab('tab-intro-copy', this)">📋 قطعه‌های آماده کپی سریع (مارکت‌ها)</button>
+    </div>
+
+    <!-- Tab 1: Formatted Persian Intro -->
+    <div id="tab-intro-fa" class="tab-content active article-body">
+      <blockquote>
+        <b>«غزل»</b>؛ کاوشگری پیشرفته، هوشمند و تماماً آفلاین در شاهکارهای شعر و ادب پارسی بر پایه داده‌های پایگاه وزین <b>گنجور (Ganjoor)</b>.
+      </blockquote>
+
+      <h2>🌟 معرفی اجمالی</h2>
+      <p>
+        <b>«غزل»</b> تلاشی است برای پیوند دادن میراث کهن ادب فارسی با مدرن‌ترین فناوری‌های وب. این برنامه نه تنها یک دیوان‌خوان زیبا و سبک است، بلکه یک جعبه‌ابزار پژوهشی، آموزشی و سرگرمی است که به خواننده، پژوهشگر و علاقه‌مند شعر امکان می‌دهد بدون نیاز همیشگی به اینترنت، دیوان ده‌ها شاعر بزرگ را دانلود و ذخیره کرده، در وزن و قافیه اشعار جستجو کند، ارتباطات تاریخی شاعران را بر روی نقشه و خط زمان دنبال نماید و با الگوریتم‌های تکرار فاصله‌دار (SuperMemo SM-2) اشعار دلخواه خود را برای همیشه حفظ کند.
+      </p>
+
+      <h2>🎯 ویژگی‌های کلیدی و نوآورانه</h2>
+
+      <h3>۱. معماری بومی و آفلاین (Local-First Architecture)</h3>
+      <ul>
+        <li><b>استقلال کامل از اینترنت:</b> امکان دریافت بسته کامل هر شاعر در حافظه دستگاه (IndexedDB) با نمایش دقیق درصد پیشرفت، حجم بسته و امکان لغو در هر لحظه.</li>
+        <li><b>جستجوی تمام‌متن آفلاین:</b> جستجوی فوق‌العاده سریع در میان صدها هزار بیت ذخیره‌شده بدون کوچک‌ترین تاخیر شبکه.</li>
+        <li><b>ذخیره هوشمند محاسبات:</b> نتایج مقایسه‌ها، اوزان و کش‌های دیتابیس به صورت خودکار در دستگاه کاربر ماندگار می‌شوند تا هیچ سرباری به پردازشگر تحمیل نشود.</li>
+      </ul>
+
+      <h3>۲. وزن، قافیه و موسیقی شعر</h3>
+      <ul>
+        <li><b>فیلتر اشعار بر اساس وزن عروضی:</b> دسته‌بندی بر مبنای وزن‌های مشهور ادب پارسی (همچون <i>متقارب مثمن محذوف</i> — وزن شاهنامه، و <i>هزج مسدس محذوف</i> — وزن دوبیتی‌های باباطاهر).</li>
+        <li><b>شعرهای هم‌وزن و هم‌قافیه:</b> در صفحه هر شعر، سیستم به صورت هوشمند اشعار دیگری را که در همان وزن و قافیه سروده شده‌اند به شما پیشنهاد می‌دهد.</li>
+        <li><b>آزمون چهارگزینه‌ای اوزان شعر:</b> سنجش توانایی تشخیص وزن شعر با تفکیک اوزانی که دارای نام رسمی عروضی هستند.</li>
+      </ul>
+
+      <h3>۳. شعر در زبان‌ها و گویش‌های بومی</h3>
+      <ul>
+        <li><b>فراتر از فارسی معیار:</b> کاوش و مطالعه در اشعار سروده‌شده به گویش‌ها و زبان‌های کهن فلات ایران شامل: کردی، ترکی آذربایجانی، عربی، مازندرانی (طبری) و گیلکی.</li>
+        <li><b>تایپوگرافی اختصاصی:</b> پشتیبانی کامل فونت وزیرمتن (Vazirmatn) از حروف و نشانه‌های خاص گویش‌ها با چیدمان راست‌به‌چپ (RTL) بهینه‌شده.</li>
+      </ul>
+
+      <h3>۴. کاوش تاریخی و جغرافیایی (شعر در مکان و زمان)</h3>
+      <ul>
+        <li><b>شعر در جغرافیا (نقشه دیارها):</b> مشاهده شهرهای کهن، کوه‌ها، رودها و اماکنی که در سروده‌ها ذکر شده‌اند همراه با تمامی ابیات مرتبط.</li>
+        <li><b>شعر و تاریخ (خط زمانی):</b> خط زمان مصور زندگی شاعران، معاصران و رویدادهای تاریخی مهم.</li>
+        <li><b>ردیاب اشخاص و چهره‌ها:</b> جستجو و پیگیری اینکه چه کسی در چه شعری از شخص دیگری با ذکر نام (Participant) یا اشاره تلمیحی (Allusion) یاد کرده است.</li>
+        <li><b>گراف دربار و حامیان:</b> بررسی پیوند شاعران با پادشاهان، وزرا، ممدوحان و مربیان روزگار.</li>
+      </ul>
+
+      <h3>۵. حفظ شعر و چالش‌های تعاملی</h3>
+      <ul>
+        <li><b>حفظ مرحله‌ای با الگوریتم علمی SM-2:</b> پنهان‌سازی تدریجی کلمات مصراع‌ها برای تسلط آسان و ماندگار بر روی ابیات، با زمان‌بندی مرور هوشمند.</li>
+        <li><b>چالش روزانه (Daily Challenge):</b> هر روز یک بیت و یک سوال جدید با ثبت تاریخچه پاسخ‌ها، محاسبه زنجیره موفقیت (Streak) و ثبت امتیازات کاملاً محلی.</li>
+        <li><b>آزمون‌های متنوع:</b> آزمون «این بیت از کیست؟»، «بیت بعدی کدام است؟» و بازی جذاب «بیت هم‌قافیه».</li>
+        <li><b>محاسبه هوشمند و دقیق درصد پیشرفت:</b> بدون باگ‌های محاسباتی و محدودشده به بازه استاندارد ۰ تا ۱۰۰ درصد.</li>
+      </ul>
+
+      <h3>۶. مطالعه، ذوق و اشتراک‌گذاری</h3>
+      <ul>
+        <li><b>فال حافظ نوین:</b> دسترسی به تفأل روزانه همراه با تعبیر اختصاصی و امکان فال‌گیری تصادفی جدید با جلوه‌های دلنشین.</li>
+        <li><b>شعر امروز:</b> ارائه ابیات برگزیده در هر روز با دکمه دسترسی مستقیم و بارگذاری سریع کل شعر.</li>
+        <li><b>کارت‌ساز تصویری:</b> امکان تبدیل هر بیت دلخواه به کارت تصویری با کیفیت بالا و تنظیم قلم و رنگ‌آمیزی جهت اشتراک‌گذاری در اینستاگرام و پیام‌رسان‌ها.</li>
+        <li><b>مجموعه‌ها و یادداشت‌های شخصی:</b> ایجاد دسته‌بندی‌های اختصاصی با امکان پشتیبان‌گیری و استخراج با فرمت <b>PDF</b>.</li>
+        <li><b>میز مقایسه دو شاعر:</b> مقایسه نموداری مضامین، پرکاربردترین اوزان و نقاط اشتراک جغرافیایی دو شاعر در یک نما.</li>
+      </ul>
+
+      <h2>🛠️ مشخصات فنی و معماری</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>بخش</th>
+            <th>فناوری و کتابخانه</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>زبان و چارچوب فرانت‌اند</td>
+            <td>TypeScript, Vue 3 (Composition API), Vite</td>
+          </tr>
+          <tr>
+            <td>مدیریت حالت و استورها</td>
+            <td>Pinia Stores</td>
+          </tr>
+          <tr>
+            <td>پایگاه داده محلی و کش</td>
+            <td>Dexie.js (IndexedDB Wrapper)</td>
+          </tr>
+          <tr>
+            <td>قابلیت‌های آفلاین و PWA</td>
+            <td>Vite Plugin PWA, Workbox Service Worker</td>
+          </tr>
+          <tr>
+            <td>نقشه و مصورسازی جغرافیایی</td>
+            <td>Leaflet.js, Canvas API</td>
+          </tr>
+          <tr>
+            <td>طراحی و رابط کاربری</td>
+            <td>Tailwind CSS, Lucide Icons, Vazirmatn Font</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Tab 2: Formatted English Intro -->
+    <div id="tab-intro-en" class="tab-content article-body" dir="ltr" style="text-align: left;">
+      <blockquote>
+        <b>Ghazal</b> is an advanced, intelligent, and 100% offline-first Persian Poetry web application and research toolkit built on the prestigious <b>Ganjoor</b> open dataset.
+      </blockquote>
+
+      <h2>🌟 Overview</h2>
+      <p>
+        <b>Ghazal</b> bridges centuries of classical and modern Persian literary heritage with contemporary web technologies. It is not just a digital reader, but an interactive companion for poetry enthusiasts, researchers, and learners. With full offline data storage in IndexedDB, readers can download complete poetic compendiums (<i>Divans</i>), search across thousands of couplets instantly, explore geographic references on an interactive map, inspect historical timelines, and memorize poetry using spaced repetition algorithms (SM-2).
+      </p>
+
+      <h2>🎯 Key Features</h2>
+      <h3>1. 100% Local-First & Offline Architecture</h3>
+      <ul>
+        <li><b>Total Independence:</b> Download any poet's complete works directly into browser/device storage (IndexedDB).</li>
+        <li><b>Live Progress & Cancellation:</b> Transparent progress modal displaying exact downloaded kilobytes and percentages, with immediate cancellation support.</li>
+        <li><b>Instant Full-Text Search:</b> Query hundreds of thousands of verses locally with zero network latency.</li>
+        <li><b>Persistent Cached Metrics:</b> Heavy linguistic analysis and comparison metrics are calculated once and stored locally.</li>
+      </ul>
+
+      <h3>2. Poetic Metres (Aruz), Rhymes & Musicality</h3>
+      <ul>
+        <li><b>Metre-Based Filtering:</b> Browse classical Persian metres including legendary forms like <i>Motaqareb</i> (Ferdowsi's Shahnameh metre) and <i>Hazaj</i> (Baba Taher's Dobayti).</li>
+        <li><b>Similar Metre & Rhyme Recommendations:</b> On each poem's page, discover other verses matching the exact rhythm and rhyme scheme.</li>
+        <li><b>Four-Choice Metre Quiz:</b> Test and sharpen classical rhythm recognition skills with named traditional Persian metres.</li>
+      </ul>
+
+      <h3>3. Regional Dialects & Indigenous Languages</h3>
+      <ul>
+        <li><b>Beyond Standard Persian:</b> Explore historical poetry penned in Persian regional dialects and languages: Kurdish, Azerbaijani Turkish, Arabic, Mazandarani (Tabari), and Gilaki.</li>
+        <li><b>Optimized Typography:</b> Powered by Vazirmatn fonts ensuring accurate rendering of dialect-specific diacritics and letters in right-to-left layout.</li>
+      </ul>
+
+      <h3>4. Historical & Geographic Poetry Exploration</h3>
+      <ul>
+        <li><b>Poetry in Geography (Map of Regions):</b> Interactive map highlighting cities, rivers, mountains, and lands referenced in poems with direct access to every related couplet.</li>
+        <li><b>Poetry & History (Interactive Timeline):</b> Visual chronologies of poets, historical rulers, and contemporaries.</li>
+        <li><b>Who Mentions Whom (Allusion & Participant Tracker):</b> Track explicit mentions and literary allusions across historical literary circles.</li>
+        <li><b>Court & Patronage Network Graphs:</b> Explore connections between poets, viziers, and patrons.</li>
+      </ul>
+
+      <h3>5. Poetry Memorization & Interactive Challenges</h3>
+      <ul>
+        <li><b>Step-by-Step Spaced Repetition (SuperMemo SM-2):</b> Progressive word masking allows gradual, effortless memorization of favourite couplets.</li>
+        <li><b>Daily Challenge:</b> A fresh daily literary puzzle with local streak tracking and score history.</li>
+        <li><b>Literary Games:</b> "Whose verse is this?", "What is the next hemistich?", and "Rhyming Couplet Matcher".</li>
+      </ul>
+
+      <h3>6. Reading, Divination & Social Sharing</h3>
+      <ul>
+        <li><b>Modern Hafez Fortune (Faal):</b> Daily fortune reading with commentary and random fortune generation.</li>
+        <li><b>Poem of the Day:</b> Featured daily poem with one-click full reader loading.</li>
+        <li><b>Visual Card Generator:</b> Turn any couplet into a customized image card for Instagram, Telegram, and social media.</li>
+        <li><b>Personal Collections & PDF Export:</b> Organize custom collections and export them neatly formatted in PDF.</li>
+        <li><b>Two-Poet Comparator:</b> Compare thematic distributions, prevalent metres, and shared geographical motifs side-by-side.</li>
+      </ul>
+    </div>
+
+    <!-- Tab 3: Copy Boxes -->
+    <div id="tab-intro-copy" class="tab-content">
+      <div class="copy-box">
+        <div class="copy-box-header">
+          <span class="copy-box-title">عنوان برنامه (فارسی و انگلیسی)</span>
+          <button class="copy-btn" onclick="copyText('title-box')">کپی عنوان</button>
+        </div>
+        <pre id="title-box">غزل: دیوان اشعار و گنجینه شعر فارسی (آفلاین)
+Ghazal: Persian Poetry Divan & Offline Explorer</pre>
+      </div>
+
+      <div class="copy-box">
+        <div class="copy-box-header">
+          <span class="copy-box-title">توضیح کوتاه (Short Description — ۱ الی ۲ جمله)</span>
+          <button class="copy-btn" onclick="copyText('short-desc')">کپی متن</button>
+        </div>
+        <pre id="short-desc">دیوان هوشمند و آفلاین شعر فارسی با تفأل حافظ، وزن‌یاب و جستجوی هم‌وزن، حفظ شعر با الگوریتم لایتنر، نقشه جغرافیای شعر و کاوش در گویش‌های کهن ایران بر پایه داده‌های گنجور.
+
+Intelligent offline Persian poetry app with Hafez fortune, classical meter explorer, spaced-repetition memorization, geographic poetry mapping, and dialect explorer powered by Ganjoor.</pre>
+      </div>
+
+      <div class="copy-box">
+        <div class="copy-box-header">
+          <span class="copy-box-title">توضیح کامل و مشخصات (مناسب کافه بازار، مایکت و مقالات)</span>
+          <button class="copy-btn" onclick="copyText('long-desc')">کپی متن کامل</button>
+        </div>
+        <pre id="long-desc">نرم‌افزار «غزل» پلی میان شکوه کهن ادب پارسی و جدیدترین فناوری‌های نوین وب است. این اپلیکیشن با تکیه بر پایگاه داده باز و گرانسنگ «گنجور»، دسترسی نامحدود و کاملاً آفلاین به دیوان صدها هزار بیت از نام‌آوران شعر ایران را فراهم آورده است.
+
+ویژگی‌های برجسته و متمایز:
+• ۱۰۰٪ آفلاین و محلی (Local-First): دانلود پرسرعت بسته کامل هر شاعر در حافظه گوشی و جستجوی آنی بدون اینترنت.
+• وزن و موسیقی شعر: دسته‌بندی بر مبنای اوزان مشهور (وزن شاهنامه، دوبیتی و...)، پیشنهاد اشعار هم‌وزن و هم‌قافیه، و آزمون چهارگزینه‌ای اوزان.
+• گویش‌ها و زبان‌های بومی: مطالعه سروده‌های اصیل به زبان‌های کردی، ترکی آذربایجانی، عربی، مازندرانی و گیلکی با فونت بهینه وزیرمتن.
+• کاوش در جغرافیا و تاریخ: نقشه تعاملی اماکن ذکر شده در اشعار، خط زمانی شاعران و ردیاب روابط و اشارات چهره‌های تاریخی.
+• سیستم حفظ شعر علمی (SM-2): پنهان‌سازی مرحله‌ای کلمات و تکرار فاصله‌دار برای به خاطر سپردن آسان و ماندگار اشعار.
+• چالش روزانه و بازی‌های ادبی: معماهای روزانه، بازی بیت هم‌قافیه و سنجش معلومات ادبی با ثبت پیشرفت محلی.
+• فال حافظ همراه با تعبیر و فال تصادفی، شعر امروز با امکان مطالعه مستقیم، و کارت‌ساز تصویری زیبا برای اشتراک‌گذاری در اینستاگرام و شبکه‌های اجتماعی.
+• مجموعه‌های شخصی، برگزیده‌ها و امکان خروجی فایل PDF.
+• طراحی تمیز، سبک، پوسته تاریک و روشن، و فونت زیبای فارسی.</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section: Promotional Banners -->
+  <div class="section">
+    <div class="section-title">
+      <span>🎨 بنرها و پوسترهای گرافیکی رسمی (در دو حالت روشن و تاریک)</span>
+      <span style="font-size: 13px; color: var(--text-muted);" id="banner-theme-indicator">نمایش: حالت روشن</span>
+    </div>
+    <div class="grid" id="banners-grid">
+      <!-- Generated dynamically by script -->
+    </div>
+  </div>
+
+  <!-- Section: Mobile Screenshots -->
+  <div class="section">
+    <div class="section-title">
+      <span>📱 اسکرین‌شات‌های محیط موبایل (اندازه ۳۹۰x۸۴۴ — کاملاً ریسپانسیو و بدون کراپ)</span>
+      <span style="font-size: 13px; color: var(--text-muted);">نمایش پیش‌فرض: حالت روشن</span>
+    </div>
+
+    <div class="downloads-grid" id="mobile-grid">
+      <!-- Generated dynamically by script -->
+    </div>
+  </div>
+
+  <!-- Section: Desktop Screenshots -->
+  <div class="section">
+    <div class="section-title">
+      <span>💻 اسکرین‌شات‌های محیط وب و مانیتور عریض (۱۴۴۰x۹۰۰)</span>
+    </div>
+
+    <div class="desktop-grid" id="desktop-grid">
+      <!-- Generated dynamically by script -->
+    </div>
+  </div>
+
+  <footer>
+    طراحی و توسعه با عشق به زبان پارسی توسط <a href="https://mhkarami97.ir/" target="_blank" style="color:var(--primary); text-decoration:none;">محمدحسین کرمی</a> | منبع داده‌ها: <a href="https://ganjoor.net/" target="_blank" style="color:var(--text-muted);">گنجور (Ganjoor)</a>
+  </footer>
+</div>
+
+<script>
+  // DEFAULT IS LIGHT MODE AS REQUESTED
+  var currentTheme = 'light';
+
+  var bannerList = [
+    { file: 'banner-1200x630-social.png', title: 'بنر افقی شبکه‌های اجتماعی (1200x630)', desc: 'مناسب OpenGraph، لینکدین، تلگرام و پیش‌نمایش سایت' },
+    { file: 'poster-1080x1080-square.png', title: 'پوستر مربعی اینستاگرام (1080x1080)', desc: 'مناسب پست اینستاگرام، کاور مقاله و معرفی برنامه‌ها' },
+    { file: 'banner-1080x1920-story.png', title: 'بنر عمودی استوری (1080x1920)', desc: 'مناسب استوری اینستاگرام، ریلز و وضعیت پیام‌رسان‌ها', fit: 'contain' },
+    { file: 'banner-728x90-leaderboard.png', title: 'بنر هدر وب‌سایت‌ها (728x90)', desc: 'استاندارد Leaderboard برای هدر وب‌سایت‌های همکار', fit: 'contain' },
+    { file: 'banner-300x250-rectangle.png', title: 'بنر مستطیلی سایدبار (300x250)', desc: 'استاندارد کامل Medium Rectangle بدون کراپ' }
+  ];
+
+  var mobileScreens = [
+    { file: 'mobile-01-home.png', title: '۱. صفحه اصلی و شعر امروز' },
+    { file: 'mobile-02-poets.png', title: '۲. فهرست دیوان‌ها و شاعران' },
+    { file: 'mobile-03-poet-detail.png', title: '۳. دیوان حافظ و اشعار' },
+    { file: 'mobile-04-faal.png', title: '۴. فال حافظ و تعبیر' },
+    { file: 'mobile-05-memorize.png', title: '۵. حفظ شعر لایتنر SM-2' },
+    { file: 'mobile-06-daily-challenge.png', title: '۶. چالش و معمای روزانه' },
+    { file: 'mobile-07-metres.png', title: '۷. وزن عروضی و موسیقی شعر' },
+    { file: 'mobile-08-dialects.png', title: '۸. شعر در گویش‌های کهن' },
+    { file: 'mobile-09-collections.png', title: '۹. مجموعه‌ها و خروجی PDF' },
+    { file: 'mobile-10-compare.png', title: '۱۰. مقایسه تحلیلی دو شاعر' },
+    { file: 'mobile-11-explore.png', title: '۱۱. نقشه دیارها و خط زمان' },
+    { file: 'mobile-12-search.png', title: '۱۲. جستجوی محلی آفلاین' },
+    { file: 'mobile-13-settings.png', title: '۱۳. تنظیمات، حافظه و درباره' }
+  ];
+
+  var desktopScreens = [
+    { file: 'desktop-01-home.png', title: 'صفحه اصلی دسکتاپ و میانبرها' },
+    { file: 'desktop-02-poets.png', title: 'فهرست دیوان‌ها و تفکیک قرون' },
+    { file: 'desktop-03-poet-detail.png', title: 'دیوان کامل حافظ و بخش‌ها' },
+    { file: 'desktop-05-memorize.png', title: 'بخش حفظ شعر با الگوریتم SM-2' },
+    { file: 'desktop-07-metres.png', title: 'صفحه اوزان عروضی و آزمون‌ها' },
+    { file: 'desktop-08-dialects.png', title: 'کاوش اشعار در گویش‌های کهن' },
+    { file: 'desktop-10-compare.png', title: 'میز مقایسه آماری دو شاعر' },
+    { file: 'desktop-11-explore.png', title: 'نقشه تعاملی دیارها و اماکن' },
+    { file: 'desktop-13-settings.png', title: 'تنظیمات، مدیریت حافظه و درباره' }
+  ];
+
+  function renderBanners() {
+    var container = document.getElementById('banners-grid');
+    document.getElementById('banner-theme-indicator').innerText = 'نمایش: ' + (currentTheme === 'light' ? 'حالت روشن' : 'حالت تاریک');
+    container.innerHTML = bannerList.map(function(b) {
+      var src = 'banners/' + currentTheme + '/' + b.file;
+      var fitStyle = b.fit ? `style="object-fit:${b.fit};"` : '';
+      return `
+        <div class="card">
+          <div class="card-preview">
+            <img src="${src}" alt="${b.title}" ${fitStyle}>
+          </div>
+          <div class="card-body">
+            <div class="card-title">${b.title}</div>
+            <div class="card-meta">${b.desc}</div>
+            <a href="${src}" download="${currentTheme}-${b.file}" class="btn btn-primary" style="font-size:13px; justify-content:center;">دانلود بنر (${currentTheme === 'light' ? 'روشن' : 'تاریک'})</a>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderScreens() {
+    var mobContainer = document.getElementById('mobile-grid');
+    mobContainer.innerHTML = mobileScreens.map(function(s) {
+      var src = 'screenshots/' + currentTheme + '/' + s.file;
+      return `
+        <div class="screen-item">
+          <img src="${src}" alt="${s.title}" loading="lazy">
+          <div class="screen-item-body">
+            <div class="screen-item-title">${s.title}</div>
+            <a href="${src}" download="${currentTheme}-${s.file}" class="btn btn-secondary" style="font-size:12px; width:100%; justify-content:center;">دانلود تصویر</a>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    var deskContainer = document.getElementById('desktop-grid');
+    deskContainer.innerHTML = desktopScreens.map(function(s) {
+      var src = 'screenshots/' + currentTheme + '/' + s.file;
+      return `
+        <div class="desktop-item">
+          <img src="${src}" alt="${s.title}" loading="lazy">
+          <div class="desktop-item-body">
+            <div class="screen-item-title">${s.title}</div>
+            <a href="${src}" download="${currentTheme}-${s.file}" class="btn btn-secondary" style="font-size:12px; width:100%; justify-content:center;">دانلود اسکرین‌شات دسکتاپ</a>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function switchTheme(theme) {
+    currentTheme = theme;
+    document.documentElement.setAttribute('data-theme', theme);
+    document.getElementById('btn-theme-dark').className = 'theme-btn ' + (theme === 'dark' ? 'active' : '');
+    document.getElementById('btn-theme-light').className = 'theme-btn ' + (theme === 'light' ? 'active' : '');
+    renderBanners();
+    renderScreens();
+  }
+
+  function switchIntroTab(tabId, btn) {
+    var tabs = document.querySelectorAll('.tab-item');
+    for (var i = 0; i < tabs.length; i++) {
+      tabs[i].classList.remove('active');
+    }
+    btn.classList.add('active');
+
+    var contents = document.querySelectorAll('.tab-content');
+    for (var j = 0; j < contents.length; j++) {
+      contents[j].classList.remove('active');
+    }
+    document.getElementById(tabId).classList.add('active');
+  }
+
+  function copyText(elementId) {
+    var text = document.getElementById(elementId).innerText;
+    navigator.clipboard.writeText(text).then(function() {
+      alert('متن با موفقیت در کلیپ‌بورد کپی شد.');
+    });
+  }
+
+  // Initial render with default Light mode
+  switchTheme('light');
+</script>
+
+</body>
+</html>
