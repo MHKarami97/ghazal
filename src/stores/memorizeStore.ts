@@ -48,6 +48,44 @@ export const useMemorizeStore = defineStore('memorize', () => {
     }).length;
   });
 
+  var memorizedCoupletKeys = computed(function () {
+    var set = new Set<string>();
+    for (var i = 0; i < cards.value.length; i++) {
+      var c = cards.value[i];
+      set.add(`${c.poemId}_${c.coupletIndex}`);
+    }
+    return set;
+  });
+
+  var memorizedPoemIds = computed(function () {
+    var set = new Set<number>();
+    for (var i = 0; i < cards.value.length; i++) {
+      set.add(cards.value[i].poemId);
+    }
+    return set;
+  });
+
+  var groupedByPoem = computed(function () {
+    var map = new Map<number, { poemId: number; poemTitle: string; poetName: string; cards: MemorizeCard[] }>();
+    for (var i = 0; i < cards.value.length; i++) {
+      var c = cards.value[i];
+      var group = map.get(c.poemId);
+      if (!group) {
+        group = {
+          poemId: c.poemId,
+          poemTitle: c.poemTitle,
+          poetName: c.poetName,
+          cards: []
+        };
+        map.set(c.poemId, group);
+      }
+      group.cards.push(c);
+    }
+    return Array.from(map.values()).sort(function (a, b) {
+      return b.cards.length - a.cards.length;
+    });
+  });
+
   async function init() {
     isLoading.value = true;
     try {
@@ -193,6 +231,93 @@ export const useMemorizeStore = defineStore('memorize', () => {
     await loadDueCards();
   }
 
+  function isCoupletMemorized(poemId: number, coupletIndex: number): boolean {
+    return memorizedCoupletKeys.value.has(`${poemId}_${coupletIndex}`);
+  }
+
+  function isPoemMemorized(poemId: number): boolean {
+    return memorizedPoemIds.value.has(poemId);
+  }
+
+  async function toggleCoupletMemorize(params: AddCardParams): Promise<'added' | 'removed'> {
+    var targetDeckId = params.deckId ?? activeDeckId.value ?? decks.value[0]?.id;
+    var existing = await findCard(params.poemId, params.coupletIndex, targetDeckId);
+    if (existing && existing.id !== undefined) {
+      await deleteCard(existing.id);
+      return 'removed';
+    } else {
+      await addCardToDeck(params);
+      return 'added';
+    }
+  }
+
+  async function deletePoemCards(poemId: number, deckId?: number): Promise<number> {
+    var targetDeckId = deckId ?? activeDeckId.value;
+    var cardsToDelete = await db.memorizeCards
+      .where('poemId')
+      .equals(poemId)
+      .and(function (c) {
+        return targetDeckId === null || targetDeckId === undefined || c.deckId === targetDeckId;
+      })
+      .toArray();
+
+    var count = cardsToDelete.length;
+    var ids = cardsToDelete.map(function (c) { return c.id!; }).filter(Boolean);
+    if (ids.length > 0) {
+      await db.memorizeCards.bulkDelete(ids);
+      await loadCards();
+      await loadDueCards();
+    }
+    return count;
+  }
+
+  async function addPoemCards(cardParamsList: AddCardParams[]): Promise<{ added: number; existed: number }> {
+    if (decks.value.length === 0) {
+      await loadDecks();
+    }
+    var targetDeckId = activeDeckId.value ?? decks.value[0]?.id;
+    if (targetDeckId === undefined || targetDeckId === null) {
+      throw new Error('هیچ فهرست حفظی برای افزودن شعر وجود ندارد.');
+    }
+
+    var added = 0;
+    var existed = 0;
+    var newCards: any[] = [];
+    var today = toLocalDateString();
+
+    for (var i = 0; i < cardParamsList.length; i++) {
+      var p = cardParamsList[i];
+      var key = `${p.poemId}_${p.coupletIndex}`;
+      if (memorizedCoupletKeys.value.has(key)) {
+        existed++;
+      } else {
+        newCards.push({
+          deckId: targetDeckId,
+          poemId: p.poemId,
+          coupletIndex: p.coupletIndex,
+          poemTitle: p.poemTitle,
+          poetName: p.poetName,
+          textFirst: p.textFirst,
+          textSecond: p.textSecond,
+          status: 'new',
+          repCount: 0,
+          intervalDays: 1,
+          easeFactor: 2.5,
+          dueDate: today
+        });
+        added++;
+      }
+    }
+
+    if (newCards.length > 0) {
+      await db.memorizeCards.bulkAdd(newCards);
+      await loadCards();
+      await loadDueCards();
+    }
+
+    return { added: added, existed: existed };
+  }
+
   return {
     decks,
     activeDeckId,
@@ -203,6 +328,9 @@ export const useMemorizeStore = defineStore('memorize', () => {
     masteredCardsCount,
     learningCardsCount,
     reviewCardsCount,
+    memorizedCoupletKeys,
+    memorizedPoemIds,
+    groupedByPoem,
     init,
     loadDecks,
     selectDeck,
@@ -211,8 +339,13 @@ export const useMemorizeStore = defineStore('memorize', () => {
     loadCards,
     loadDueCards,
     findCard,
+    isCoupletMemorized,
+    isPoemMemorized,
+    toggleCoupletMemorize,
     addCardToDeck,
     deleteCard,
+    deletePoemCards,
+    addPoemCards,
     clearDeck,
     reviewCard,
     reviewCardById

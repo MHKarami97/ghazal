@@ -1,5 +1,6 @@
 import { buildUrl, PRIMARY_DATA_URL, FALLBACK_DATA_URL } from '../config/dataConfig';
 import { networkActivity } from './NetworkActivityService';
+import { db } from '../db/GhazalDB';
 import type {
   GanjoorManifest,
   GanjoorPoet,
@@ -23,10 +24,18 @@ export class CDNClient {
   private cache: Map<string, any> = new Map();
   private inflight: Map<string, Promise<any>> = new Map();
 
-  async fetchWithRetry<T>(url: string, retries = 3, delay = 600): Promise<T> {
+  async fetchWithRetry<T>(url: string, retries = 2, delay = 400): Promise<T> {
     if (this.cache.has(url)) {
       return this.cache.get(url) as T;
     }
+
+    try {
+      var cached = await db.baseMeta.get('url:' + url);
+      if (cached && cached.data) {
+        this.cache.set(url, cached.data);
+        return cached.data as T;
+      }
+    } catch (e) {}
 
     var pending = this.inflight.get(url);
     if (pending) {
@@ -52,24 +61,32 @@ export class CDNClient {
 
     if (url.startsWith(PRIMARY_DATA_URL)) {
       urlsToTry.push(url.replace(PRIMARY_DATA_URL, FALLBACK_DATA_URL));
+    } else if (url.startsWith(FALLBACK_DATA_URL)) {
+      urlsToTry.push(url.replace(FALLBACK_DATA_URL, PRIMARY_DATA_URL));
     }
 
     for (var u = 0; u < urlsToTry.length; u++) {
       var currentUrl = urlsToTry[u];
 
       for (var attempt = 0; attempt < retries; attempt++) {
+        var controller = new AbortController();
+        var timeoutId = setTimeout(function () {
+          controller.abort();
+        }, 4500);
+
         try {
           var response = await fetch(currentUrl, {
             headers: {
               'Accept': 'application/json'
-            }
+            },
+            signal: controller.signal
           });
+          clearTimeout(timeoutId);
 
           if (!response.ok) {
             var httpError = new Error(`HTTP ${response.status}: ${response.statusText}`);
             var isClientError = response.status >= 400 && response.status < 500 && response.status !== 429;
             if (isClientError) {
-              // خطای دائمی (مثل ۴۰۴): تلاش مجدد بی‌فایده است، مستقیم سراغ منبع پشتیبان برو
               lastError = httpError;
               break;
             }
@@ -77,13 +94,14 @@ export class CDNClient {
           }
 
           var data = await response.json();
-          this.remember(url, data);
+          void this.remember(url, data);
           return data as T;
         } catch (err: any) {
+          clearTimeout(timeoutId);
           lastError = err;
           if (attempt < retries - 1) {
             await new Promise(function (resolve) {
-              setTimeout(resolve, delay * Math.pow(1.8, attempt));
+              setTimeout(resolve, delay * Math.pow(1.5, attempt));
             });
           }
         }
@@ -93,12 +111,20 @@ export class CDNClient {
     throw new Error(`دریافت داده از منبع ناموفق بود: ${lastError?.message || 'خطای شبکه'}`);
   }
 
-  private remember(url: string, data: unknown): void {
+  private async remember(url: string, data: unknown): Promise<void> {
     if (this.cache.size >= MAX_CACHE_ENTRIES) {
       var oldestKey = this.cache.keys().next().value;
       if (oldestKey !== undefined) this.cache.delete(oldestKey);
     }
     this.cache.set(url, data);
+
+    try {
+      await db.baseMeta.put({
+        key: 'url:' + url,
+        data: JSON.parse(JSON.stringify(data)),
+        updatedAt: new Date().toISOString()
+      });
+    } catch (e) {}
   }
 
   async getManifest(): Promise<GanjoorManifest> {

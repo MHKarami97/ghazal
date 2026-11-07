@@ -94,12 +94,30 @@ export const useDataStore = defineStore('data', () => {
   }
 
   async function loadManifest() {
-    isLoadingManifest.value = true;
     error.value = null;
     try {
-      manifest.value = await cdnClient.getManifest();
+      if (!manifest.value) {
+        var cachedMeta = await db.baseMeta.get('manifest_cached');
+        if (cachedMeta && cachedMeta.data) {
+          manifest.value = cachedMeta.data;
+        } else {
+          isLoadingManifest.value = true;
+        }
+      }
+
+      var remoteManifest = await cdnClient.getManifest();
+      if (remoteManifest) {
+        manifest.value = remoteManifest;
+        void db.baseMeta.put({
+          key: 'manifest_cached',
+          data: JSON.parse(JSON.stringify(remoteManifest)),
+          updatedAt: new Date().toISOString()
+        });
+      }
     } catch (err: any) {
-      error.value = err.message;
+      if (!manifest.value) {
+        error.value = err.message;
+      }
     } finally {
       isLoadingManifest.value = false;
     }

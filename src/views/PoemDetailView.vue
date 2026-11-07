@@ -34,8 +34,49 @@
             </div>
           </div>
 
+          <!-- نوار پخش صوت و دکلمه گنجور -->
+          <PoemAudioPlayer v-if="recitations.length > 0" :recitations="recitations" />
+
           <!-- نوار ابزار تنظیمات مطالعه -->
           <ReaderToolbar @toggle-literary-panel="showMobileLiterary = !showMobileLiterary" />
+
+          <!-- نوار مدیریت حفظ کامل این شعر -->
+          <div class="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-paper-warm/70 dark:bg-paper-surface border border-ink-200/60 dark:border-paper-border text-xs mb-4">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-purple-500/15 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold">
+                <Brain class="w-4 h-4" />
+              </div>
+              <span v-if="memorizedCoupletCount > 0" class="font-bold text-ink-900 dark:text-ink-50">
+                {{ toPersianDigits(memorizedCoupletCount) }} از {{ toPersianDigits(coupletPairs.length) }} بیت در جعبه حفظ شما قرار دارد
+              </span>
+              <span v-else class="text-ink-500">
+                این شعر هنوز به جعبه حفظ اضافه نشده است
+              </span>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button
+                v-if="memorizedCoupletCount > 0"
+                @click="onRemoveEntirePoemFromMemorize"
+                type="button"
+                class="px-3 py-1.5 rounded-xl border border-rose-500/40 text-rose-600 dark:text-rose-400 font-bold hover:bg-rose-500/10 transition-colors flex items-center gap-1.5"
+                title="حذف تمام ابیات این شعر از فهرست حفظ"
+              >
+                <Trash2 class="w-3.5 h-3.5" />
+                <span>حذف کامل از حفظ</span>
+              </button>
+              <button
+                v-else
+                @click="onAddEntirePoemToMemorize"
+                type="button"
+                class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition-all shadow-xs flex items-center gap-1.5"
+                title="افزودن تمام ابیات این شعر به فهرست حفظ"
+              >
+                <Brain class="w-3.5 h-3.5" />
+                <span>حفظ کامل این شعر ({{ toPersianDigits(coupletPairs.length) }} بیت)</span>
+              </button>
+            </div>
+          </div>
 
           <!-- متن ابیات شعر -->
           <div class="space-y-4">
@@ -51,6 +92,7 @@
               :line-height="appStore.lineHeight"
               :is-selected="readingStore.activeCoupletIndex === pair.coupletIndex"
               :is-bookmarked="readingStore.isBookmarked(readingStore.currentPoem.Id, pair.coupletIndex)"
+              :is-memorized="memorizeStore.isCoupletMemorized(readingStore.currentPoem.Id, pair.coupletIndex)"
               :literary-tags="readingStore.currentPoem.LiteraryTags"
               :show-literary-tags="appStore.showLiteraryTags && !appStore.readingMode"
               :show-summary="appStore.showCoupletSummary && !appStore.readingMode"
@@ -220,9 +262,12 @@ import ReaderToolbar from '../components/poem/ReaderToolbar.vue';
 import CardExportModal from '../components/common/CardExportModal.vue';
 import StepMemorizerModal from '../components/memorize/StepMemorizerModal.vue';
 import LoadingState from '../components/common/LoadingState.vue';
+import PoemAudioPlayer from '../components/reading/PoemAudioPlayer.vue';
+import { recitationService, type PoemRecitation } from '../services/RecitationService';
+import { toPersianDigits } from '../utils/persianNormalizer';
 import type { GanjoorLiteraryTag, GanjoorPoem } from '../types/ganjoor';
 import type { UserCollection, MemorizeCard } from '../types/user';
-import { Music, FolderPlus, X } from 'lucide-vue-next';
+import { Music, FolderPlus, X, Brain, Trash2 } from 'lucide-vue-next';
 
 var route = useRoute();
 var appStore = useAppStore();
@@ -248,6 +293,7 @@ var activeExportFirst = ref<string>('');
 var activeExportSecond = ref<string>('');
 
 var similarPoems = ref<GanjoorPoem[]>([]);
+var recitations = ref<PoemRecitation[]>([]);
 var showStepMemorizer = ref<boolean>(false);
 var activeStepCard = ref<MemorizeCard | null>(null);
 
@@ -307,11 +353,28 @@ async function loadPoem() {
   } else {
     similarPoems.value = [];
   }
+
+  // بارگذاری فایل‌های صوتی و دکلمه شعر از گنجور
+  if (readingStore.currentPoem) {
+    recitationService.getRecitations(readingStore.currentPoem.Id).then(function (list) {
+      if (!isStale()) recitations.value = list;
+    });
+  } else {
+    recitations.value = [];
+  }
 }
 
 var coupletPairs = computed(function () {
   if (!readingStore.currentPoem?.Verses) return [];
   return groupVersesIntoCouplets(readingStore.currentPoem.Verses);
+});
+
+var memorizedCoupletCount = computed(function () {
+  if (!readingStore.currentPoem) return 0;
+  var poemId = readingStore.currentPoem.Id;
+  return coupletPairs.value.filter(function (p) {
+    return memorizeStore.isCoupletMemorized(poemId, p.coupletIndex);
+  }).length;
 });
 
 function onSelectCouplet(index: number) {
@@ -335,7 +398,7 @@ async function onAddToMemorize(coupletIndex: number) {
   var pair = coupletPairs.value.find(function (p) { return p.coupletIndex === coupletIndex; });
   if (!pair || !readingStore.currentPoem) return;
 
-  var result = await memorizeStore.addCardToDeck({
+  await memorizeStore.toggleCoupletMemorize({
     poemId: readingStore.currentPoem.Id,
     coupletIndex: coupletIndex,
     poemTitle: readingStore.currentPoem.Title,
@@ -343,12 +406,30 @@ async function onAddToMemorize(coupletIndex: number) {
     textFirst: pair.rightVerse?.Text || '',
     textSecond: pair.leftVerse?.Text || ''
   });
+}
 
-  alert(
-    result === 'exists'
-      ? 'این بیت قبلاً در فهرست حفظ شما وجود دارد. برای حذف آن به بخش «حفظ» بروید.'
-      : 'این بیت به فهرست حفظ شما اضافه شد.'
-  );
+async function onAddEntirePoemToMemorize() {
+  if (!readingStore.currentPoem) return;
+  var poem = readingStore.currentPoem;
+  var poetName = readingStore.currentPoet?.Nickname || poetSlug.value;
+  var list = coupletPairs.value.map(function (pair) {
+    return {
+      poemId: poem.Id,
+      coupletIndex: pair.coupletIndex,
+      poemTitle: poem.Title,
+      poetName: poetName,
+      textFirst: pair.rightVerse?.Text || '',
+      textSecond: pair.leftVerse?.Text || ''
+    };
+  });
+  var res = await memorizeStore.addPoemCards(list);
+  alert(`تمام ${toPersianDigits(res.added)} بیت این شعر به جعبه حفظ شما افزوده شد.`);
+}
+
+async function onRemoveEntirePoemFromMemorize() {
+  if (!readingStore.currentPoem) return;
+  if (!confirm('آیا مایلید تمام ابیات این شعر از فهرست حفظ شما حذف شود؟')) return;
+  await memorizeStore.deletePoemCards(readingStore.currentPoem.Id);
 }
 
 async function onStepMemorize(coupletIndex: number) {

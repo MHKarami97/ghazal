@@ -41,9 +41,12 @@ export const useReadingStore = defineStore('reading', () => {
     var exact = await db.poems.where('FullUrl').equals(fullUrl).first();
     if (exact) return exact;
 
+    var prefix = `/${poetSlug}/`;
     return db.poems
+      .where('FullUrl')
+      .startsWith(prefix)
       .filter(function (p) {
-        return p.FullUrl.startsWith(`/${poetSlug}/`) && p.FullUrl.endsWith(`/${poemSlug}`);
+        return p.FullUrl.endsWith(`/${poemSlug}`);
       })
       .first();
   }

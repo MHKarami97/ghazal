@@ -23,10 +23,11 @@
 
       <button
         @click.stop="$emit('add-to-memorize', coupletIndex)"
-        class="p-1 rounded-full hover:bg-ink-100 dark:hover:bg-paper-surface text-ink-600 dark:text-ink-400"
-        title="افزودن به جعبه حفظ"
+        class="p-1 rounded-full hover:bg-ink-100 dark:hover:bg-paper-surface transition-colors"
+        :class="isMemorized ? 'text-purple-600 dark:text-purple-400 bg-purple-500/15' : 'text-ink-600 dark:text-ink-400'"
+        :title="isMemorized ? 'حذف این بیت از جعبه حفظ' : 'افزودن این بیت به جعبه حفظ'"
       >
-        <Brain class="w-3.5 h-3.5" />
+        <Brain class="w-3.5 h-3.5" :class="{ 'text-purple-600 dark:text-purple-400': isMemorized }" />
       </button>
 
       <button
@@ -127,6 +128,7 @@ var props = withDefaults(
     lineHeight: number;
     isSelected?: boolean;
     isBookmarked?: boolean;
+    isMemorized?: boolean;
     literaryTags?: GanjoorLiteraryTag[];
     showLiteraryTags?: boolean;
     showSummary?: boolean;

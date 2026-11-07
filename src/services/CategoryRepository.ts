@@ -13,5 +13,11 @@ export async function loadCategoryData(poetSlug: string, catPath?: string): Prom
   var local = await db.categories.where('FullUrl').equals(fullUrl).first();
   if (local) return local;
 
-  return cdnClient.getCategory(poetSlug, catPath);
+  var remote = await cdnClient.getCategory(poetSlug, catPath);
+  if (remote) {
+    try {
+      await db.categories.put(JSON.parse(JSON.stringify(remote)));
+    } catch (e) {}
+  }
+  return remote;
 }
