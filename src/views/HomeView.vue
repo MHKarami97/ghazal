@@ -123,7 +123,8 @@
         <span class="text-xs text-ink-500">ابزارهای نوین مطالعه، یادگیری و اشتراک</span>
       </div>
 
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <!-- ۱. چالش روزانه -->
         <router-link
           to="/memorize/daily-challenge"
           class="p-4 rounded-2xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border hover:border-amber-500/50 hover:shadow-soft transition-all text-center space-y-2 group"
@@ -137,56 +138,130 @@
           <div class="text-[10px] text-ink-400">یک بیت، یک معما</div>
         </router-link>
 
+        <!-- ۲. فال حافظ -->
+        <router-link
+          to="/faal"
+          class="p-4 rounded-2xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border hover:border-purple-500/50 hover:shadow-soft transition-all text-center space-y-2 group"
+        >
+          <div class="w-10 h-10 mx-auto rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+            <Sparkles class="w-5 h-5" />
+          </div>
+          <div class="text-xs font-bold text-ink-900 dark:text-ink-100 group-hover:text-purple-600 transition-colors">
+            فال حافظ
+          </div>
+          <div class="text-[10px] text-ink-400">تفأل و تعبیر عرفانی</div>
+        </router-link>
+
+        <!-- ۳. کاوش ادبی و نقشه -->
+        <router-link
+          to="/explore"
+          class="p-4 rounded-2xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border hover:border-sky-500/50 hover:shadow-soft transition-all text-center space-y-2 group"
+        >
+          <div class="w-10 h-10 mx-auto rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+            <Compass class="w-5 h-5" />
+          </div>
+          <div class="text-xs font-bold text-ink-900 dark:text-ink-100 group-hover:text-sky-600 transition-colors">
+            کاوش و نقشه
+          </div>
+          <div class="text-[10px] text-ink-400">دیارها و تبارشناسی</div>
+        </router-link>
+
+        <!-- ۴. آموزش و آرایه‌ها -->
+        <router-link
+          to="/education"
+          class="p-4 rounded-2xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border hover:border-emerald-500/50 hover:shadow-soft transition-all text-center space-y-2 group"
+        >
+          <div class="w-10 h-10 mx-auto rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+            <GraduationCap class="w-5 h-5" />
+          </div>
+          <div class="text-xs font-bold text-ink-900 dark:text-ink-100 group-hover:text-emerald-600 transition-colors">
+            آموزش و آرایه‌ها
+          </div>
+          <div class="text-[10px] text-ink-400">صنایع ادبی و عروض</div>
+        </router-link>
+
+        <!-- ۵. حفظ شعر و لایتنر -->
+        <router-link
+          to="/memorize"
+          class="p-4 rounded-2xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border hover:border-rose-500/50 hover:shadow-soft transition-all text-center space-y-2 group"
+        >
+          <div class="w-10 h-10 mx-auto rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+            <Brain class="w-5 h-5" />
+          </div>
+          <div class="text-xs font-bold text-ink-900 dark:text-ink-100 group-hover:text-rose-600 transition-colors">
+            حفظ شعر و لایتنر
+          </div>
+          <div class="text-[10px] text-ink-400">تکرار فاصله‌دار SM-2</div>
+        </router-link>
+
+        <!-- ۶. موسیقی و وزن‌ها -->
         <router-link
           to="/metres"
-          class="p-4 rounded-2xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border hover:border-brand-500/50 hover:shadow-soft transition-all text-center space-y-2 group"
+          class="p-4 rounded-2xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border hover:border-indigo-500/50 hover:shadow-soft transition-all text-center space-y-2 group"
         >
-          <div class="w-10 h-10 mx-auto rounded-xl bg-brand-500/10 text-brand-600 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+          <div class="w-10 h-10 mx-auto rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
             <Music class="w-5 h-5" />
           </div>
-          <div class="text-xs font-bold text-ink-900 dark:text-ink-100 group-hover:text-brand-600 transition-colors">
+          <div class="text-xs font-bold text-ink-900 dark:text-ink-100 group-hover:text-indigo-600 transition-colors">
             موسیقی و وزن‌ها
           </div>
           <div class="text-[10px] text-ink-400">شاهنامه، مثنوی، دوبیتی</div>
         </router-link>
 
+        <!-- ۷. شعر در گویش‌ها -->
         <router-link
           to="/dialects"
-          class="p-4 rounded-2xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border hover:border-brand-500/50 hover:shadow-soft transition-all text-center space-y-2 group"
+          class="p-4 rounded-2xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border hover:border-teal-500/50 hover:shadow-soft transition-all text-center space-y-2 group"
         >
-          <div class="w-10 h-10 mx-auto rounded-xl bg-brand-500/10 text-brand-600 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+          <div class="w-10 h-10 mx-auto rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
             <Globe2 class="w-5 h-5" />
           </div>
-          <div class="text-xs font-bold text-ink-900 dark:text-ink-100 group-hover:text-brand-600 transition-colors">
+          <div class="text-xs font-bold text-ink-900 dark:text-ink-100 group-hover:text-teal-600 transition-colors">
             شعر در گویش‌ها
           </div>
           <div class="text-[10px] text-ink-400">طبری، ترکی، کردی و...</div>
         </router-link>
 
+        <!-- ۸. مقایسه دو شاعر -->
+        <router-link
+          to="/compare"
+          class="p-4 rounded-2xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border hover:border-orange-500/50 hover:shadow-soft transition-all text-center space-y-2 group"
+        >
+          <div class="w-10 h-10 mx-auto rounded-xl bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+            <Scale class="w-5 h-5" />
+          </div>
+          <div class="text-xs font-bold text-ink-900 dark:text-ink-100 group-hover:text-orange-600 transition-colors">
+            مقایسه دو شاعر
+          </div>
+          <div class="text-[10px] text-ink-400">سنجش سبک و اوزان</div>
+        </router-link>
+
+        <!-- ۹. مجموعه‌های من -->
         <router-link
           to="/collections"
-          class="p-4 rounded-2xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border hover:border-brand-500/50 hover:shadow-soft transition-all text-center space-y-2 group"
+          class="p-4 rounded-2xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border hover:border-violet-500/50 hover:shadow-soft transition-all text-center space-y-2 group"
         >
-          <div class="w-10 h-10 mx-auto rounded-xl bg-brand-500/10 text-brand-600 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+          <div class="w-10 h-10 mx-auto rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
             <BookmarkCheck class="w-5 h-5" />
           </div>
-          <div class="text-xs font-bold text-ink-900 dark:text-ink-100 group-hover:text-brand-600 transition-colors">
+          <div class="text-xs font-bold text-ink-900 dark:text-ink-100 group-hover:text-violet-600 transition-colors">
             مجموعه‌های من
           </div>
           <div class="text-[10px] text-ink-400">دفترها و خروجی PDF</div>
         </router-link>
 
+        <!-- ۱۰. جست‌وجوی پیشرفته -->
         <router-link
-          to="/compare"
+          to="/search"
           class="p-4 rounded-2xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border hover:border-brand-500/50 hover:shadow-soft transition-all text-center space-y-2 group"
         >
-          <div class="w-10 h-10 mx-auto rounded-xl bg-brand-500/10 text-brand-600 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
-            <Scale class="w-5 h-5" />
+          <div class="w-10 h-10 mx-auto rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+            <Search class="w-5 h-5" />
           </div>
           <div class="text-xs font-bold text-ink-900 dark:text-ink-100 group-hover:text-brand-600 transition-colors">
-            مقایسه دو شاعر
+            جست‌وجوی پیشرفته
           </div>
-          <div class="text-[10px] text-ink-400">سنجش سبک و اوزان</div>
+          <div class="text-[10px] text-ink-400">کاوش در ابیات و قوافی</div>
         </router-link>
       </div>
     </div>
@@ -290,7 +365,10 @@ import {
   Globe2,
   BookmarkCheck,
   Scale,
-  ArrowLeft
+  ArrowLeft,
+  Compass,
+  GraduationCap,
+  Search
 } from 'lucide-vue-next';
 
 var appStore = useAppStore();
