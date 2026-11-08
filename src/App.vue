@@ -145,6 +145,13 @@ var currentTitle = computed(function () {
   if (route.name === 'Education') return 'آموزش و آرایه‌ها';
   if (route.name === 'Explore') return 'کاوش و تبارشناسی';
   if (route.name === 'Settings') return 'تنظیمات و داده‌ها';
+  if (route.name === 'Metres') return 'موسیقی و وزن شعر';
+  if (route.name === 'Dialects') return 'شعر در گویش‌ها';
+  if (route.name === 'Collections') return 'مجموعه‌های شخصی';
+  if (route.name === 'PoetCompare') return 'مقایسه دو شاعر';
+  if (route.name === 'DailyChallenge') return 'چالش روزانه';
+  if (route.name === 'QuizSession') return 'آزمون و تمرین حفظ';
+  if (route.name === 'PersonDetail') return 'شناسنامه شخصیت';
   return '';
 });
 </script>

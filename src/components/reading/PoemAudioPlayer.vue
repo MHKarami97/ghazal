@@ -118,6 +118,15 @@
       </div>
     </div>
 
+    <!-- خطای پخش صوت -->
+    <div
+      v-if="audioError"
+      class="mt-2 p-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-300 text-[11px] flex items-center justify-between"
+    >
+      <span>پخش این فایل صوتی با خطا مواجه شد (ممکن است در حالت آفلاین باشید).</span>
+      <button @click="audioError = false" class="text-rose-500 font-bold px-1.5">✕</button>
+    </div>
+
     <!-- المنت نامرئی audio -->
     <audio
       ref="audioElement"
@@ -159,6 +168,7 @@ var audioElement = ref<HTMLAudioElement | null>(null);
 var selectedRecitationId = ref<number | null>(null);
 var isPlaying = ref<boolean>(false);
 var isLoadingAudio = ref<boolean>(false);
+var audioError = ref<boolean>(false);
 var currentTime = ref<number>(0);
 var duration = ref<number>(0);
 var isMuted = ref<boolean>(false);
@@ -201,16 +211,22 @@ var progressPercent = computed(function () {
 
 function togglePlay() {
   if (!audioElement.value) return;
+  audioError.value = false;
   if (isPlaying.value) {
     audioElement.value.pause();
   } else {
+    isLoadingAudio.value = true;
     audioElement.value.play().catch(function (err) {
       console.warn('Playback prevented or failed:', err);
+      isLoadingAudio.value = false;
+      isPlaying.value = false;
+      audioError.value = true;
     });
   }
 }
 
 function stopAndReset() {
+  audioError.value = false;
   if (audioElement.value) {
     audioElement.value.pause();
     audioElement.value.currentTime = 0;
@@ -222,6 +238,7 @@ function stopAndReset() {
 function onAudioPlay() {
   isPlaying.value = true;
   isLoadingAudio.value = false;
+  audioError.value = false;
 }
 
 function onAudioPause() {
@@ -248,6 +265,7 @@ function onAudioEnded() {
 function onAudioError() {
   isLoadingAudio.value = false;
   isPlaying.value = false;
+  audioError.value = true;
 }
 
 function seek(e: MouseEvent) {

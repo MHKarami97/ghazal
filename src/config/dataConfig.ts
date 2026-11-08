@@ -58,7 +58,8 @@ export const buildUrl: UrlBuilder = {
       cleanCat = cleanCat.slice(cleanSlug.length + 1);
     }
     var cleanPoem = String(poemSlug || '').replace(/^\/+|\/+$/g, '');
-    return `${PRIMARY_DATA_URL}/poets/${cleanSlug}/${cleanCat}/${cleanPoem}.json`;
+    var catPart = cleanCat ? `${cleanCat}/` : '';
+    return `${PRIMARY_DATA_URL}/poets/${cleanSlug}/${catPart}${cleanPoem}.json`;
   },
   poemByFullUrl(fullUrl: string) {
     var path = fullUrl.replace(/^\/+|\/+$/g, '');

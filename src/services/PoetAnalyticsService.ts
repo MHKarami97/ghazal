@@ -47,7 +47,11 @@ export class PoetAnalyticsService {
       await cachedCompute.invalidate(`stats:poet:${poetSlug}:`);
       var poems = await db.poems.where('FullUrl').startsWith(prefix).toArray();
 
-      var resolvedName = poetName || poems[0]?.FullTitle?.split('»')?.[0]?.trim() || poetSlug;
+      var resolvedName = poetName || poems[0]?.FullTitle?.split('»')?.[0]?.trim();
+      if (!resolvedName) {
+        var localPoet = await db.poets.where('FullUrl').equals(`/${poetSlug}`).first();
+        resolvedName = localPoet?.Nickname || localPoet?.Name || poetSlug;
+      }
       var totalPoems = poems.length;
       var totalVerses = 0;
 
@@ -134,9 +138,9 @@ export class PoetAnalyticsService {
   /**
    * مقایسه تطبیقی دو شاعر بزرگ با کش محاسبات
    */
-  async comparePoets(poet1Slug: string, poet2Slug: string): Promise<PoetComparisonResult> {
-    var p1 = await this.getPoetStats(poet1Slug);
-    var p2 = await this.getPoetStats(poet2Slug);
+  async comparePoets(poet1Slug: string, poet2Slug: string, poet1Name?: string, poet2Name?: string): Promise<PoetComparisonResult> {
+    var p1 = await this.getPoetStats(poet1Slug, poet1Name);
+    var p2 = await this.getPoetStats(poet2Slug, poet2Name);
 
     var p2MetreMap = new Map<string, number>();
     p2.topMetres.forEach(function (m) { p2MetreMap.set(m.rhythm, m.count); });

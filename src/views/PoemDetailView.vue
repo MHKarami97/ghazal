@@ -142,6 +142,43 @@
               </router-link>
             </div>
           </div>
+
+          <!-- ناوبری شعر بعدی و شعر قبلی در دفتر -->
+          <nav
+            v-if="prevPoem || nextPoem"
+            class="mt-10 pt-6 border-t border-ink-200/80 dark:border-paper-border flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-xs"
+            aria-label="پیمایش اشعار این دفتر"
+          >
+            <router-link
+              v-if="prevPoem"
+              :to="prevPoem.route"
+              class="flex-1 p-3.5 rounded-2xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border hover:border-brand-500/50 hover:bg-brand-50/10 transition-all flex items-center gap-2.5 group"
+            >
+              <ArrowRight class="w-4 h-4 text-brand-600 shrink-0 group-hover:translate-x-1 transition-transform" />
+              <div class="min-w-0 flex-1 text-right">
+                <span class="text-[11px] text-ink-400 block mb-0.5">شعر قبلی:</span>
+                <span class="font-bold text-ink-900 dark:text-ink-50 truncate block group-hover:text-brand-600 transition-colors">
+                  {{ prevPoem.title }}
+                </span>
+              </div>
+            </router-link>
+            <div v-else class="flex-1 hidden sm:block"></div>
+
+            <router-link
+              v-if="nextPoem"
+              :to="nextPoem.route"
+              class="flex-1 p-3.5 rounded-2xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border hover:border-brand-500/50 hover:bg-brand-50/10 transition-all flex items-center justify-between gap-2.5 group"
+            >
+              <div class="min-w-0 flex-1 text-left">
+                <span class="text-[11px] text-ink-400 block mb-0.5">شعر بعدی:</span>
+                <span class="font-bold text-ink-900 dark:text-ink-50 truncate block group-hover:text-brand-600 transition-colors">
+                  {{ nextPoem.title }}
+                </span>
+              </div>
+              <ArrowLeft class="w-4 h-4 text-brand-600 shrink-0 group-hover:-translate-x-1 transition-transform" />
+            </router-link>
+            <div v-else class="flex-1 hidden sm:block"></div>
+          </nav>
         </main>
 
         <!-- پنل جانبی آموزش و آرایه‌ها در دسکتاپ (تنها در صورت نبودن در حالت مطالعه) -->
@@ -254,6 +291,7 @@ import { useMemorizeStore } from '../stores/memorizeStore';
 import { useLiteraryStore } from '../stores/literaryStore';
 import { poetAnalytics } from '../services/PoetAnalyticsService';
 import { collectionService } from '../services/CollectionService';
+import { loadCategoryData } from '../services/CategoryRepository';
 import { groupVersesIntoCouplets, getPoemMetreRhythm } from '../utils/formatters';
 import { toLocalDateString } from '../utils/dateUtils';
 import CoupletView from '../components/poem/CoupletView.vue';
@@ -267,7 +305,7 @@ import { recitationService, type PoemRecitation } from '../services/RecitationSe
 import { toPersianDigits } from '../utils/persianNormalizer';
 import type { GanjoorLiteraryTag, GanjoorPoem } from '../types/ganjoor';
 import type { UserCollection, MemorizeCard } from '../types/user';
-import { Music, FolderPlus, X, Brain, Trash2 } from 'lucide-vue-next';
+import { Music, FolderPlus, X, Brain, Trash2, ArrowRight, ArrowLeft } from 'lucide-vue-next';
 
 var route = useRoute();
 var appStore = useAppStore();
@@ -294,6 +332,8 @@ var activeExportSecond = ref<string>('');
 
 var similarPoems = ref<GanjoorPoem[]>([]);
 var recitations = ref<PoemRecitation[]>([]);
+var prevPoem = ref<{ title: string; route: string } | null>(null);
+var nextPoem = ref<{ title: string; route: string } | null>(null);
 var showStepMemorizer = ref<boolean>(false);
 var activeStepCard = ref<MemorizeCard | null>(null);
 
@@ -340,6 +380,54 @@ async function loadPoem() {
         }
       }, 350);
     }
+  } else {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // بارگذاری دفتر برای ناوبری شعر بعدی و شعر قبلی
+  if (poetSlug.value && catPath.value) {
+    loadCategoryData(poetSlug.value, catPath.value).then(function (cat) {
+      if (isStale() || !cat || !cat.Poems || cat.Poems.length === 0) {
+        prevPoem.value = null;
+        nextPoem.value = null;
+        return;
+      }
+      var currentUrlSlug = poemSlug.value;
+      var idx = cat.Poems.findIndex(function (p) {
+        var clean = p.FullUrl.replace(/^\/+|\/+$/g, '');
+        return clean.endsWith('/' + currentUrlSlug) || clean === currentUrlSlug;
+      });
+      if (idx !== -1) {
+        if (idx > 0) {
+          var prev = cat.Poems[idx - 1];
+          prevPoem.value = {
+            title: prev.Title,
+            route: `/read/${prev.FullUrl.replace(/^\/+|\/+$/g, '')}`
+          };
+        } else {
+          prevPoem.value = null;
+        }
+
+        if (idx < cat.Poems.length - 1) {
+          var next = cat.Poems[idx + 1];
+          nextPoem.value = {
+            title: next.Title,
+            route: `/read/${next.FullUrl.replace(/^\/+|\/+$/g, '')}`
+          };
+        } else {
+          nextPoem.value = null;
+        }
+      } else {
+        prevPoem.value = null;
+        nextPoem.value = null;
+      }
+    }).catch(function () {
+      prevPoem.value = null;
+      nextPoem.value = null;
+    });
+  } else {
+    prevPoem.value = null;
+    nextPoem.value = null;
   }
 
   // بارگذاری اشعار هم‌وزن از کش

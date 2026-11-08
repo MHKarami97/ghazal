@@ -404,17 +404,21 @@ export class PackageDownloadService {
     if (this.recovered) return;
     this.recovered = true;
 
-    var stuck = await db.packages.where('status').anyOf('downloading', 'paused').toArray();
+    var stuck = await db.packages.where('status').anyOf('downloading', 'paused', 'interrupted').toArray();
     for (var i = 0; i < stuck.length; i++) {
       var pkg = stuck[i];
       if (this.isActive(pkg.id)) continue;
 
       var stats = await this.measurePackage(pkg);
-      await db.packages.update(pkg.id, {
-        status: 'interrupted',
-        downloadedPoems: stats.count,
-        sizeBytes: stats.bytes
-      });
+      if (stats.count === 0 && pkg.type !== 'base') {
+        await db.packages.delete(pkg.id);
+      } else {
+        await db.packages.update(pkg.id, {
+          status: 'interrupted',
+          downloadedPoems: stats.count,
+          sizeBytes: stats.bytes
+        });
+      }
     }
   }
 

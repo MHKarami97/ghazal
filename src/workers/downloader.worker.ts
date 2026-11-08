@@ -66,8 +66,14 @@ async function fetchPoemText(url: string): Promise<string | null> {
 
   for (var c = 0; c < candidates.length; c++) {
     for (var attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      var controller = new AbortController();
+      var timeoutId = setTimeout(function () {
+        controller.abort();
+      }, 6000);
+
       try {
-        var res = await fetch(candidates[c]);
+        var res = await fetch(candidates[c], { signal: controller.signal });
+        clearTimeout(timeoutId);
         if (res.ok) {
           return await res.text();
         }
@@ -75,7 +81,8 @@ async function fetchPoemText(url: string): Promise<string | null> {
           break;
         }
       } catch (err) {
-        // شبکه قطع است؛ تلاش مجدد با تاخیر افزایشی
+        clearTimeout(timeoutId);
+        // شبکه قطع یا معلق شد؛ تلاش مجدد با تاخیر افزایشی
       }
       await sleep(400 * Math.pow(2, attempt));
     }

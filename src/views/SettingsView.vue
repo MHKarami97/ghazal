@@ -15,7 +15,7 @@
         <div class="flex items-center gap-2">
           <HardDrive class="w-5 h-5 text-brand-600" />
           <h3 class="font-bold text-base text-ink-900 dark:text-ink-50">
-            بسته‌های داده محلی ({{ toPersianDigits(dataStore.installedPackages.length) }})
+            بسته‌های داده محلی ({{ toPersianDigits(displayPackages.length) }})
           </h3>
         </div>
 
@@ -29,9 +29,9 @@
         />
       </div>
 
-      <div v-if="dataStore.installedPackages.length > 0" class="space-y-3">
+      <div v-if="displayPackages.length > 0" class="space-y-3">
         <div
-          v-for="pkg in dataStore.installedPackages"
+          v-for="pkg in displayPackages"
           :key="pkg.id"
           class="p-4 rounded-2xl bg-paper-warm/70 dark:bg-paper-dark border border-ink-200/60 dark:border-paper-border flex items-center justify-between gap-3"
         >
@@ -350,7 +350,7 @@
 import type { DataPackage } from '../types/user';
 import InlineSpinner from '../components/common/InlineSpinner.vue';
 import DownloadButton from '../components/common/DownloadButton.vue';
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useAppStore } from '../stores/appStore';
 import { useDataStore } from '../stores/dataStore';
 import { useMemorizeStore } from '../stores/memorizeStore';
@@ -378,6 +378,17 @@ import {
 var appStore = useAppStore();
 var dataStore = useDataStore();
 var memorizeStore = useMemorizeStore();
+
+var displayPackages = computed(function () {
+  return dataStore.installedPackages.filter(function (pkg) {
+    if (pkg.type === 'base') return true;
+    if (isActive(pkg.id)) return true;
+    if (isIncomplete(pkg) && (pkg.downloadedPoems || 0) === 0 && (pkg.sizeBytes || 0) === 0) {
+      return false;
+    }
+    return true;
+  });
+});
 
 var isPersisted = ref<boolean>(false);
 var importResult = ref<ImportResult | null>(null);

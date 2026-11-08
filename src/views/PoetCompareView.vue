@@ -51,6 +51,30 @@
 
     <!-- نتایج مقایسه -->
     <template v-else-if="comparison">
+      <!-- بنر راهنمای دانلود برای مقایسه -->
+      <div
+        v-if="comparison.poet1.totalPoems === 0 && comparison.poet2.totalPoems === 0"
+        class="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+      >
+        <div class="leading-relaxed">
+          <strong>توجه:</strong> هنوز اشعاری از این دو شاعر برای استفاده آفلاین در این دستگاه دانلود نشده است. برای مشاهده و مقایسهٔ اوزان عروضی و واژگان کلیدی، دیوان آن‌ها را دانلود کنید.
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <router-link
+            :to="`/poet/${selectedPoet1Slug}`"
+            class="px-3 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs transition-colors"
+          >
+            دیوان {{ comparison.poet1.poetName }}
+          </router-link>
+          <router-link
+            :to="`/poet/${selectedPoet2Slug}`"
+            class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition-colors"
+          >
+            دیوان {{ comparison.poet2.poetName }}
+          </router-link>
+        </div>
+      </div>
+
       <!-- کارت‌های آماری کلی -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <!-- آمار شاعر اول -->
@@ -236,9 +260,13 @@ async function onCompare() {
   if (!selectedPoet1Slug.value || !selectedPoet2Slug.value) return;
   isLoading.value = true;
   try {
+    var p1Obj = availablePoets.value.find(function (p) { return getSlug(p) === selectedPoet1Slug.value; });
+    var p2Obj = availablePoets.value.find(function (p) { return getSlug(p) === selectedPoet2Slug.value; });
     comparison.value = await poetAnalytics.comparePoets(
       selectedPoet1Slug.value,
-      selectedPoet2Slug.value
+      selectedPoet2Slug.value,
+      p1Obj?.Nickname,
+      p2Obj?.Nickname
     );
   } finally {
     isLoading.value = false;
