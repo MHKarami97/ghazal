@@ -57,7 +57,7 @@
         class="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
       >
         <div class="leading-relaxed">
-          <strong>توجه:</strong> هنوز اشعاری از این دو شاعر برای استفاده آفلاین در این دستگاه دانلود نشده است. برای مشاهده و مقایسهٔ اوزان عروضی و واژگان کلیدی، دیوان آن‌ها را دانلود کنید.
+          <strong>توجه:</strong> هنوز اشعاری از این دو شاعر برای استفاده آفلاین در این دستگاه دانلود نشده است. برای مشاهده و مقایسه اوزان عروضی و واژگان کلیدی، دیوان آن‌ها را دانلود کنید.
         </div>
         <div class="flex items-center gap-2 shrink-0">
           <router-link

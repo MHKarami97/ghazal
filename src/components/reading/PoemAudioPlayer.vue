@@ -8,7 +8,7 @@
         </div>
         <div>
           <div class="flex items-center gap-1.5">
-            <span class="text-xs font-bold text-ink-900 dark:text-ink-50">خوانش و دکلمهٔ صوتی</span>
+            <span class="text-xs font-bold text-ink-900 dark:text-ink-50">خوانش و دکلمه صوتی</span>
             <span class="text-[10px] px-2 py-0.2 rounded-full bg-brand-500/15 text-brand-700 dark:text-brand-300 font-bold">
               گنجور
             </span>

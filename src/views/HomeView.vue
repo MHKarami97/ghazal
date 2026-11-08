@@ -11,7 +11,7 @@
           فال حافظ؛ نیت کن و بگشای
         </h2>
         <p class="text-white/80 text-sm mb-6 leading-relaxed">
-          نیت خیری در دل بنشان و با زمزمهٔ فاتحه‌ای، صفحه‌ای از دیوان حافظ شیرازی را باز کن.
+          نیت خیری در دل بنشان و با زمزمه فاتحه‌ای، صفحه‌ای از دیوان حافظ شیرازی را باز کن.
         </p>
         <router-link
           to="/faal"
@@ -118,9 +118,9 @@
     <div>
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-bold text-base text-ink-900 dark:text-ink-50">
-          امکانات و گنجینه‌های ویژه غزل
+          امکانات و گنجینه‌های غزل
         </h3>
-        <span class="text-xs text-ink-500">ابزارهای نوین مطالعه، یادگیری و اشتراک</span>
+        <span class="text-xs text-ink-500">ابزارهای مطالعه، یادگیری</span>
       </div>
 
       <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -278,7 +278,7 @@
           </p>
         </div>
         <router-link to="/poets" class="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline">
-          مشاهده همه شاعران
+          مشاهده همه
         </router-link>
       </div>
 

@@ -28,7 +28,7 @@ function dismiss() {
           <Sparkles class="w-4 h-4 animate-pulse" />
         </div>
         <div class="min-w-0">
-          <div class="font-bold text-xs text-ink-900 dark:text-ink-50">نسخهٔ جدید غزل آماده است</div>
+          <div class="font-bold text-xs text-ink-900 dark:text-ink-50">نسخه جدید غزل آماده است</div>
           <p class="text-[11px] text-ink-500 mt-0.5 leading-relaxed">
             برای اعمال تغییرات و بهبودها، برنامه را به‌روزرسانی کنید.
           </p>

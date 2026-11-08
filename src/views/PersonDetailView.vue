@@ -80,7 +80,7 @@
             class="px-3.5 py-1.5 rounded-xl font-bold transition-all border"
             :class="mentionTab === 'all' ? 'bg-brand-600 text-white border-brand-600' : 'bg-paper-light dark:bg-paper-surface border-ink-200 dark:border-paper-border text-ink-600'"
           >
-            همهٔ ارجاعات
+            همه ارجاعات
           </button>
           <button
             @click="mentionTab = 'participant'"
@@ -94,7 +94,7 @@
             class="px-3.5 py-1.5 rounded-xl font-bold transition-all border"
             :class="mentionTab === 'allusion' ? 'bg-brand-600 text-white border-brand-600' : 'bg-paper-light dark:bg-paper-surface border-ink-200 dark:border-paper-border text-ink-600'"
           >
-            تلمیح و اشارهٔ ادبی (Allusion)
+            تلمیح و اشاره ادبی (Allusion)
           </button>
         </div>
 

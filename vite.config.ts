@@ -18,7 +18,7 @@ export default defineConfig({
         name: 'غزل | کتابخانه و آموزش شعر فارسی',
         short_name: 'غزل',
         description: 'کتابخانه جامع شعر فارسی، آموزش ادبی، کاوش تبارشناسی و ابزار حفظ شعر با تکرار فاصله‌دار',
-        theme_color: '#b87c2c',
+        theme_color: '#fdfbf7',
         background_color: '#fdfbf7',
         display: 'standalone',
         start_url: '/',

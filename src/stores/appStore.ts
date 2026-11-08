@@ -16,6 +16,15 @@ export const useAppStore = defineStore('app', () => {
   var showCoupletSummary = ref<boolean>(localStorage.getItem('ghazal-show-summary') !== 'false');
   var notificationEnabled = ref<boolean>(localStorage.getItem('ghazal-notif') === 'true');
 
+  function updateThemeColorMeta(isDark: boolean) {
+    if (typeof document === 'undefined') return;
+    var themeColor = isDark ? '#13151a' : '#fdfbf7';
+    var metas = document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]');
+    metas.forEach(function (m) {
+      m.setAttribute('content', themeColor);
+    });
+  }
+
   function applyTheme(newTheme: ThemeMode) {
     theme.value = newTheme;
     localStorage.setItem('ghazal-theme', newTheme);
@@ -29,16 +38,20 @@ export const useAppStore = defineStore('app', () => {
     } else {
       document.documentElement.classList.remove('dark');
     }
+
+    updateThemeColorMeta(isDark);
   }
 
   // گوش دادن به تغییرات تم سیستم
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
     if (theme.value === 'system') {
-      if (e.matches) {
+      var isDark = e.matches;
+      if (isDark) {
         document.documentElement.classList.add('dark');
       } else {
         document.documentElement.classList.remove('dark');
       }
+      updateThemeColorMeta(isDark);
     }
   });
 

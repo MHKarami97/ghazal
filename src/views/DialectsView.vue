@@ -28,7 +28,7 @@
           ? 'bg-brand-600 text-white shadow-soft'
           : 'bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border text-ink-700 dark:text-ink-300'"
       >
-        همهٔ گویش‌ها ({{ toPersianDigits(dialectsList.length) }})
+        همه گویش‌ها ({{ toPersianDigits(dialectsList.length) }})
       </button>
 
       <button

@@ -19,7 +19,7 @@
             </span>
           </div>
           <p class="text-xs text-ink-500 mt-1 truncate">
-            هر روز یک بیت، یک سوال و ثبت زنجیرهٔ استمرار (Streak)
+            هر روز یک بیت، یک سوال و ثبت زنجیره استمرار (Streak)
           </p>
         </div>
       </div>
@@ -35,7 +35,7 @@
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <div>
           <h2 class="text-2xl font-black text-ink-900 dark:text-ink-50">
-            حفظ شعر و جعبهٔ لایتنر (SM-2)
+            حفظ شعر و جعبه لایتنر (SM-2)
           </h2>
           <p class="text-xs text-ink-500 mt-1">
             سیستم هوشمند تکرار فاصله‌دار برای به خاطرسپاری ابیات فاخر ادبیات پارسی
@@ -315,7 +315,7 @@
         <EmptyState
           v-else-if="memorizeStore.cards.length > 0 && searchQuery"
           title="شعری منطبق با جستجو یافت نشد"
-          description="کلمهٔ جستجو شده را بررسی کنید یا فیلتر را پاک نمایید."
+          description="کلمه جستجو شده را بررسی کنید یا فیلتر را پاک نمایید."
           type="empty"
         />
 
@@ -376,7 +376,7 @@
         <EmptyState
           v-else-if="memorizeStore.cards.length > 0 && searchQuery"
           title="بیتی منطبق با جستجو یافت نشد"
-          description="کلمهٔ جستجو شده را بررسی کنید یا فیلتر را پاک نمایید."
+          description="کلمه جستجو شده را بررسی کنید یا فیلتر را پاک نمایید."
           type="empty"
         />
 
@@ -427,11 +427,11 @@ onMounted(async function () {
 });
 
 var quizModes = [
-  { key: 'cloze', title: 'تکمیل مصرع (جای خالی)', desc: 'کلمهٔ حذف‌شده از مصرع را از میان ۴ گزینه انتخاب کنید.', icon: HelpCircle },
+  { key: 'cloze', title: 'تکمیل مصرع (جای خالی)', desc: 'کلمه حذف‌شده از مصرع را از میان ۴ گزینه انتخاب کنید.', icon: HelpCircle },
   { key: 'reorder', title: 'ترتیب‌دهی کلمات بیت', desc: 'کلمات به‌هم‌ریخته را لمس کنید تا بیت کامل مرتب شود.', icon: Shuffle },
   { key: 'multiple_choice', title: 'انتخاب مصرع دوم', desc: 'با دیدن مصرع اول، مصرع دوم صحیح را انتخاب کنید.', icon: CheckSquare },
   { key: 'typing', title: 'تایپ بیت از حفظ', desc: 'مصرع دوم را تایپ کنید (با تحمل خطاهای تایپی و املایی).', icon: Keyboard },
-  { key: 'guess_poet', title: 'حدس شاعر بیت', desc: 'با مشاهده بیت، سرایندهٔ آن را از میان گزینه‌ها برگزینید.', icon: UserCheck },
+  { key: 'guess_poet', title: 'حدس شاعر بیت', desc: 'با مشاهده بیت، سراینده آن را از میان گزینه‌ها برگزینید.', icon: UserCheck },
   { key: 'guess_metre', title: 'این شعر در چه وزنی است؟', desc: 'وزن و ریتم صحیح بیت را از میان گزینه‌های اوزان عروضی نام‌دار حدس بزنید.', icon: Music },
   { key: 'next_couplet', title: 'بیت بعدی کدام است؟', desc: 'با دیدن یک بیت از شعر، بیت پسین آن را به درستی پیدا کنید.', icon: ArrowDownCircle },
   { key: 'rhyme_match', title: 'بازی بیت‌های هم‌قافیه', desc: 'بیت‌هایی که دارای قافیه و آهنگ یکسان هستند را بیابید.', icon: Sparkles },
@@ -521,7 +521,7 @@ async function onDeletePoem(group: { poemId: number; poemTitle: string; poetName
 async function onDeleteActiveDeck() {
   var deckId = memorizeStore.activeDeckId;
   if (deckId === null) return;
-  if (!window.confirm('این فهرست و همهٔ ابیات داخل آن حذف شود؟ این کار قابل بازگشت نیست.')) return;
+  if (!window.confirm('این فهرست و همه ابیات داخل آن حذف شود؟ این کار قابل بازگشت نیست.')) return;
   await memorizeStore.deleteDeck(deckId);
 }
 </script>

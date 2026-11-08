@@ -45,7 +45,7 @@
 
       <!-- راهنمای کلمه اول در صورت تقاضا -->
       <div v-if="hintText" class="text-center text-xs text-brand-600 dark:text-brand-400 font-medium">
-        راهنما: مصرع با کلمهٔ «{{ hintText }}» آغاز می‌شود.
+        راهنما: مصرع با کلمه «{{ hintText }}» آغاز می‌شود.
       </div>
 
       <!-- نتیجه ارزیابی پس از ثبت -->

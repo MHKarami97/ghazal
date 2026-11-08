@@ -93,7 +93,7 @@ export class SpacedRepetitionService {
   }
 
   /**
-   * ثبت نتیجه مرور با شناسهٔ کارت؛ همیشه آخرین نسخهٔ کارت را از دیتابیس می‌خواند
+   * ثبت نتیجه مرور با شناسه کارت؛ همیشه آخرین نسخه کارت را از دیتابیس می‌خواند
    */
   async reviewCardById(cardId: number, grade: ReviewGrade): Promise<MemorizeCard | null> {
     var card = await db.memorizeCards.get(cardId);

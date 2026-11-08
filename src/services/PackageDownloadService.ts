@@ -527,7 +527,7 @@ export class PackageDownloadService {
       this.cleanupTask(pkgId);
       this.publish(pkgId, {
         status: 'completed',
-        stage: 'همهٔ اشعار از قبل ذخیره شده بود',
+        stage: 'همه اشعار از قبل ذخیره شده بود',
         total: info.fullUrls.length,
         completed: info.fullUrls.length,
         bytes: alreadyBytes

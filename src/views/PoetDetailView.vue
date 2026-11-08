@@ -55,7 +55,7 @@
 
         <div v-if="isStatsLoading" class="mt-6 pt-6 border-t border-ink-200/60 dark:border-paper-border flex items-center gap-2 text-xs text-ink-500">
           <InlineSpinner size="sm" class="text-brand-600" />
-          <span>در حال محاسبهٔ آمار دیوان...</span>
+          <span>در حال محاسبه آمار دیوان...</span>
         </div>
 
         <!-- آمار جامع و ویژگی‌های شعری (در صورت موجود بودن در دیتابیس محلی) -->

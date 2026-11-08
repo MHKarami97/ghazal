@@ -19,7 +19,7 @@
           :class="tab === 'map' ? 'bg-paper-light dark:bg-paper-dark text-brand-700 dark:text-brand-300 shadow-xs' : 'text-ink-600 dark:text-ink-400'"
         >
           <MapPin class="w-3.5 h-3.5" />
-          نقشهٔ دیارها
+          نقشه دیارها
         </button>
         <button
           @click="tab = 'relations'"

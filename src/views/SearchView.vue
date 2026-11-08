@@ -45,7 +45,7 @@
           @change="onSearch"
           class="px-3.5 py-2.5 rounded-xl border border-ink-200 dark:border-paper-border bg-paper-light dark:bg-paper-dark text-ink-800 dark:text-ink-200 text-xs font-medium outline-hidden"
         >
-          <option :value="undefined">همهٔ شاعران</option>
+          <option :value="undefined">همه شاعران</option>
           <option v-for="p in dataStore.poets" :key="p.Id" :value="p.Id">
             {{ p.Nickname }}
           </option>
@@ -117,7 +117,7 @@
           بیتی با این مشخصات در اشعار دانلودشده یافت نشد
         </h3>
         <p class="text-xs text-ink-500 max-w-md mx-auto mt-2 leading-relaxed">
-          جست‌وجوی آفلاین تنها بر روی دیوان‌ها و آثاری انجام می‌شود که قبلاً از صفحهٔ شاعران دانلود کرده‌اید. در صورتی که دیوان شاعر مورد نظر را دانلود نکرده‌اید، ابتدا آن را ذخیره نمایید.
+          جست‌وجوی آفلاین تنها بر روی دیوان‌ها و آثاری انجام می‌شود که قبلاً از صفحه شاعران دانلود کرده‌اید. در صورتی که دیوان شاعر مورد نظر را دانلود نکرده‌اید، ابتدا آن را ذخیره نمایید.
         </p>
       </div>
       <router-link

@@ -2,7 +2,7 @@
   <div class="space-y-6">
     <div class="text-center p-6 rounded-2xl bg-paper-warm/70 dark:bg-paper-surface/60 border border-ink-200 dark:border-paper-border">
       <div class="text-sm font-bold text-ink-500 mb-3">
-        این بیت سرودهٔ کدام شاعر پارسی‌گوی است؟
+        این بیت سروده کدام شاعر پارسی‌گوی است؟
       </div>
       <div class="text-lg sm:text-xl font-bold text-ink-900 dark:text-ink-50 leading-loose">
         <div>{{ question.firstMisra }}</div>

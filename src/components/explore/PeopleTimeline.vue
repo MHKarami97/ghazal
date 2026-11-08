@@ -117,7 +117,7 @@ function formatYears(person: GanjoorPerson): string {
     return `${toPersianDigits(person.BirthYearInLHijri)} تا ${toPersianDigits(person.DeathYearInLHijri)} هـ.ق`;
   }
   if (person.BirthYearInLHijri) {
-    return `زادهٔ ${toPersianDigits(person.BirthYearInLHijri)} هـ.ق`;
+    return `زاده ${toPersianDigits(person.BirthYearInLHijri)} هـ.ق`;
   }
   return 'اساطیری / کهن';
 }

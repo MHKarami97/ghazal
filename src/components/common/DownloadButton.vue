@@ -71,7 +71,7 @@ var computedLabel = computed(function () {
     if (status === 'paused') return `متوقف‌شده ${percentText.value}`;
     return `${props.busyLabel} ${percentText.value}`;
   }
-  return isInterrupted.value ? 'ادامهٔ دانلود' : props.idleLabel;
+  return isInterrupted.value ? 'ادامه دانلود' : props.idleLabel;
 });
 
 var variantClass = computed(function () {

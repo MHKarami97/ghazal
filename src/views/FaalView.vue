@@ -23,7 +23,7 @@
         <input
           v-model="intention"
           type="text"
-          placeholder="نیت یا خواستهٔ خود را بنویسید (اختیاری)..."
+          placeholder="نیت یا خواسته خود را بنویسید (اختیاری)..."
           class="w-full px-4 py-3 rounded-2xl border border-ink-200 dark:border-paper-border bg-paper-warm/50 dark:bg-paper-dark text-center text-sm font-vazir focus:ring-2 focus:ring-brand-500 outline-hidden"
         />
       </div>

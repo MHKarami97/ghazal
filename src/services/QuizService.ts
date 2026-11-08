@@ -230,7 +230,7 @@ export class QuizService {
 
       var question = this.baseQuestion(`guess_poet-${questions.length}`, 'guess_poet', item);
       question.cardId = undefined;
-      question.prompt = `این بیت سرودهٔ کدام شاعر است؟\n\n«${item.textFirst} / ${item.textSecond}»`;
+      question.prompt = `این بیت سروده کدام شاعر است؟\n\n«${item.textFirst} / ${item.textSecond}»`;
       question.options = shuffle([item.poetName].concat(distractors));
       question.answer = item.poetName;
       questions.push(question);
@@ -297,7 +297,7 @@ export class QuizService {
   }
 
   /**
-   * هم‌قافیه بودن با تطبیق حروف پایانی آخرین کلمهٔ مصرع دوم تشخیص داده می‌شود (روش تقریبی)
+   * هم‌قافیه بودن با تطبیق حروف پایانی آخرین کلمه مصرع دوم تشخیص داده می‌شود (روش تقریبی)
    */
   private generateRhymeMatch(poems: GanjoorPoem[], count: number): QuizQuestion[] {
     var items = this.poemsToCouplets(poems);
@@ -382,7 +382,7 @@ export class QuizService {
         poetName: this.poetNameOf(poem),
         poemTitle: poem.Title,
         coupletIndex: tag.CoupletIndex,
-        prompt: `در بیت زیر کدام آرایهٔ ادبی به کار رفته است؟\n\n«${coupletText}»`,
+        prompt: `در بیت زیر کدام آرایه ادبی به کار رفته است؟\n\n«${coupletText}»`,
         fullCouplet: coupletText,
         literaryDeviceName: device.Name,
         literaryExplanation: device.Definition,
@@ -423,7 +423,7 @@ export class QuizService {
   }
 
   /**
-   * نمونه‌گیری تصادفی از چند بازهٔ جدول اشعار به‌جای بارگذاری کل جدول در حافظه
+   * نمونه‌گیری تصادفی از چند بازه جدول اشعار به‌جای بارگذاری کل جدول در حافظه
    */
   private async samplePoems(size: number): Promise<GanjoorPoem[]> {
     var total = await db.poems.count();

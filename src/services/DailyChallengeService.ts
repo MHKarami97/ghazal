@@ -91,7 +91,7 @@ export class DailyChallengeService {
         poemTitle: 'غزل ۱',
         verseFirst: 'الا یا ایها الساقی ادر کأسا و ناولها',
         verseSecond: 'که عشق آسان نمود اول ولی افتاد مشکل‌ها',
-        question: 'کلمهٔ پایانی مصرع اول این بیت مشهور چیست؟',
+        question: 'کلمه پایانی مصرع اول این بیت مشهور چیست؟',
         options: ['ناولها', 'کأسا', 'مشکل‌ها', 'ساقی'],
         correctAnswer: 'ناولها'
       },
@@ -141,8 +141,8 @@ export class DailyChallengeService {
         poetName: 'خیام',
         poemTitle: 'رباعیات',
         verseFirst: 'ابر آمد و زار بر سر سبزه گریست',
-        verseSecond: 'بی بادهٔ گلرنگ نمی‌شاید زیست',
-        question: 'در مصرع اول، چه آرایهٔ ادبی نهفته است؟',
+        verseSecond: 'بی باده گلرنگ نمی‌شاید زیست',
+        question: 'در مصرع اول، چه آرایه ادبی نهفته است؟',
         options: [
           'تشخیص (جان‌بخشی به ابر)',
           'ایهام و تناسب',

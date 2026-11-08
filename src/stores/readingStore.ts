@@ -52,7 +52,7 @@ export const useReadingStore = defineStore('reading', () => {
   }
 
   /**
-   * بارگذاری شعر. اگر کاربر وسط کار به شعر دیگری برود، نتیجهٔ درخواست قدیمی دور ریخته می‌شود (null).
+   * بارگذاری شعر. اگر کاربر وسط کار به شعر دیگری برود، نتیجه درخواست قدیمی دور ریخته می‌شود (null).
    */
   async function loadPoem(poetSlug: string, catPath: string, poemSlug: string): Promise<GanjoorPoem | null> {
     var loadId = ++latestLoadId;

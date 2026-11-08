@@ -64,7 +64,7 @@ export const useLiteraryStore = defineStore('literary', () => {
     { key: 'concepts', fetch: function () { return cdnClient.getLiteraryConcepts(); }, assign: function (d) { concepts.value = d; } }
   ];
 
-  /** ابتدا IndexedDB، سپس شبکه؛ نتیجهٔ موفق در IndexedDB ذخیره می‌شود */
+  /** ابتدا IndexedDB، سپس شبکه؛ نتیجه موفق در IndexedDB ذخیره می‌شود */
   async function loadMeta(loader: MetaLoader): Promise<boolean> {
     try {
       var record = await db.baseMeta.get(loader.key);
@@ -149,7 +149,7 @@ export const useLiteraryStore = defineStore('literary', () => {
         name: 'وزن شاهنامه و بوستان (حماسی)',
         rhythm: 'فعولن فعولن فعولن فعل',
         bahr: 'متقارب مثمن محذوف',
-        description: 'آهنگ حماسهٔ ملی ایران، شاهنامه فردوسی، بوستان سعدی و اسکندرنامه نظامی',
+        description: 'آهنگ حماسه ملی ایران، شاهنامه فردوسی، بوستان سعدی و اسکندرنامه نظامی',
         sample: 'به نام خداوند جان و خرد / کزین برتر اندیشه برنگذرد'
       },
       {

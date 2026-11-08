@@ -89,14 +89,14 @@
               @click="dataStore.isDownloadPanelOpen = true"
               class="px-3 py-1.5 rounded-xl border border-brand-500/40 text-brand-600 dark:text-brand-400 text-[11px] font-bold hover:bg-brand-50 dark:hover:bg-brand-950/20 transition-colors"
             >
-              مشاهدهٔ وضعیت
+              مشاهده وضعیت
             </button>
             <button
               v-else-if="isIncomplete(pkg)"
               @click="dataStore.resumePackage(pkg)"
               class="px-3 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-[11px] font-bold transition-colors"
             >
-              ادامهٔ دانلود
+              ادامه دانلود
             </button>
 
             <button
@@ -112,7 +112,7 @@
       </div>
 
       <div v-else class="text-center py-6 text-xs text-ink-400 italic">
-        هنوز هیچ بسته‌ای برای استفادهٔ آفلاین دانلود نشده است.
+        هنوز هیچ بسته‌ای برای استفاده آفلاین دانلود نشده است.
       </div>
     </div>
 
@@ -126,7 +126,7 @@
       </div>
 
       <p class="text-xs text-ink-500 leading-relaxed">
-        همهٔ نشانک‌ها، یادداشت‌های شخصی و پیشرفت کارت‌های حفظ شعر شما تنها در همین دستگاه نگهداری می‌شوند. می‌توانید یک نسخهٔ پشتیبان JSON دریافت کرده و در دستگاهی دیگر بازیابی کنید:
+        همه نشانک‌ها، یادداشت‌های شخصی و پیشرفت کارت‌های حفظ شعر شما تنها در همین دستگاه نگهداری می‌شوند. می‌توانید یک نسخه پشتیبان JSON دریافت کرده و در دستگاهی دیگر بازیابی کنید:
       </p>
 
       <div class="flex flex-wrap items-center gap-3 pt-2">
@@ -179,7 +179,7 @@
 
       <!-- تغییر تم -->
       <div class="flex items-center justify-between text-xs">
-        <span class="font-bold text-ink-800 dark:text-ink-200">پوستهٔ برنامه:</span>
+        <span class="font-bold text-ink-800 dark:text-ink-200">پوسته برنامه:</span>
         <div class="flex bg-ink-200/60 dark:bg-paper-dark p-1 rounded-xl">
           <button
             @click="appStore.applyTheme('light')"
@@ -208,7 +208,7 @@
       <!-- اعلان روزانه -->
       <div class="flex items-center justify-between text-xs pt-3 border-t border-ink-200/60 dark:border-paper-border">
         <div>
-          <span class="font-bold text-ink-800 dark:text-ink-200 block">یادآور روزانهٔ مرور ابیات:</span>
+          <span class="font-bold text-ink-800 dark:text-ink-200 block">یادآور روزانه مرور ابیات:</span>
           <span class="text-[11px] text-ink-500">ارسال اعلان برای ابیاتی که سررسید مرور آنها فرا رسیده است</span>
         </div>
         <button
@@ -258,7 +258,7 @@
         v-else-if="dataStore.versionStatus?.hasUpdates"
         class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs flex items-center justify-between"
       >
-        <span>برای {{ toPersianDigits(dataStore.versionStatus.outdatedPackagesCount) }} بستهٔ نصب‌شده، نسخهٔ جدیدتری موجود است.</span>
+        <span>برای {{ toPersianDigits(dataStore.versionStatus.outdatedPackagesCount) }} بسته نصب‌شده، نسخه جدیدتری موجود است.</span>
       </div>
 
       <!-- وضعیت ماندگاری حافظه مرورگر -->
@@ -281,13 +281,13 @@
       <div class="flex items-center gap-2 pb-3 border-b border-ink-200/60 dark:border-paper-border">
         <Info class="w-5 h-5 text-brand-600" />
         <h3 class="font-bold text-base text-ink-900 dark:text-ink-50">
-          دربارهٔ غزل و منابع داده‌ها
+          درباره غزل و منابع داده‌ها
         </h3>
       </div>
 
       <div class="space-y-3 text-xs leading-relaxed text-ink-700 dark:text-ink-300">
         <p>
-          نرم‌افزار «غزل» یک پروژهٔ متن‌باز، محلی و غیرانتفاعی جهت پاسداشت و ترویج ادبیات فاخر، اوزان عروضی و فرهنگ شعر پارسی است.
+          نرم‌افزار «غزل» یک پروژه متن‌باز، محلی و غیرانتفاعی جهت پاسداشت و ترویج ادبیات فاخر، اوزان عروضی و فرهنگ شعر پارسی است.
         </p>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">

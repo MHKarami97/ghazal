@@ -210,7 +210,7 @@ function barWidth(item: DownloadProgress): string {
 }
 
 function confirmCancel(item: DownloadProgress) {
-  if (confirm(`دانلود «${item.title}» لغو شود؟ اشعار دریافت‌شدهٔ همین نوبت حذف می‌شوند.`)) {
+  if (confirm(`دانلود «${item.title}» لغو شود؟ اشعار دریافت‌شده همین نوبت حذف می‌شوند.`)) {
     dataStore.cancelDownload(item.packageId);
   }
 }

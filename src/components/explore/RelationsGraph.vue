@@ -50,7 +50,7 @@
             v-model="selectedMasterCatId"
             class="px-3 py-2 rounded-xl border border-ink-200 dark:border-paper-border bg-paper-light dark:bg-paper-surface text-ink-800 dark:text-ink-100 text-xs font-bold outline-hidden focus:ring-2 focus:ring-brand-500"
           >
-            <option :value="0">همهٔ آثار و اسناد ({{ toPersianDigits(literaryStore.relations.length) }})</option>
+            <option :value="0">همه آثار و اسناد ({{ toPersianDigits(literaryStore.relations.length) }})</option>
             <option v-for="cat in availableMasterCats" :key="cat.id" :value="cat.id">
               اثر کد {{ toPersianDigits(cat.id) }} ({{ toPersianDigits(cat.count) }} رابطه)
             </option>
@@ -67,7 +67,7 @@
       <!-- حالت خالی -->
       <div v-else-if="!filteredRelations.length" class="text-center py-12 p-6 rounded-2xl bg-paper-warm/50 dark:bg-paper-surface/50 border border-dashed border-ink-300 dark:border-paper-border">
         <p class="text-sm font-bold text-ink-700 dark:text-ink-300 mb-1">هیچ پیوندی با این مشخصات یافت نشد</p>
-        <p class="text-xs text-ink-500">می‌توانید عبارت جست‌وجو را تغییر دهید یا فیلتر را روی «همهٔ آثار و اسناد» بگذارید.</p>
+        <p class="text-xs text-ink-500">می‌توانید عبارت جست‌وجو را تغییر دهید یا فیلتر را روی «همه آثار و اسناد» بگذارید.</p>
       </div>
 
       <!-- فهرست روابط خانوادگی در این اثر -->

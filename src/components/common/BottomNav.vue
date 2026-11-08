@@ -51,13 +51,13 @@
           class="fixed inset-0 z-50 flex items-end bg-black/60 backdrop-blur-xs"
           role="dialog"
           aria-modal="true"
-          aria-label="همهٔ بخش‌ها"
+          aria-label="همه بخش‌ها"
           @click.self="close"
         >
           <div class="w-full max-h-[82vh] flex flex-col rounded-t-3xl border-t border-ink-200 bg-paper-light shadow-2xl dark:border-paper-border dark:bg-paper-surface">
             <div class="flex items-center justify-between px-5 py-4 border-b border-ink-200/60 dark:border-paper-border">
               <div>
-                <h3 class="text-base font-bold text-ink-900 dark:text-ink-50">همهٔ بخش‌ها</h3>
+                <h3 class="text-base font-bold text-ink-900 dark:text-ink-50">همه بخش‌ها</h3>
                 <p class="text-[11px] text-ink-500 mt-0.5">دسترسی سریع به تمام امکانات برنامه</p>
               </div>
               <button

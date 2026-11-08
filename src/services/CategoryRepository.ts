@@ -4,7 +4,7 @@ import type { GanjoorCategory } from '../types/ganjoor';
 
 /**
  * ابتدا دفتر ذخیره‌شده در IndexedDB (سریع و آفلاین)، و در نبود آن از CDN.
- * داده به یک commit مشخص قفل شده، پس نسخهٔ محلی از نظر محتوا معتبر است.
+ * داده به یک commit مشخص قفل شده، پس نسخه محلی از نظر محتوا معتبر است.
  */
 export async function loadCategoryData(poetSlug: string, catPath?: string): Promise<GanjoorCategory> {
   var cleanPath = (catPath || '').replace(/^\/+|\/+$/g, '');
