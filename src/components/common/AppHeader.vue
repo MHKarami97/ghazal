@@ -2,24 +2,24 @@
   <header class="sticky top-0 z-30 bg-paper-light/90 dark:bg-paper-dark/90 backdrop-blur-md border-b border-ink-200/60 dark:border-paper-border pt-safe transition-colors">
     <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
       <!-- بخش راست: دکمه بازگشت یا لوگو -->
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 min-w-0">
         <button
           v-if="showBack"
           @click="goBack"
-          class="p-2 rounded-xl text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-paper-surface transition-colors"
+          class="p-2 rounded-xl text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-paper-surface transition-colors shrink-0"
           title="بازگشت"
         >
           <ChevronRight class="w-6 h-6" />
         </button>
-        <router-link to="/" class="flex items-center gap-2">
-          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+        <router-link to="/" class="flex items-center gap-2 min-w-0">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0">
             غ
           </div>
-          <div>
-            <h1 class="text-lg font-bold text-ink-900 dark:text-ink-50 leading-tight">
+          <div class="min-w-0">
+            <h1 class="text-base sm:text-lg font-bold text-ink-900 dark:text-ink-50 leading-tight truncate">
               {{ title || 'غـــــزل' }}
             </h1>
-            <p v-if="subtitle" class="text-xs text-ink-500 dark:text-ink-400">
+            <p v-if="subtitle" class="text-xs text-ink-500 dark:text-ink-400 truncate">
               {{ subtitle }}
             </p>
           </div>

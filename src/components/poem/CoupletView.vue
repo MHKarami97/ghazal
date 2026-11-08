@@ -8,9 +8,14 @@
     ]"
     @click="$emit('select-couplet', coupletIndex)"
   >
-    <!-- نوار اقدام‌های سریع بیت (در حالت Hover دسکتاپ یا انتخاب) -->
+    <!-- نوار اقدام‌های سریع بیت (در حالت انتخاب یا Hover دسکتاپ) -->
     <div
-      class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity absolute -top-3.5 left-4 flex items-center gap-1 bg-paper-light dark:bg-paper-dark px-2 py-1 rounded-full shadow-md border border-ink-200/80 dark:border-paper-border text-xs z-10"
+      class="transition-opacity absolute -top-3.5 left-4 flex items-center gap-1 bg-paper-light dark:bg-paper-dark px-2.5 py-1 rounded-full shadow-md border border-ink-200/80 dark:border-paper-border text-xs z-10"
+      :class="[
+        isSelected
+          ? 'opacity-100 pointer-events-auto'
+          : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100 pointer-events-none group-hover:pointer-events-auto'
+      ]"
     >
       <button
         @click.stop="$emit('toggle-bookmark', coupletIndex)"

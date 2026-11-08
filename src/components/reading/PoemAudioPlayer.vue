@@ -24,7 +24,7 @@
         <span class="text-ink-500 text-[11px]">تغییر راوی:</span>
         <select
           v-model="selectedRecitationId"
-          class="px-2.5 py-1 rounded-xl text-xs font-bold border border-ink-200/80 dark:border-paper-border bg-paper-light dark:bg-paper-dark text-ink-900 dark:text-ink-100 outline-hidden cursor-pointer"
+          class="px-2.5 py-1 rounded-xl text-xs font-bold border border-ink-200/80 dark:border-paper-border bg-paper-light dark:bg-paper-dark text-ink-900 dark:text-ink-100 outline-hidden cursor-pointer max-w-[180px] sm:max-w-xs truncate"
         >
           <option v-for="r in recitations" :key="r.id" :value="r.id">
             {{ r.audioArtist }} ({{ r.audioTitle }})

@@ -75,14 +75,14 @@
         </div>
       </div>
 
-      <div class="flex items-center justify-between text-xs text-ink-500 pt-3 border-t border-ink-200/60 dark:border-paper-border">
-        <span>{{ poemOfTheDay.FullTitle }}</span>
+      <div class="flex items-center justify-between text-xs text-ink-500 pt-3 border-t border-ink-200/60 dark:border-paper-border gap-2">
+        <span class="truncate max-w-[65%]">{{ poemOfTheDay.FullTitle }}</span>
         <button
           @click="openCardExport(poemOfTheDay.Verses[0]?.Text, poemOfTheDay.Verses[1]?.Text, poemOfTheDay.FullTitle?.split('»')?.[0]?.trim() || 'حافظ')"
-          class="flex items-center gap-1 text-brand-600 hover:underline"
+          class="flex items-center gap-1 text-brand-600 dark:text-brand-400 hover:underline shrink-0"
         >
           <Share2 class="w-3.5 h-3.5" />
-          کارت اشتراک
+          <span>کارت اشتراک</span>
         </button>
       </div>
     </div>
@@ -90,26 +90,27 @@
     <!-- میانبر مرور کارت‌های حفظ روزانه -->
     <div
       v-if="memorizeStore.dueCards.length > 0"
-      class="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between"
+      class="p-4 sm:p-5 rounded-3xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 shadow-2xs"
     >
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold shrink-0 shadow-xs">
           <Brain class="w-5 h-5" />
         </div>
-        <div>
-          <h4 class="font-bold text-sm text-ink-900 dark:text-ink-100">
+        <div class="min-w-0">
+          <h4 class="font-bold text-sm text-ink-900 dark:text-ink-50 truncate">
             {{ toPersianDigits(memorizeStore.dueCards.length) }} بیت آماده برای مرور امروز
           </h4>
-          <p class="text-xs text-ink-500">
-            با مرور به موقع بر اساس الگوریتم تکرار فاصله‌دار SM-2، اشعار را در حافظه بلندمدت تثبیت کنید.
+          <p class="text-xs text-ink-500 mt-0.5 line-clamp-1 sm:line-clamp-none">
+            با مرور به موقع بر اساس الگوریتم تکرار فاصله‌دار SM-2، اشعار را در ذهن تثبیت کنید.
           </p>
         </div>
       </div>
       <router-link
         to="/memorize"
-        class="py-2.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition-colors shadow-xs"
+        class="py-2.5 px-5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs text-center transition-all shadow-xs shrink-0 whitespace-nowrap active:scale-95 flex items-center justify-center gap-1.5"
       >
-        شروع مرور
+        <span>شروع مرور</span>
+        <ArrowLeft class="w-3.5 h-3.5" />
       </router-link>
     </div>
 
@@ -288,7 +289,8 @@ import {
   Music,
   Globe2,
   BookmarkCheck,
-  Scale
+  Scale,
+  ArrowLeft
 } from 'lucide-vue-next';
 
 var appStore = useAppStore();

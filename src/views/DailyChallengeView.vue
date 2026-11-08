@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-8 max-w-2xl mx-auto pb-16">
     <!-- سربرگ چالش روزانه -->
-    <div class="flex items-center justify-between border-b border-ink-200/60 dark:border-paper-border pb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-ink-200/60 dark:border-paper-border pb-4">
       <div>
         <h2 class="text-2xl font-black text-ink-900 dark:text-ink-50 flex items-center gap-2">
           <CalendarDays class="w-6 h-6 text-brand-600" />
@@ -13,7 +13,7 @@
       </div>
 
       <!-- آمار زنجیره و امتیاز -->
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3">
         <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 text-xs font-bold">
           <Flame class="w-4 h-4 text-amber-500" />
           <span>{{ toPersianDigits(status?.streakDays || 0) }} روز تداوم</span>

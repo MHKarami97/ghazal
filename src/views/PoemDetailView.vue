@@ -41,25 +41,25 @@
           <ReaderToolbar @toggle-literary-panel="showMobileLiterary = !showMobileLiterary" />
 
           <!-- نوار مدیریت حفظ کامل این شعر -->
-          <div class="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-paper-warm/70 dark:bg-paper-surface border border-ink-200/60 dark:border-paper-border text-xs mb-4">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg bg-purple-500/15 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold">
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-paper-warm/70 dark:bg-paper-surface border border-ink-200/60 dark:border-paper-border text-xs mb-4">
+            <div class="flex items-center gap-2 min-w-0">
+              <div class="w-7 h-7 rounded-lg bg-purple-500/15 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold shrink-0">
                 <Brain class="w-4 h-4" />
               </div>
-              <span v-if="memorizedCoupletCount > 0" class="font-bold text-ink-900 dark:text-ink-50">
+              <span v-if="memorizedCoupletCount > 0" class="font-bold text-ink-900 dark:text-ink-50 truncate">
                 {{ toPersianDigits(memorizedCoupletCount) }} از {{ toPersianDigits(coupletPairs.length) }} بیت در جعبه حفظ شما قرار دارد
               </span>
-              <span v-else class="text-ink-500">
+              <span v-else class="text-ink-500 truncate">
                 این شعر هنوز به جعبه حفظ اضافه نشده است
               </span>
             </div>
 
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 shrink-0">
               <button
                 v-if="memorizedCoupletCount > 0"
                 @click="onRemoveEntirePoemFromMemorize"
                 type="button"
-                class="px-3 py-1.5 rounded-xl border border-rose-500/40 text-rose-600 dark:text-rose-400 font-bold hover:bg-rose-500/10 transition-colors flex items-center gap-1.5"
+                class="w-full sm:w-auto justify-center px-3 py-1.5 rounded-xl border border-rose-500/40 text-rose-600 dark:text-rose-400 font-bold hover:bg-rose-500/10 transition-colors flex items-center gap-1.5"
                 title="حذف تمام ابیات این شعر از فهرست حفظ"
               >
                 <Trash2 class="w-3.5 h-3.5" />
@@ -69,7 +69,7 @@
                 v-else
                 @click="onAddEntirePoemToMemorize"
                 type="button"
-                class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition-all shadow-xs flex items-center gap-1.5"
+                class="w-full sm:w-auto justify-center px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition-all shadow-xs flex items-center gap-1.5"
                 title="افزودن تمام ابیات این شعر به فهرست حفظ"
               >
                 <Brain class="w-3.5 h-3.5" />

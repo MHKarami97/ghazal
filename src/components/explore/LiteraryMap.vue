@@ -18,7 +18,7 @@
     </div>
 
     <!-- کانتینر نقشه با ارتفاع مناسب -->
-    <div class="relative w-full h-[520px] rounded-2xl overflow-hidden border border-ink-200 dark:border-paper-border shadow-md bg-paper-warm/40 dark:bg-paper-surface/40">
+    <div class="relative w-full h-[360px] sm:h-[460px] md:h-[520px] rounded-2xl overflow-hidden border border-ink-200 dark:border-paper-border shadow-md bg-paper-warm/40 dark:bg-paper-surface/40">
       <div ref="mapContainer" class="w-full h-full z-0"></div>
 
       <!-- وضعیت لودینگ نقشه -->

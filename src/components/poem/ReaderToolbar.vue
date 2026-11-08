@@ -37,7 +37,8 @@
       >
         <Sparkles v-if="appStore.showLiteraryTags" class="w-3.5 h-3.5 text-brand-600" />
         <EyeOff v-else class="w-3.5 h-3.5 text-ink-400" />
-        <span>{{ appStore.showLiteraryTags ? 'آرایه‌ها روشن' : 'آرایه‌ها خاموش' }}</span>
+        <span class="hidden sm:inline">{{ appStore.showLiteraryTags ? 'آرایه‌ها روشن' : 'آرایه‌ها خاموش' }}</span>
+        <span class="sm:hidden">آرایه‌ها</span>
       </button>
 
       <!-- ۲. دکمه نمایش یا مخفی‌سازی معنی و مفهوم ابیات -->
@@ -53,7 +54,8 @@
       >
         <BookOpenText v-if="appStore.showCoupletSummary" class="w-3.5 h-3.5 text-brand-600" />
         <FileText v-else class="w-3.5 h-3.5 text-ink-400" />
-        <span>{{ appStore.showCoupletSummary ? 'مفهوم بیت روشن' : 'مفهوم بیت خاموش' }}</span>
+        <span class="hidden sm:inline">{{ appStore.showCoupletSummary ? 'مفهوم بیت روشن' : 'مفهوم بیت خاموش' }}</span>
+        <span class="sm:hidden">مفهوم</span>
       </button>
 
       <!-- ۳. دکمه حالت مطالعه متمرکز -->
@@ -69,7 +71,8 @@
       >
         <Maximize2 v-if="!appStore.readingMode" class="w-3.5 h-3.5" />
         <Minimize2 v-else class="w-3.5 h-3.5" />
-        <span>{{ appStore.readingMode ? 'خروج از مطالعه' : 'حالت مطالعه' }}</span>
+        <span class="hidden sm:inline">{{ appStore.readingMode ? 'خروج از مطالعه' : 'حالت مطالعه' }}</span>
+        <span class="sm:hidden">مطالعه</span>
       </button>
 
       <!-- ۴. دکمه باز کردن پنل آرایه‌ها در موبایل -->

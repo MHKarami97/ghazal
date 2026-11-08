@@ -3,28 +3,28 @@
     <!-- بنر چالش روزانه -->
     <router-link
       to="/memorize/daily-challenge"
-      class="p-6 rounded-3xl bg-gradient-to-r from-amber-500/15 via-brand-500/10 to-transparent border border-amber-500/30 shadow-soft flex items-center justify-between group hover:border-amber-500/50 transition-all"
+      class="p-4 sm:p-6 rounded-3xl bg-gradient-to-r from-amber-500/15 via-brand-500/10 to-transparent border border-amber-500/30 shadow-soft flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 group hover:border-amber-500/50 transition-all"
     >
-      <div class="flex items-center gap-4">
-        <div class="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold text-xl shadow-md">
-          <CalendarDays class="w-6 h-6" />
+      <div class="flex items-center gap-3 sm:gap-4">
+        <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold text-xl shadow-md shrink-0">
+          <CalendarDays class="w-5 h-5 sm:w-6 sm:h-6" />
         </div>
-        <div>
-          <div class="flex items-center gap-2">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
             <h3 class="font-bold text-base text-ink-900 dark:text-ink-50 group-hover:text-amber-600 transition-colors">
               چالش روزانه شعر پارسی
             </h3>
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-800 dark:text-amber-300 font-bold">
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-800 dark:text-amber-300 font-bold shrink-0">
               امروز فعال است
             </span>
           </div>
-          <p class="text-xs text-ink-500 mt-1">
+          <p class="text-xs text-ink-500 mt-1 truncate">
             هر روز یک بیت، یک سوال و ثبت زنجیرهٔ استمرار (Streak)
           </p>
         </div>
       </div>
 
-      <div class="inline-flex items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-400 group-hover:translate-x-[-4px] transition-transform">
+      <div class="inline-flex items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-400 group-hover:translate-x-[-4px] transition-transform self-end sm:self-center shrink-0">
         <span>شرکت در چالش</span>
         <ArrowLeft class="w-4 h-4" />
       </div>
@@ -46,7 +46,7 @@
         <router-link
           v-if="memorizeStore.dueCards.length > 0"
           :to="reviewLink"
-          class="py-3 px-6 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md transition-all active:scale-95"
+          class="w-full sm:w-auto text-center py-3 px-6 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md transition-all active:scale-95 shrink-0 whitespace-nowrap"
         >
           شروع جلسه مرور ({{ toPersianDigits(memorizeStore.dueCards.length) }} کارت)
         </router-link>
@@ -283,15 +283,15 @@
               <div
                 v-for="card in group.cards"
                 :key="card.id"
-                class="py-2.5 flex items-center justify-between text-xs group/couplet"
+                class="py-2.5 flex items-start sm:items-center justify-between gap-2 text-xs group/couplet"
               >
-                <div class="leading-relaxed text-ink-800 dark:text-ink-200 pr-2">
+                <div class="leading-relaxed text-ink-800 dark:text-ink-200 min-w-0 pr-1">
                   <span>{{ card.textFirst }}</span>
                   <span class="mx-2 text-ink-300">/</span>
                   <span>{{ card.textSecond }}</span>
                 </div>
 
-                <div class="flex items-center gap-2 flex-shrink-0">
+                <div class="flex items-center gap-2 shrink-0">
                   <span
                     class="px-2 py-0.5 rounded-full text-[10px] font-bold"
                     :class="card.status === 'mastered' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'"

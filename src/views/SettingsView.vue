@@ -262,14 +262,14 @@
       </div>
 
       <!-- وضعیت ماندگاری حافظه مرورگر -->
-      <div class="flex items-center justify-between pt-2 text-xs">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 text-xs">
         <div>
           <span class="font-bold text-ink-800 dark:text-ink-200 block">مجوز ذخیره‌سازی پایدار (Persistent Storage):</span>
           <span class="text-[11px] text-ink-500">جلوگیری از پاک‌شدن خودکار داده‌های آفلاین توسط مرورگر در کمبود حافظه</span>
         </div>
         <button
           @click="requestPersistence"
-          class="px-3.5 py-1.5 rounded-xl border border-brand-500/40 text-brand-600 dark:text-brand-400 font-bold hover:bg-brand-50 dark:hover:bg-brand-950/20 transition-colors"
+          class="shrink-0 self-start sm:self-center px-3.5 py-1.5 rounded-xl border border-brand-500/40 text-brand-600 dark:text-brand-400 font-bold hover:bg-brand-50 dark:hover:bg-brand-950/20 transition-colors whitespace-nowrap"
         >
           {{ isPersisted ? 'فعال است ✓' : 'درخواست مجوز' }}
         </button>

@@ -33,7 +33,7 @@
         <button
           @click="takeFortune"
           :disabled="isConsulting"
-          class="py-3.5 px-8 rounded-2xl bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-bold text-sm shadow-md transition-all active:scale-95"
+          class="w-full sm:w-auto py-3.5 px-8 rounded-2xl bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-bold text-sm shadow-md transition-all active:scale-95 flex items-center justify-center mx-auto"
         >
           <span v-if="!isConsulting">نیت کردم؛ گشودن فال</span>
           <span v-else class="flex items-center gap-2">
