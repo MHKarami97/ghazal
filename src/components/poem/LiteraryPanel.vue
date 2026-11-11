@@ -2,21 +2,44 @@
   <div class="h-full flex flex-col bg-paper-light dark:bg-paper-dark border-r border-ink-200/60 dark:border-paper-border p-4 overflow-y-auto space-y-5">
     <!-- بخش ۱: تحلیل و آرایه‌های ادبی -->
     <div>
-      <div class="flex items-center justify-between pb-3 border-b border-ink-200/60 dark:border-paper-border mb-4">
-        <div class="flex items-center gap-2">
-          <Sparkles class="w-5 h-5 text-brand-600 dark:text-brand-400" />
-          <h3 class="font-bold text-sm text-ink-900 dark:text-ink-50">
+      <div
+        class="flex items-center justify-between gap-2"
+        :class="!isDevicesCollapsed || !!selectedTag ? 'pb-3 border-b border-ink-200/60 dark:border-paper-border mb-4' : 'pb-1'"
+      >
+        <button
+          type="button"
+          @click="handleDevicesHeaderClick(!!selectedTag, () => $emit('clear-selection'))"
+          :aria-expanded="!isDevicesCollapsed || !!selectedTag"
+          class="flex items-center gap-2 text-right group min-w-0 flex-1"
+        >
+          <Sparkles class="w-4 h-4 text-brand-600 dark:text-brand-400 shrink-0" />
+          <h3 class="font-bold text-sm text-ink-900 dark:text-ink-50 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors truncate">
             تحلیل و آرایه‌های ادبی
           </h3>
-        </div>
-        <button
-          v-if="selectedTag"
-          @click="$emit('clear-selection')"
-          class="text-xs text-brand-600 dark:text-brand-400 hover:underline"
-        >
-          نمایش همه
         </button>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button
+            v-if="selectedTag"
+            type="button"
+            @click="$emit('clear-selection')"
+            class="text-[11px] font-bold text-brand-600 dark:text-brand-400 hover:underline px-1.5"
+          >
+            نمایش همه
+          </button>
+          <button
+            type="button"
+            @click="handleDevicesHeaderClick(!!selectedTag, () => $emit('clear-selection'))"
+            :aria-expanded="!isDevicesCollapsed || !!selectedTag"
+            :title="!isDevicesCollapsed || !!selectedTag ? 'بستن بخش آرایه‌ها' : 'باز کردن بخش آرایه‌ها'"
+            class="p-1 rounded-lg border border-ink-200 dark:border-paper-border bg-paper-warm/50 dark:bg-paper-dark text-ink-600 dark:text-ink-300 hover:text-brand-600 transition-colors"
+          >
+            <ChevronDown v-if="isDevicesCollapsed && !selectedTag" class="w-3.5 h-3.5" />
+            <ChevronUp v-else class="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
+
+      <div v-show="!isDevicesCollapsed || !!selectedTag">
 
       <!-- حالت بدون برچسب -->
       <div
@@ -134,16 +157,30 @@
           </div>
         </div>
       </div>
+      </div>
     </div>
 
     <!-- بخش ۲: اشخاص و مکان‌های جغرافیایی نام‌برده‌شده در شعر -->
     <div v-if="poem" class="pt-4 border-t border-ink-200/60 dark:border-paper-border space-y-3">
-      <div class="flex items-center gap-2">
-        <Compass class="w-4 h-4 text-brand-600 dark:text-brand-400 shrink-0" />
-        <h4 class="font-bold text-xs text-ink-900 dark:text-ink-50">
-          اشخاص و مکان‌های جغرافیایی شعر
-        </h4>
-      </div>
+      <button
+        type="button"
+        @click="appStore.toggleSectionCollapsed('peopleLocations')"
+        :aria-expanded="!isPeopleCollapsed"
+        class="w-full flex items-center justify-between gap-2 text-right group"
+      >
+        <div class="flex items-center gap-2 min-w-0">
+          <Compass class="w-4 h-4 text-brand-600 dark:text-brand-400 shrink-0" />
+          <h4 class="font-bold text-xs text-ink-900 dark:text-ink-50 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
+            اشخاص و مکان‌های جغرافیایی شعر
+          </h4>
+        </div>
+        <span class="p-1 rounded-lg border border-ink-200 dark:border-paper-border bg-paper-warm/50 dark:bg-paper-dark text-ink-600 dark:text-ink-300 shrink-0">
+          <ChevronDown v-if="isPeopleCollapsed" class="w-3.5 h-3.5" />
+          <ChevronUp v-else class="w-3.5 h-3.5" />
+        </span>
+      </button>
+
+      <div v-show="!isPeopleCollapsed" class="space-y-3">
 
       <div v-if="mentionedData.people.length === 0 && mentionedData.locations.length === 0" class="p-3 rounded-xl bg-paper-warm/40 dark:bg-paper-surface/40 border border-dashed border-ink-200/80 dark:border-paper-border text-[11px] text-ink-500 leading-relaxed">
         در این سروده هنوز نام شخصیت تاریخی یا مکان جغرافیایی مشخصی ثبت نشده است.
@@ -216,16 +253,30 @@
           </div>
         </div>
       </div>
+      </div>
     </div>
 
     <!-- بخش ۳: آمار تکمیلی قافیه، ردیف و سبک شعر -->
     <div v-if="styleStats" class="pt-4 border-t border-ink-200/60 dark:border-paper-border space-y-3">
-      <div class="flex items-center gap-2">
-        <BarChart2 class="w-4 h-4 text-brand-600 dark:text-brand-400 shrink-0" />
-        <h4 class="font-bold text-xs text-ink-900 dark:text-ink-50">
-          آمار تکمیلی قافیه، ردیف و سبک شعر
-        </h4>
-      </div>
+      <button
+        type="button"
+        @click="appStore.toggleSectionCollapsed('rhymeStyleStats')"
+        :aria-expanded="!isRhymeCollapsed"
+        class="w-full flex items-center justify-between gap-2 text-right group"
+      >
+        <div class="flex items-center gap-2 min-w-0">
+          <BarChart2 class="w-4 h-4 text-brand-600 dark:text-brand-400 shrink-0" />
+          <h4 class="font-bold text-xs text-ink-900 dark:text-ink-50 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
+            آمار تکمیلی قافیه، ردیف و سبک شعر
+          </h4>
+        </div>
+        <span class="p-1 rounded-lg border border-ink-200 dark:border-paper-border bg-paper-warm/50 dark:bg-paper-dark text-ink-600 dark:text-ink-300 shrink-0">
+          <ChevronDown v-if="isRhymeCollapsed" class="w-3.5 h-3.5" />
+          <ChevronUp v-else class="w-3.5 h-3.5" />
+        </span>
+      </button>
+
+      <div v-show="!isRhymeCollapsed" class="space-y-3">
 
       <!-- ارقام ساختاری -->
       <div class="grid grid-cols-2 gap-2 text-[11px]">
@@ -312,12 +363,14 @@
           </div>
         </div>
       </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useAppStore } from '../../stores/appStore';
 import { useLiteraryStore } from '../../stores/literaryStore';
 import { toPersianDigits } from '../../utils/persianNormalizer';
 import { analyzePoemStyle, extractPoemPeopleAndLocations } from '../../utils/poemStyleAnalytics';
@@ -332,8 +385,35 @@ import {
   Compass,
   MapPin,
   Users,
-  BarChart2
+  BarChart2,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-vue-next';
+
+var appStore = useAppStore();
+
+var isDevicesCollapsed = computed(function () {
+  return appStore.isSectionCollapsed('literaryDevices');
+});
+
+var isPeopleCollapsed = computed(function () {
+  return appStore.isSectionCollapsed('peopleLocations');
+});
+
+var isRhymeCollapsed = computed(function () {
+  return appStore.isSectionCollapsed('rhymeStyleStats');
+});
+
+function handleDevicesHeaderClick(hasSelectedTag: boolean, clearSelection: () => void) {
+  if (hasSelectedTag) {
+    clearSelection();
+    if (!isDevicesCollapsed.value) {
+      appStore.toggleSectionCollapsed('literaryDevices');
+    }
+    return;
+  }
+  appStore.toggleSectionCollapsed('literaryDevices');
+}
 
 var props = defineProps<{
   poem?: GanjoorPoem | null;

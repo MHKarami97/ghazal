@@ -3,29 +3,55 @@
     v-if="vocabulary.totalWords > 0"
     class="mt-8 p-5 rounded-2xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border shadow-xs space-y-4"
   >
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-ink-200/60 dark:border-paper-border">
-      <div>
-        <div class="flex items-center gap-2">
-          <BarChart3 class="w-4 h-4 text-brand-600 dark:text-brand-400" />
-          <h3 class="font-bold text-sm sm:text-base text-ink-900 dark:text-ink-50">
+    <div class="flex items-center justify-between gap-2" :class="!isCollapsed ? 'pb-3 border-b border-ink-200/60 dark:border-paper-border' : ''">
+      <button
+        type="button"
+        @click="appStore.toggleSectionCollapsed('vocabulary')"
+        :aria-expanded="!isCollapsed"
+        class="flex items-start gap-2 text-right group min-w-0 flex-1"
+      >
+        <div class="w-7 h-7 rounded-lg bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0 mt-0.5">
+          <BarChart3 class="w-4 h-4" />
+        </div>
+        <div class="min-w-0">
+          <h3 class="font-bold text-sm sm:text-base text-ink-900 dark:text-ink-50 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
             واژگان و بسامد کلمات این شعر
           </h3>
+          <p class="text-[11px] text-ink-500 mt-0.5">
+            کل واژگان شعر: <strong>{{ toPersianDigits(vocabulary.totalWords) }}</strong> واژه · واژگان یکتا: <strong>{{ toPersianDigits(vocabulary.uniqueWords) }}</strong> کلمه
+          </p>
         </div>
-        <p class="text-[11px] text-ink-500 mt-0.5">
-          کل واژگان شعر: <strong>{{ toPersianDigits(vocabulary.totalWords) }}</strong> واژه · واژگان یکتا: <strong>{{ toPersianDigits(vocabulary.uniqueWords) }}</strong> کلمه
-        </p>
-      </div>
+      </button>
 
-      <div class="relative w-full sm:w-52">
-        <input
-          v-model="filterQuery"
-          type="text"
-          placeholder="جست‌وجوی واژه در این شعر..."
-          class="w-full py-1.5 pr-8 pl-3 rounded-xl border border-ink-200 dark:border-paper-border bg-paper-warm/50 dark:bg-paper-dark text-xs outline-hidden focus:border-brand-500"
-        />
-        <Search class="w-3.5 h-3.5 text-ink-400 absolute right-2.5 top-2" />
+      <div class="flex items-center gap-2 shrink-0">
+        <span class="hidden sm:inline-flex px-2.5 py-1 rounded-full bg-brand-500/10 text-brand-700 dark:text-brand-300 text-[11px] font-bold">
+          {{ toPersianDigits(vocabulary.uniqueWords) }} واژه یکتا
+        </span>
+        <button
+          type="button"
+          @click="appStore.toggleSectionCollapsed('vocabulary')"
+          :aria-expanded="!isCollapsed"
+          :title="isCollapsed ? 'باز کردن بخش واژگان' : 'بستن بخش واژگان'"
+          class="p-1.5 rounded-xl border border-ink-200 dark:border-paper-border bg-paper-warm/50 dark:bg-paper-dark hover:bg-paper-warm text-ink-600 dark:text-ink-300 transition-colors"
+        >
+          <ChevronDown v-if="isCollapsed" class="w-4 h-4" />
+          <ChevronUp v-else class="w-4 h-4" />
+        </button>
       </div>
     </div>
+
+    <div v-show="!isCollapsed" class="space-y-4">
+      <div class="flex justify-end">
+        <div class="relative w-full sm:w-60">
+          <input
+            v-model="filterQuery"
+            type="text"
+            placeholder="جست‌وجوی واژه در این شعر..."
+            class="w-full py-1.5 pr-8 pl-3 rounded-xl border border-ink-200 dark:border-paper-border bg-paper-warm/50 dark:bg-paper-dark text-xs outline-hidden focus:border-brand-500"
+          />
+          <Search class="w-3.5 h-3.5 text-ink-400 absolute right-2.5 top-2" />
+        </div>
+      </div>
 
     <!-- جدول/کارت‌های بسامد واژگان -->
     <div v-if="displayedItems.length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
@@ -78,14 +104,22 @@
         }}
       </button>
     </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useAppStore } from '../../stores/appStore';
 import type { PoemVocabularyStats } from '../../utils/abjad';
 import { toPersianDigits } from '../../utils/persianNormalizer';
-import { BarChart3, Search } from 'lucide-vue-next';
+import { BarChart3, Search, ChevronDown, ChevronUp } from 'lucide-vue-next';
+
+var appStore = useAppStore();
+
+var isCollapsed = computed(function () {
+  return appStore.isSectionCollapsed('vocabulary');
+});
 
 var props = defineProps<{
   vocabulary: PoemVocabularyStats;

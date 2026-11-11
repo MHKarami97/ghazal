@@ -123,7 +123,7 @@
         <span class="text-xs text-ink-500">ابزارهای مطالعه، یادگیری</span>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
         <!-- ۱. چالش روزانه -->
         <router-link
           to="/memorize/daily-challenge"
@@ -263,6 +263,34 @@
           </div>
           <div class="text-[10px] text-ink-400">کاوش در ابیات و قوافی</div>
         </router-link>
+
+        <!-- ۱۱. ترانه‌ها و تصنیف‌ها -->
+        <router-link
+          to="/songs"
+          class="p-4 rounded-2xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border hover:border-rose-500/50 hover:shadow-soft transition-all text-center space-y-2 group"
+        >
+          <div class="w-10 h-10 mx-auto rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+            <Disc3 class="w-5 h-5" />
+          </div>
+          <div class="text-xs font-bold text-ink-900 dark:text-ink-100 group-hover:text-rose-600 transition-colors">
+            ترانه‌ها و تصنیف‌ها
+          </div>
+          <div class="text-[10px] text-ink-400">آهنگ‌های سروده‌ها</div>
+        </router-link>
+
+        <!-- ۱۲. شاعران و دیوان‌ها -->
+        <router-link
+          to="/poets"
+          class="p-4 rounded-2xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border hover:border-emerald-500/50 hover:shadow-soft transition-all text-center space-y-2 group"
+        >
+          <div class="w-10 h-10 mx-auto rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+            <BookOpen class="w-5 h-5" />
+          </div>
+          <div class="text-xs font-bold text-ink-900 dark:text-ink-100 group-hover:text-emerald-600 transition-colors">
+            شاعران و دیوان‌ها
+          </div>
+          <div class="text-[10px] text-ink-400">فهرست کل سخنوران</div>
+        </router-link>
       </div>
     </div>
 
@@ -368,7 +396,9 @@ import {
   ArrowLeft,
   Compass,
   GraduationCap,
-  Search
+  Search,
+  Disc3,
+  BookOpen
 } from 'lucide-vue-next';
 
 var appStore = useAppStore();

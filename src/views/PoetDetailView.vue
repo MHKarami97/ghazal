@@ -21,8 +21,16 @@
             </div>
           </div>
 
-          <!-- دکمه‌های اقدام: دانلود و مقایسه -->
-          <div class="flex items-center gap-2">
+          <!-- دکمه‌های اقدام: دانلود، مقایسه و ترانه‌ها -->
+          <div class="flex flex-wrap items-center gap-2">
+            <router-link
+              :to="`/songs?poet=${encodeURIComponent(poetSlug)}`"
+              class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-ink-200 dark:border-paper-border hover:bg-paper-warm dark:hover:bg-paper-dark text-ink-800 dark:text-ink-200 font-bold text-xs transition-colors"
+            >
+              <Disc3 class="w-4 h-4 text-rose-600" />
+              <span>ترانه‌های شاعر</span>
+            </router-link>
+
             <router-link
               :to="`/compare?poet1=${poetSlug}`"
               class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-ink-200 dark:border-paper-border hover:bg-paper-warm dark:hover:bg-paper-dark text-ink-800 dark:text-ink-200 font-bold text-xs transition-colors"
@@ -183,7 +191,7 @@ import { poetAnalytics, type PoetStatsResult } from '../services/PoetAnalyticsSe
 import { toPersianDigits } from '../utils/persianNormalizer';
 import LoadingState from '../components/common/LoadingState.vue';
 import type { GanjoorPoet, GanjoorCategory } from '../types/ganjoor';
-import { Download, CheckCircle, ChevronLeft, Scale, BarChart2 } from 'lucide-vue-next';
+import { Download, CheckCircle, ChevronLeft, Scale, BarChart2, Disc3 } from 'lucide-vue-next';
 
 var route = useRoute();
 var dataStore = useDataStore();

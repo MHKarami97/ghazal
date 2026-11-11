@@ -159,21 +159,38 @@
             v-if="poemSummaryText"
             class="mt-10 p-5 rounded-2xl bg-paper-warm/70 dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border space-y-2.5 shadow-2xs"
           >
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0">
-                <BookOpen class="w-4 h-4" />
-              </div>
-              <h3 class="font-bold text-sm text-ink-900 dark:text-ink-50">
-                خلاصه شعر
-              </h3>
+            <div class="flex items-center justify-between gap-2">
+              <button
+                type="button"
+                @click="appStore.toggleSectionCollapsed('summary')"
+                :aria-expanded="!isSummaryCollapsed"
+                class="flex items-center gap-2 text-right group min-w-0 flex-1"
+              >
+                <div class="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0">
+                  <BookOpen class="w-4 h-4" />
+                </div>
+                <h3 class="font-bold text-sm text-ink-900 dark:text-ink-50 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
+                  خلاصه شعر
+                </h3>
+              </button>
+              <button
+                type="button"
+                @click="appStore.toggleSectionCollapsed('summary')"
+                :aria-expanded="!isSummaryCollapsed"
+                :title="isSummaryCollapsed ? 'باز کردن خلاصه شعر' : 'بستن خلاصه شعر'"
+                class="p-1.5 rounded-xl border border-ink-200 dark:border-paper-border bg-paper-light dark:bg-paper-dark text-ink-600 dark:text-ink-300 transition-colors shrink-0"
+              >
+                <ChevronDown v-if="isSummaryCollapsed" class="w-4 h-4" />
+                <ChevronUp v-else class="w-4 h-4" />
+              </button>
             </div>
-            <p class="text-xs sm:text-sm text-ink-700 dark:text-ink-300 leading-7 whitespace-pre-line">
+            <p
+              v-show="!isSummaryCollapsed"
+              class="text-xs sm:text-sm text-ink-700 dark:text-ink-300 leading-7 whitespace-pre-line"
+            >
               {{ poemSummaryText }}
             </p>
           </section>
-
-          <!-- ترانه‌ها و آثار موسیقایی مرتبط -->
-          <PoemSongsCard :songs="songs" />
 
           <!-- بخش واژگان و بسامد کلمات شعر -->
           <PoemVocabularyCard
@@ -187,40 +204,70 @@
 
           <!-- بخش اشعار هم‌وزن و هم‌آهنگ -->
           <div v-if="similarPoems.length > 0" class="mt-12 pt-8 border-t border-ink-200/80 dark:border-paper-border space-y-4">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <Music class="w-5 h-5 text-brand-600" />
-                <h3 class="font-bold text-base text-ink-900 dark:text-ink-50">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <button
+                type="button"
+                @click="appStore.toggleSectionCollapsed('similarPoems')"
+                :aria-expanded="!isSimilarCollapsed"
+                class="flex items-center gap-2 text-right group min-w-0 flex-1"
+              >
+                <Music class="w-5 h-5 text-brand-600 shrink-0" />
+                <h3 class="font-bold text-base text-ink-900 dark:text-ink-50 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
                   اشعار هم‌وزن و هم‌آهنگ با این شعر
                 </h3>
+              </button>
+              <div class="flex items-center gap-2 shrink-0">
+                <span class="px-2.5 py-0.5 rounded-full bg-brand-500/10 text-brand-700 dark:text-brand-300 text-[11px] font-bold">
+                  {{ toPersianDigits(similarPoems.length) }} شعر
+                </span>
+                <router-link
+                  v-if="poemRhythm"
+                  :to="`/search?rhythm=${encodeURIComponent(poemRhythm)}`"
+                  class="text-xs font-bold text-brand-600 hover:text-brand-700 transition-colors"
+                >
+                  کاوش همه در جست‌وجو
+                </router-link>
+                <button
+                  type="button"
+                  @click="appStore.toggleSectionCollapsed('similarPoems')"
+                  :aria-expanded="!isSimilarCollapsed"
+                  :title="isSimilarCollapsed ? 'باز کردن اشعار هم‌وزن' : 'بستن اشعار هم‌وزن'"
+                  class="p-1.5 rounded-xl border border-ink-200 dark:border-paper-border bg-paper-light dark:bg-paper-surface text-ink-600 dark:text-ink-300 transition-colors"
+                >
+                  <ChevronDown v-if="isSimilarCollapsed" class="w-4 h-4" />
+                  <ChevronUp v-else class="w-4 h-4" />
+                </button>
               </div>
-              <router-link
-                v-if="poemRhythm"
-                :to="`/search?rhythm=${encodeURIComponent(poemRhythm)}`"
-                class="text-xs font-bold text-brand-600 hover:text-brand-700 transition-colors"
-              >
-                کاوش همه در جست‌وجو
-              </router-link>
             </div>
-            <p class="text-xs text-ink-500">
-              این سروده‌ها از میان دیوان‌های دانلودشده در دیتابیس دستگاه شما با همین ریتم عروضی ({{ poemRhythm }}) شناسایی شده‌اند:
-            </p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <router-link
-                v-for="simPoem in similarPoems"
-                :key="simPoem.Id"
-                :to="getSimilarPoemLink(simPoem)"
-                class="p-4 rounded-2xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border hover:border-brand-500/50 hover:shadow-soft transition-all block group"
-              >
-                <div class="text-xs font-bold text-brand-700 dark:text-brand-300 mb-1.5 group-hover:text-brand-600 transition-colors">
-                  {{ simPoem.FullTitle || simPoem.Title }}
-                </div>
-                <div v-if="simPoem.Verses && simPoem.Verses.length" class="text-xs text-ink-600 dark:text-ink-300 font-medium truncate">
-                  « {{ simPoem.Verses[0]?.Text }} »
-                </div>
-              </router-link>
+            <div v-show="!isSimilarCollapsed" class="space-y-4">
+              <p class="text-xs text-ink-500">
+                این سروده‌ها از میان دیوان‌های دانلودشده در دیتابیس دستگاه شما با همین ریتم عروضی ({{ poemRhythm }}) شناسایی شده‌اند:
+              </p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <router-link
+                  v-for="simPoem in similarPoems"
+                  :key="simPoem.Id"
+                  :to="getSimilarPoemLink(simPoem)"
+                  class="p-4 rounded-2xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border hover:border-brand-500/50 hover:shadow-soft transition-all block group"
+                >
+                  <div class="text-xs font-bold text-brand-700 dark:text-brand-300 mb-1.5 group-hover:text-brand-600 transition-colors">
+                    {{ simPoem.FullTitle || simPoem.Title }}
+                  </div>
+                  <div v-if="simPoem.Verses && simPoem.Verses.length" class="text-xs text-ink-600 dark:text-ink-300 font-medium truncate">
+                    « {{ simPoem.Verses[0]?.Text }} »
+                  </div>
+                </router-link>
+              </div>
             </div>
           </div>
+
+          <!-- ترانه‌ها و آثار موسیقایی مرتبط (در پایین صفحه شعر) -->
+          <PoemSongsCard
+            :songs="songs"
+            :is-loading="isLoadingSongs"
+            :poet-slug="resolvedPoetSlug"
+            :poet-name="resolvedPoetName"
+          />
 
           <!-- ناوبری شعر بعدی و شعر قبلی در دفتر -->
           <nav
@@ -401,7 +448,11 @@ import StepMemorizerModal from '../components/memorize/StepMemorizerModal.vue';
 import LoadingState from '../components/common/LoadingState.vue';
 import PoemAudioPlayer from '../components/reading/PoemAudioPlayer.vue';
 import { recitationService, type PoemRecitation } from '../services/RecitationService';
-import { songService, type PoemSongTrack } from '../services/SongService';
+import {
+  songService,
+  extractPoetSlugFromUrl,
+  type PoemSongTrack
+} from '../services/SongService';
 import { quotationService, type PoemQuotationItem } from '../services/QuotationService';
 import { calculateAbjad, analyzePoemVocabulary, stripPersianDiacritics } from '../utils/abjad';
 import { toPersianDigits } from '../utils/persianNormalizer';
@@ -417,7 +468,9 @@ import {
   ArrowLeft,
   Calculator,
   BookOpen,
-  Share2
+  Share2,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-vue-next';
 
 var route = useRoute();
@@ -449,6 +502,7 @@ var exportShareUrl = ref<string>('');
 var similarPoems = ref<GanjoorPoem[]>([]);
 var recitations = ref<PoemRecitation[]>([]);
 var songs = ref<PoemSongTrack[]>([]);
+var isLoadingSongs = ref<boolean>(false);
 var quotations = ref<PoemQuotationItem[]>([]);
 var fetchedPoemSummary = ref<string>('');
 var showWordModal = ref<boolean>(false);
@@ -457,6 +511,28 @@ var prevPoem = ref<{ title: string; route: string } | null>(null);
 var nextPoem = ref<{ title: string; route: string } | null>(null);
 var showStepMemorizer = ref<boolean>(false);
 var activeStepCard = ref<MemorizeCard | null>(null);
+
+var isSummaryCollapsed = computed(function () {
+  return appStore.isSectionCollapsed('summary');
+});
+
+var isSimilarCollapsed = computed(function () {
+  return appStore.isSectionCollapsed('similarPoems');
+});
+
+var resolvedPoetSlug = computed(function () {
+  return (
+    poetSlug.value ||
+    readingStore.currentPoem?.PoetSlug ||
+    extractPoetSlugFromUrl(readingStore.currentPoem?.FullUrl || '') ||
+    extractPoetSlugFromUrl(readingStore.currentPoet?.FullUrl || '') ||
+    ''
+  );
+});
+
+var resolvedPoetName = computed(function () {
+  return readingStore.currentPoet?.Nickname || readingStore.currentPoet?.Name || '';
+});
 
 var showCollectionModal = ref<boolean>(false);
 var userCollections = ref<UserCollection[]>([]);
@@ -501,6 +577,7 @@ async function loadPoem() {
 
   isBooting.value = true;
   songs.value = [];
+  isLoadingSongs.value = false;
   quotations.value = [];
   fetchedPoemSummary.value = '';
   recitations.value = [];
@@ -592,9 +669,22 @@ async function loadPoem() {
     recitationService.getRecitations(activePoemId).then(function (list) {
       if (!isStale()) recitations.value = list;
     });
-    songService.getSongs(activePoemId).then(function (list) {
-      if (!isStale()) songs.value = list;
-    });
+    isLoadingSongs.value = true;
+    songService
+      .getSongs(activePoemId, {
+        poemId: activePoemId,
+        poemTitle: readingStore.currentPoem.FullTitle || readingStore.currentPoem.Title,
+        poemFullUrl: readingStore.currentPoem.FullUrl,
+        poetSlug: resolvedPoetSlug.value,
+        poetName: resolvedPoetName.value,
+        poetId: readingStore.currentPoem.PoetId || readingStore.currentPoet?.Id
+      })
+      .then(function (list) {
+        if (!isStale()) songs.value = list;
+      })
+      .finally(function () {
+        if (!isStale()) isLoadingSongs.value = false;
+      });
     quotationService.getQuotations(activePoemId).then(function (list) {
       if (!isStale()) quotations.value = list;
     });
@@ -606,6 +696,7 @@ async function loadPoem() {
   } else {
     recitations.value = [];
     songs.value = [];
+    isLoadingSongs.value = false;
     quotations.value = [];
     fetchedPoemSummary.value = '';
   }

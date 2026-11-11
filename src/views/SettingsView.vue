@@ -143,6 +143,130 @@
           {{ appStore.showAbjad ? 'فعال ✓' : 'غیرفعال' }}
         </button>
       </div>
+
+      <!-- وضعیت باز یا بسته بودن بخش‌های صفحه شعر و منوی تحلیل -->
+      <div class="pt-4 border-t border-ink-200/60 dark:border-paper-border space-y-3 text-xs">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <span class="font-bold text-ink-800 dark:text-ink-200 flex items-center gap-1.5">
+              <LayoutList class="w-3.5 h-3.5 text-brand-600" />
+              <span>مدیریت باز و بسته بودن بخش‌های صفحه شعر</span>
+            </span>
+            <span class="text-[11px] text-ink-500 block mt-0.5 leading-relaxed">
+              تعیین کنید کدام بخش‌ها در صفحه شعر و منوی تحلیل به‌صورت پیش‌فرض باز یا جمع‌شده (بسته) باشند تا صفحه خلوت‌تر بماند.
+            </span>
+          </div>
+
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              @click="appStore.setAllSectionsCollapsed(false)"
+              class="px-2.5 py-1 rounded-xl border border-ink-200 dark:border-paper-border bg-paper-warm/70 dark:bg-paper-dark hover:border-brand-500 text-[11px] font-bold text-ink-700 dark:text-ink-200 transition-colors"
+            >
+              باز کردن همه
+            </button>
+            <button
+              type="button"
+              @click="appStore.setAllSectionsCollapsed(true)"
+              class="px-2.5 py-1 rounded-xl border border-ink-200 dark:border-paper-border bg-paper-warm/70 dark:bg-paper-dark hover:border-brand-500 text-[11px] font-bold text-ink-700 dark:text-ink-200 transition-colors"
+            >
+              بستن همه
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="p-3 rounded-2xl bg-paper-warm/50 dark:bg-paper-dark/60 border border-ink-200/60 dark:border-paper-border space-y-2">
+            <div class="flex items-center justify-between gap-2 pb-1.5 border-b border-ink-200/50 dark:border-paper-border">
+              <span class="font-bold text-[11px] text-ink-700 dark:text-ink-300">بخش‌های پایین صفحه شعر</span>
+              <div class="flex items-center gap-1.5 text-[10px]">
+                <button
+                  type="button"
+                  @click="appStore.setAllSectionsCollapsed(false, 'poem')"
+                  class="text-brand-600 dark:text-brand-400 hover:underline font-bold"
+                >
+                  باز همه
+                </button>
+                <span class="text-ink-300">·</span>
+                <button
+                  type="button"
+                  @click="appStore.setAllSectionsCollapsed(true, 'poem')"
+                  class="text-ink-500 hover:text-ink-800 dark:hover:text-ink-200 hover:underline font-bold"
+                >
+                  بسته همه
+                </button>
+              </div>
+            </div>
+
+            <div
+              v-for="sec in poemCollapsibleSections"
+              :key="sec.key"
+              class="flex items-center justify-between gap-2 py-1"
+            >
+              <span class="text-ink-800 dark:text-ink-200 font-medium truncate">
+                {{ sec.label }}
+              </span>
+              <button
+                type="button"
+                role="switch"
+                :aria-checked="!appStore.isSectionCollapsed(sec.key)"
+                @click="appStore.toggleSectionCollapsed(sec.key)"
+                class="px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all shrink-0 border"
+                :class="!appStore.isSectionCollapsed(sec.key)
+                  ? 'bg-emerald-600 border-emerald-600 text-white shadow-2xs'
+                  : 'bg-paper-light dark:bg-paper-surface border-ink-200 dark:border-paper-border text-ink-600 dark:text-ink-300'"
+              >
+                {{ appStore.isSectionCollapsed(sec.key) ? 'بسته' : 'باز ✓' }}
+              </button>
+            </div>
+          </div>
+
+          <div class="p-3 rounded-2xl bg-paper-warm/50 dark:bg-paper-dark/60 border border-ink-200/60 dark:border-paper-border space-y-2">
+            <div class="flex items-center justify-between gap-2 pb-1.5 border-b border-ink-200/50 dark:border-paper-border">
+              <span class="font-bold text-[11px] text-ink-700 dark:text-ink-300">بخش‌های منوی تحلیل و جزئیات شعر</span>
+              <div class="flex items-center gap-1.5 text-[10px]">
+                <button
+                  type="button"
+                  @click="appStore.setAllSectionsCollapsed(false, 'panel')"
+                  class="text-brand-600 dark:text-brand-400 hover:underline font-bold"
+                >
+                  باز همه
+                </button>
+                <span class="text-ink-300">·</span>
+                <button
+                  type="button"
+                  @click="appStore.setAllSectionsCollapsed(true, 'panel')"
+                  class="text-ink-500 hover:text-ink-800 dark:hover:text-ink-200 hover:underline font-bold"
+                >
+                  بسته همه
+                </button>
+              </div>
+            </div>
+
+            <div
+              v-for="sec in panelCollapsibleSections"
+              :key="sec.key"
+              class="flex items-center justify-between gap-2 py-1"
+            >
+              <span class="text-ink-800 dark:text-ink-200 font-medium truncate">
+                {{ sec.label }}
+              </span>
+              <button
+                type="button"
+                role="switch"
+                :aria-checked="!appStore.isSectionCollapsed(sec.key)"
+                @click="appStore.toggleSectionCollapsed(sec.key)"
+                class="px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all shrink-0 border"
+                :class="!appStore.isSectionCollapsed(sec.key)
+                  ? 'bg-emerald-600 border-emerald-600 text-white shadow-2xs'
+                  : 'bg-paper-light dark:bg-paper-surface border-ink-200 dark:border-paper-border text-ink-600 dark:text-ink-300'"
+              >
+                {{ appStore.isSectionCollapsed(sec.key) ? 'بسته' : 'باز ✓' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- بخش ۲: مدیریت بسته‌های آفلاین نصب‌شده -->
@@ -487,7 +611,7 @@ import type { DataPackage } from '../types/user';
 import InlineSpinner from '../components/common/InlineSpinner.vue';
 import DownloadButton from '../components/common/DownloadButton.vue';
 import { ref, computed, onMounted } from 'vue';
-import { useAppStore } from '../stores/appStore';
+import { useAppStore, COLLAPSIBLE_SECTIONS_META } from '../stores/appStore';
 import { useDataStore } from '../stores/dataStore';
 import { useMemorizeStore } from '../stores/memorizeStore';
 import { toLocalDateString } from '../utils/dateUtils';
@@ -511,12 +635,21 @@ import {
   ExternalLink,
   BookOpen,
   Type,
-  Calculator
+  Calculator,
+  LayoutList
 } from 'lucide-vue-next';
 
 var appStore = useAppStore();
 var dataStore = useDataStore();
 var memorizeStore = useMemorizeStore();
+
+var poemCollapsibleSections = COLLAPSIBLE_SECTIONS_META.filter(function (item) {
+  return item.group === 'poem';
+});
+
+var panelCollapsibleSections = COLLAPSIBLE_SECTIONS_META.filter(function (item) {
+  return item.group === 'panel';
+});
 
 var displayPackages = computed(function () {
   return dataStore.installedPackages.filter(function (pkg) {

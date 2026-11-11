@@ -77,6 +77,7 @@ import {
   Bookmark,
   BookmarkCheck,
   Music,
+  Disc3,
   Globe2,
   Scale,
   Settings
@@ -97,6 +98,7 @@ var navLinks = computed(function () {
     { label: 'شاعران و دیوان‌ها', path: '/poets', icon: BookOpen },
     { label: 'جست‌وجوی شعر', path: '/search', icon: Search },
     { label: 'مجموعه‌های شخصی', path: '/collections', icon: BookmarkCheck },
+    { label: 'ترانه‌ها و تصنیف‌ها', path: '/songs', icon: Disc3 },
     { label: 'موسیقی و وزن شعر', path: '/metres', icon: Music },
     { label: 'شعر در گویش‌ها', path: '/dialects', icon: Globe2 },
     { label: 'مقایسه دو شاعر', path: '/compare', icon: Scale },

@@ -4,6 +4,64 @@ import { getPoemFontOption, preloadPoemFont, preloadAllPoemFonts, type PoemFontI
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
+export type PoemCollapsibleSectionKey =
+  | 'summary'
+  | 'vocabulary'
+  | 'quotations'
+  | 'similarPoems'
+  | 'songs'
+  | 'literaryDevices'
+  | 'peopleLocations'
+  | 'rhymeStyleStats';
+
+export interface CollapsibleSectionMeta {
+  key: PoemCollapsibleSectionKey;
+  label: string;
+  group: 'poem' | 'panel';
+}
+
+export var COLLAPSIBLE_SECTIONS_META: CollapsibleSectionMeta[] = [
+  { key: 'summary', label: 'خلاصه شعر', group: 'poem' },
+  { key: 'vocabulary', label: 'واژگان و بسامد کلمات این شعر', group: 'poem' },
+  { key: 'quotations', label: 'نقل‌قول‌ها، استقبال‌ها و تضمین‌ها', group: 'poem' },
+  { key: 'similarPoems', label: 'اشعار هم‌وزن و هم‌آهنگ با این شعر', group: 'poem' },
+  { key: 'songs', label: 'ترانه‌ها و آثار موسیقایی مرتبط', group: 'poem' },
+  { key: 'literaryDevices', label: 'تحلیل و آرایه‌های ادبی', group: 'panel' },
+  { key: 'peopleLocations', label: 'اشخاص و مکان‌های جغرافیایی شعر', group: 'panel' },
+  { key: 'rhymeStyleStats', label: 'آمار تکمیلی قافیه، ردیف و سبک شعر', group: 'panel' }
+];
+
+var COLLAPSED_SECTIONS_KEY = 'ghazal-collapsed-sections';
+
+function loadCollapsedSections(): Record<PoemCollapsibleSectionKey, boolean> {
+  var defaults: Record<PoemCollapsibleSectionKey, boolean> = {
+    summary: false,
+    vocabulary: false,
+    quotations: false,
+    similarPoems: false,
+    songs: false,
+    literaryDevices: false,
+    peopleLocations: false,
+    rhymeStyleStats: false
+  };
+
+  try {
+    var raw = localStorage.getItem(COLLAPSED_SECTIONS_KEY);
+    if (!raw) return defaults;
+    var parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return defaults;
+
+    for (var i = 0; i < COLLAPSIBLE_SECTIONS_META.length; i++) {
+      var key = COLLAPSIBLE_SECTIONS_META[i].key;
+      if (typeof parsed[key] === 'boolean') {
+        defaults[key] = parsed[key];
+      }
+    }
+  } catch (e) {}
+
+  return defaults;
+}
+
 export const useAppStore = defineStore('app', () => {
   var urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
   var queryTheme = urlParams ? (urlParams.get('theme') as ThemeMode | null) : null;
@@ -24,6 +82,39 @@ export const useAppStore = defineStore('app', () => {
   var showAbjad = ref<boolean>(localStorage.getItem('ghazal-show-abjad') === 'true');
   var wordClickEnabled = ref<boolean>(localStorage.getItem('ghazal-word-click') !== 'false');
   var notificationEnabled = ref<boolean>(localStorage.getItem('ghazal-notif') === 'true');
+  var collapsedSections = ref<Record<PoemCollapsibleSectionKey, boolean>>(loadCollapsedSections());
+
+  function persistCollapsedSections(next: Record<PoemCollapsibleSectionKey, boolean>) {
+    try {
+      localStorage.setItem(COLLAPSED_SECTIONS_KEY, JSON.stringify(next));
+    } catch (e) {}
+  }
+
+  function isSectionCollapsed(key: PoemCollapsibleSectionKey): boolean {
+    return !!collapsedSections.value[key];
+  }
+
+  function setSectionCollapsed(key: PoemCollapsibleSectionKey, collapsed: boolean) {
+    var next = { ...collapsedSections.value, [key]: collapsed };
+    collapsedSections.value = next;
+    persistCollapsedSections(next);
+  }
+
+  function toggleSectionCollapsed(key: PoemCollapsibleSectionKey) {
+    setSectionCollapsed(key, !isSectionCollapsed(key));
+  }
+
+  function setAllSectionsCollapsed(collapsed: boolean, group?: 'poem' | 'panel') {
+    var next = { ...collapsedSections.value };
+    for (var i = 0; i < COLLAPSIBLE_SECTIONS_META.length; i++) {
+      var item = COLLAPSIBLE_SECTIONS_META[i];
+      if (!group || item.group === group) {
+        next[item.key] = collapsed;
+      }
+    }
+    collapsedSections.value = next;
+    persistCollapsedSections(next);
+  }
 
   function updateThemeColorMeta(isDark: boolean) {
     if (typeof document === 'undefined') return;
@@ -122,6 +213,11 @@ export const useAppStore = defineStore('app', () => {
     showAbjad,
     wordClickEnabled,
     notificationEnabled,
+    collapsedSections,
+    isSectionCollapsed,
+    setSectionCollapsed,
+    toggleSectionCollapsed,
+    setAllSectionsCollapsed,
     applyTheme
   };
 });

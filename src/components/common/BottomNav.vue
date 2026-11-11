@@ -131,6 +131,7 @@ import {
   Search,
   BookmarkCheck,
   Music,
+  Disc3,
   Globe2,
   Scale,
   Bookmark,
@@ -181,6 +182,7 @@ var menuGroups = computed(function () {
     {
       title: 'کاوش و ابزارها',
       items: [
+        { label: 'ترانه‌ها و تصنیف‌ها', path: '/songs', icon: Disc3 },
         { label: 'کاوش و تبارشناسی', path: '/explore', icon: Compass },
         { label: 'شعر در گویش‌ها', path: '/dialects', icon: Globe2 },
         { label: 'تنظیمات و داده‌ها', path: '/settings', icon: Settings }

@@ -4,25 +4,42 @@
     class="mt-10 pt-8 border-t border-ink-200/80 dark:border-paper-border space-y-4"
   >
     <div class="flex items-center justify-between gap-2">
-      <div class="flex items-center gap-2">
+      <button
+        type="button"
+        @click="appStore.toggleSectionCollapsed('quotations')"
+        :aria-expanded="!isCollapsed"
+        class="flex items-center gap-2 text-right group min-w-0 flex-1"
+      >
         <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
           <Quote class="w-4 h-4" />
         </div>
-        <div>
-          <h3 class="font-bold text-base text-ink-900 dark:text-ink-50">
+        <div class="min-w-0">
+          <h3 class="font-bold text-sm sm:text-base text-ink-900 dark:text-ink-50 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
             نقل‌قول‌ها، استقبال‌ها و تضمین‌ها
           </h3>
-          <p class="text-[11px] text-ink-500">
+          <p class="text-[11px] text-ink-500 truncate">
             اشعار مرتبطی که ابیاتی از این سروده را تضمین یا از آن استقبال کرده‌اند (گنجور)
           </p>
         </div>
+      </button>
+      <div class="flex items-center gap-2 shrink-0">
+        <span class="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 text-[11px] font-bold">
+          {{ toPersianDigits(quotations.length) }} مورد
+        </span>
+        <button
+          type="button"
+          @click="appStore.toggleSectionCollapsed('quotations')"
+          :aria-expanded="!isCollapsed"
+          :title="isCollapsed ? 'باز کردن بخش نقل‌قول‌ها' : 'بستن بخش نقل‌قول‌ها'"
+          class="p-1.5 rounded-xl border border-ink-200 dark:border-paper-border bg-paper-light dark:bg-paper-surface hover:bg-paper-warm dark:hover:bg-paper-dark text-ink-600 dark:text-ink-300 transition-colors"
+        >
+          <ChevronDown v-if="isCollapsed" class="w-4 h-4" />
+          <ChevronUp v-else class="w-4 h-4" />
+        </button>
       </div>
-      <span class="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 text-[11px] font-bold shrink-0">
-        {{ toPersianDigits(quotations.length) }} مورد
-      </span>
     </div>
 
-    <div class="grid grid-cols-1 gap-3">
+    <div v-show="!isCollapsed" class="grid grid-cols-1 gap-3">
       <div
         v-for="(q, idx) in quotations"
         :key="q.id || idx"
@@ -93,10 +110,18 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useAppStore } from '../../stores/appStore';
 import type { PoemQuotationItem } from '../../services/QuotationService';
 import { normalizeGanjoorFullUrl } from '../../utils/ganjoorPoemMapper';
 import { toPersianDigits } from '../../utils/persianNormalizer';
-import { Quote, ArrowLeft } from 'lucide-vue-next';
+import { Quote, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-vue-next';
+
+var appStore = useAppStore();
+
+var isCollapsed = computed(function () {
+  return appStore.isSectionCollapsed('quotations');
+});
 
 defineProps<{
   quotations: PoemQuotationItem[];
