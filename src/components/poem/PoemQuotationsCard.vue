@@ -94,6 +94,7 @@
 
 <script setup lang="ts">
 import type { PoemQuotationItem } from '../../services/QuotationService';
+import { normalizeGanjoorFullUrl } from '../../utils/ganjoorPoemMapper';
 import { toPersianDigits } from '../../utils/persianNormalizer';
 import { Quote, ArrowLeft } from 'lucide-vue-next';
 
@@ -105,8 +106,9 @@ function getRelatedRoute(q: PoemQuotationItem): string {
   var coupletQuery = typeof q.relatedCoupletIndex === 'number' && q.relatedCoupletIndex >= 0
     ? `?couplet=${q.relatedCoupletIndex}`
     : '';
-  if (q.relatedPoemFullUrl) {
-    var clean = q.relatedPoemFullUrl.replace(/^\/+|\/+$/g, '');
+  var normalized = normalizeGanjoorFullUrl(q.relatedPoemFullUrl || '');
+  if (normalized) {
+    var clean = normalized.replace(/^\/+|\/+$/g, '');
     if (clean) return `/read/${clean}${coupletQuery}`;
   }
   if (q.relatedPoemId > 0) {

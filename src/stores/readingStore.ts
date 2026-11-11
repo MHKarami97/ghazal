@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { db } from '../db/GhazalDB';
 import { cdnClient } from '../services/CDNClient';
+import { mapApiPoemToGanjoorPoem } from '../utils/ganjoorPoemMapper';
 import type { GanjoorPoem, GanjoorPoet, GanjoorLiteraryTag } from '../types/ganjoor';
 import type { UserBookmark } from '../types/user';
 
@@ -51,6 +52,36 @@ export const useReadingStore = defineStore('reading', () => {
       .first();
   }
 
+  async function fetchPoemFallbackFromApi(fullUrl: string): Promise<GanjoorPoem | null> {
+    var cleanKey = fullUrl.replace(/^\/+/, '');
+    try {
+      var cached = await db.baseMeta.get(`poem-api:${cleanKey}`);
+      if (cached && cached.data && cached.data.Id) {
+        return cached.data as GanjoorPoem;
+      }
+    } catch (e) {}
+
+    try {
+      var controller = new AbortController();
+      var timeoutId = setTimeout(function () {
+        controller.abort();
+      }, 6000);
+
+      var apiUrl = `https://api.ganjoor.net/api/ganjoor/poem?url=${encodeURIComponent(fullUrl)}&catInfo=true&catPoems=false&rhymes=true&recitations=false&images=false&songs=false&comments=false&navigation=false`;
+      var res = await fetch(apiUrl, {
+        headers: { 'Accept': 'application/json' },
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (!res.ok) return null;
+      var raw = await res.json();
+      return mapApiPoemToGanjoorPoem(raw);
+    } catch (e) {
+      return null;
+    }
+  }
+
   /**
    * بارگذاری شعر. اگر کاربر وسط کار به شعر دیگری برود، نتیجه درخواست قدیمی دور ریخته می‌شود (null).
    */
@@ -66,11 +97,21 @@ export const useReadingStore = defineStore('reading', () => {
 
       var poem = await findLocalPoem(poetSlug, poemSlug, fullUrl);
       if (!poem) {
-        var remotePoem = await cdnClient.getPoem(poetSlug, catPath, poemSlug);
+        var remotePoem: GanjoorPoem | null = null;
+        try {
+          remotePoem = await cdnClient.getPoem(poetSlug, catPath, poemSlug);
+        } catch (cdnErr) {
+          remotePoem = null;
+        }
+
+        if (!remotePoem) {
+          remotePoem = await fetchPoemFallbackFromApi(fullUrl);
+        }
+
         if (remotePoem) {
           await db.poems.put(JSON.parse(JSON.stringify(remotePoem)));
+          poem = remotePoem;
         }
-        poem = remotePoem;
       }
       if (isStale()) return null;
 

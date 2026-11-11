@@ -66,8 +66,8 @@
         class="flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 transition-all"
         :class="[
           appStore.readingMode
-            ? 'max-w-4xl pt-16 pb-16'
-            : 'max-w-6xl pt-6 pb-24 md:pb-12'
+            ? 'max-w-5xl pt-16 pb-16'
+            : 'max-w-7xl pt-6 pb-24 md:pb-12'
         ]"
       >
         <router-view v-slot="{ Component }">

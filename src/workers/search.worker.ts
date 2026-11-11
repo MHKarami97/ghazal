@@ -83,8 +83,8 @@ function search(data: any): void {
     var item = entry.item;
 
     if (poetId && item.poetId !== poetId) continue;
-    if (rhythm && item.rhythm && !item.rhythm.includes(rhythm)) continue;
-    if (rhyme && item.rhyme && !item.rhyme.includes(rhyme)) continue;
+    if (rhythm && (!item.rhythm || !item.rhythm.includes(rhythm))) continue;
+    if (rhyme && (!item.rhyme || !item.rhyme.includes(rhyme))) continue;
 
     if (!query) {
       results.push(item);

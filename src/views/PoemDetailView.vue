@@ -3,9 +3,9 @@
     <LoadingState v-if="isBooting || readingStore.isLoading" message="در حال بازگشایی شعر..." />
 
     <template v-else-if="readingStore.currentPoem">
-      <div class="flex flex-col lg:flex-row gap-6">
+      <div class="flex flex-col lg:flex-row gap-5 lg:gap-6">
         <!-- ستون اصلی خواندن شعر -->
-        <main class="flex-1 max-w-3xl mx-auto w-full">
+        <main class="flex-1 max-w-4xl mx-auto w-full min-w-0">
           <!-- سربرگ شعر: عنوان، شاعر، وزن و قافیه -->
           <div class="text-center pb-6 mb-6 border-b border-ink-200/60 dark:border-paper-border">
             <div class="text-xs font-bold text-brand-600 dark:text-brand-400 mb-2">
@@ -31,16 +31,6 @@
               >
                 قافیه: {{ readingStore.currentPoem.RhymeLetters }}
               </span>
-
-              <button
-                @click="onShareFullPoem"
-                type="button"
-                class="px-2.5 py-1 rounded-full bg-paper-light dark:bg-paper-surface border border-brand-500/35 hover:border-brand-500 hover:bg-brand-500/10 text-brand-700 dark:text-brand-300 font-bold flex items-center gap-1.5 transition-colors shadow-2xs"
-                title="خروجی تصویر، متن کامل و لینک اشتراک شعر"
-              >
-                <Share2 class="w-3.5 h-3.5" />
-                <span>اشتراک و خروجی شعر کامل</span>
-              </button>
             </div>
           </div>
 
@@ -83,8 +73,8 @@
             </div>
           </div>
 
-          <!-- نوار مدیریت حفظ کامل این شعر -->
-          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-paper-warm/70 dark:bg-paper-surface border border-ink-200/60 dark:border-paper-border text-xs mb-4">
+          <!-- نوار اقدام‌های کل شعر (حفظ کامل و اشتراک‌گذاری/خروجی) -->
+          <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 p-3.5 rounded-2xl bg-paper-warm/70 dark:bg-paper-surface border border-ink-200/60 dark:border-paper-border text-xs mb-4">
             <div class="flex items-center gap-2 min-w-0">
               <div class="w-7 h-7 rounded-lg bg-purple-500/15 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold shrink-0">
                 <Brain class="w-4 h-4" />
@@ -97,12 +87,22 @@
               </span>
             </div>
 
-            <div class="flex items-center gap-2 shrink-0">
+            <div class="flex flex-wrap items-center gap-2 shrink-0">
+              <button
+                @click="onShareFullPoem"
+                type="button"
+                class="flex-1 sm:flex-none justify-center px-3 py-1.5 rounded-xl border border-brand-500/40 bg-paper-light dark:bg-paper-dark hover:bg-brand-500/10 text-brand-700 dark:text-brand-300 font-bold transition-colors flex items-center gap-1.5 shadow-2xs"
+                title="خروجی تصویر، متن کامل و لینک اشتراک کل شعر"
+              >
+                <Share2 class="w-3.5 h-3.5" />
+                <span>اشتراک و خروجی شعر</span>
+              </button>
+
               <button
                 v-if="memorizedCoupletCount > 0"
                 @click="onRemoveEntirePoemFromMemorize"
                 type="button"
-                class="w-full sm:w-auto justify-center px-3 py-1.5 rounded-xl border border-rose-500/40 text-rose-600 dark:text-rose-400 font-bold hover:bg-rose-500/10 transition-colors flex items-center gap-1.5"
+                class="flex-1 sm:flex-none justify-center px-3 py-1.5 rounded-xl border border-rose-500/40 text-rose-600 dark:text-rose-400 font-bold hover:bg-rose-500/10 transition-colors flex items-center gap-1.5"
                 title="حذف تمام ابیات این شعر از فهرست حفظ"
               >
                 <Trash2 class="w-3.5 h-3.5" />
@@ -112,7 +112,7 @@
                 v-else
                 @click="onAddEntirePoemToMemorize"
                 type="button"
-                class="w-full sm:w-auto justify-center px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition-all shadow-xs flex items-center gap-1.5"
+                class="flex-1 sm:flex-none justify-center px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition-all shadow-xs flex items-center gap-1.5"
                 title="افزودن تمام ابیات این شعر به فهرست حفظ"
               >
                 <Brain class="w-3.5 h-3.5" />

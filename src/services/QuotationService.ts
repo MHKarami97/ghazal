@@ -1,4 +1,5 @@
 import { db } from '../db/GhazalDB';
+import { normalizeGanjoorFullUrl } from '../utils/ganjoorPoemMapper';
 
 export interface PoemQuotationItem {
   id: number;
@@ -26,8 +27,9 @@ export class QuotationService {
       return this.memCache.get(poemId)!;
     }
 
+    var cacheKey = `quoteds:v2:${poemId}`;
     try {
-      var cached = await db.baseMeta.get(`quoteds:${poemId}`);
+      var cached = await db.baseMeta.get(cacheKey);
       if (cached && Array.isArray(cached.data)) {
         this.memCache.set(poemId, cached.data);
         return cached.data;
@@ -57,42 +59,84 @@ export class QuotationService {
           return item && (item.relatedPoemId || item.poemId || item.relatedPoemFullTitle || item.relatedCoupletVerse1 || item.coupletVerse1);
         })
         .map(function (item: any) {
-          var relId = Number(
-            item.relatedPoemId && Number(item.relatedPoemId) !== poemId
-              ? item.relatedPoemId
-              : (item.poemId && Number(item.poemId) !== poemId ? item.poemId : 0)
+          var isSwapped = Boolean(
+            item.relatedPoemId &&
+            Number(item.relatedPoemId) === poemId &&
+            item.poemId &&
+            Number(item.poemId) !== poemId
           );
-          var rawTitle = String(
-            item.relatedPoemFullTitle ||
-            item.relatedPoemTitle ||
-            item.poemFullTitle ||
-            item.poemTitle ||
-            item.fullTitle ||
-            'شعر مرتبط'
-          ).trim();
-          var rawPoet = String(
-            item.relatedPoetName ||
-            item.poetName ||
-            ''
-          ).trim();
+
+          var relId = Number(isSwapped ? (item.poemId || 0) : (item.relatedPoemId || 0));
+          var rawUrl = isSwapped
+            ? String(
+                item.poemFullUrl ||
+                item.cachedPoemFullUrl ||
+                item.poemUrl ||
+                item.poem?.fullUrl ||
+                item.fullUrl ||
+                ''
+              )
+            : String(
+                item.relatedPoemFullUrl ||
+                item.cachedRelatedPoemFullUrl ||
+                item.relatedPoemUrl ||
+                item.relatedPoem?.fullUrl ||
+                item.fullUrl ||
+                ''
+              );
+
+          var rawTitle = isSwapped
+            ? String(
+                item.poemFullTitle ||
+                item.cachedPoemFullTitle ||
+                item.poemTitle ||
+                item.poem?.fullTitle ||
+                item.poem?.title ||
+                item.fullTitle ||
+                'شعر مرتبط'
+              ).trim()
+            : String(
+                item.relatedPoemFullTitle ||
+                item.cachedRelatedPoemFullTitle ||
+                item.relatedPoemTitle ||
+                item.relatedPoem?.fullTitle ||
+                item.relatedPoem?.title ||
+                item.fullTitle ||
+                'شعر مرتبط'
+              ).trim();
+
+          var rawPoet = isSwapped
+            ? String(item.poetName || item.cachedPoemPoetName || item.poem?.poet?.name || '').trim()
+            : String(item.relatedPoetName || item.cachedRelatedPoemPoetName || item.relatedPoemPoetName || item.relatedPoem?.poet?.name || '').trim();
+
           if (!rawPoet && rawTitle.indexOf('»') !== -1) {
             rawPoet = rawTitle.split('»')[0].trim();
           }
+
+          var curCouplet = isSwapped ? item.relatedCoupletIndex : item.coupletIndex;
+          var relCouplet = isSwapped ? item.coupletIndex : item.relatedCoupletIndex;
+
+          var curV1 = isSwapped ? item.relatedCoupletVerse1 : item.coupletVerse1;
+          var curV2 = isSwapped ? item.relatedCoupletVerse2 : item.coupletVerse2;
+          var relV1 = isSwapped ? item.coupletVerse1 : item.relatedCoupletVerse1;
+          var relV2 = isSwapped ? item.coupletVerse2 : item.relatedCoupletVerse2;
 
           return {
             id: Number(item.id || 0),
             relatedPoemId: relId,
             relatedPoemTitle: rawTitle,
             relatedPoetName: rawPoet || 'شاعر مرتبط',
-            relatedPoemFullUrl: String(item.relatedPoemFullUrl || item.poemFullUrl || item.fullUrl || '').trim(),
-            coupletIndex: typeof item.coupletIndex === 'number' ? item.coupletIndex : undefined,
-            relatedCoupletIndex: typeof item.relatedCoupletIndex === 'number' ? item.relatedCoupletIndex : undefined,
-            coupletVerse1: item.coupletVerse1 ? String(item.coupletVerse1).trim() : undefined,
-            coupletVerse2: item.coupletVerse2 ? String(item.coupletVerse2).trim() : undefined,
-            relatedCoupletVerse1: item.relatedCoupletVerse1 ? String(item.relatedCoupletVerse1).trim() : undefined,
-            relatedCoupletVerse2: item.relatedCoupletVerse2 ? String(item.relatedCoupletVerse2).trim() : undefined,
+            relatedPoemFullUrl: normalizeGanjoorFullUrl(rawUrl),
+            coupletIndex: typeof curCouplet === 'number' ? curCouplet : undefined,
+            relatedCoupletIndex: typeof relCouplet === 'number' ? relCouplet : undefined,
+            coupletVerse1: curV1 ? String(curV1).trim() : undefined,
+            coupletVerse2: curV2 ? String(curV2).trim() : undefined,
+            relatedCoupletVerse1: relV1 ? String(relV1).trim() : undefined,
+            relatedCoupletVerse2: relV2 ? String(relV2).trim() : undefined,
             note: item.note ? String(item.note).trim() : undefined,
-            isPriorToRelated: typeof item.isPriorToRelated === 'boolean' ? item.isPriorToRelated : undefined
+            isPriorToRelated: typeof item.isPriorToRelated === 'boolean'
+              ? (isSwapped ? !item.isPriorToRelated : item.isPriorToRelated)
+              : undefined
           };
         });
 
@@ -100,7 +144,7 @@ export class QuotationService {
 
       try {
         await db.baseMeta.put({
-          key: `quoteds:${poemId}`,
+          key: cacheKey,
           data: JSON.parse(JSON.stringify(items)),
           updatedAt: new Date().toISOString()
         });

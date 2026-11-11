@@ -1,6 +1,6 @@
 <template>
   <div
-    class="group relative px-3 sm:px-6 rounded-2xl transition-all duration-200"
+    class="group relative px-2 sm:px-4 rounded-2xl transition-all duration-200"
     :class="[
       isCompact ? 'py-1.5 sm:py-2' : 'py-3 sm:py-4',
       isSelected
@@ -78,47 +78,52 @@
 
     <!-- متن ابیات -->
     <div
+      ref="beytRef"
       class="poem-beyt mb-0"
       :style="{
-        fontSize: `${fontSize}px`,
+        fontSize: `${effectiveFontSize}px`,
         lineHeight: `${fontFamily?.includes('Noto Nastaliq') ? Math.max(lineHeight, 2.35) : (isCompact ? Math.min(lineHeight, 1.9) : lineHeight)}`,
         fontFamily: fontFamily || `'Vazirmatn', system-ui, sans-serif`
       }"
     >
       <!-- مصرع اول (راست) -->
       <div class="poem-misra font-medium text-ink-900 dark:text-ink-100">
-        <template v-for="(token, tIdx) in renderTokens(rightVerseText, 1)" :key="'r-' + tIdx">
-          <span
-            v-if="token.tag && showLiteraryTags"
-            class="literary-highlight"
-            :class="{ 'uncertain': token.tag.Uncertain }"
-            @click.stop="$emit('select-tag', token.tag)"
-            :title="`آرایه ادبی (کد ${token.tag.DeviceId})`"
-          >{{ token.word }}</span><span
-            v-else-if="wordClickEnabled && cleanWord(token.word)"
-            class="cursor-pointer hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-500/10 rounded px-0.5 transition-colors"
-            @click.stop="$emit('select-word', cleanWord(token.word))"
-            title="مشاهده معنی و جست‌وجوی واژه"
-          >{{ token.word }}</span><span v-else>{{ token.word }}</span>{{ token.trailingSpace }}
-        </template>
+        <span ref="rightLineRef" :class="singleLineFit ? 'whitespace-nowrap' : ''">
+          <template v-for="(token, tIdx) in renderTokens(rightVerseText, 1)" :key="'r-' + tIdx">
+            <span
+              v-if="token.tag && showLiteraryTags"
+              class="literary-highlight"
+              :class="{ 'uncertain': token.tag.Uncertain }"
+              @click.stop="$emit('select-tag', token.tag)"
+              :title="`آرایه ادبی (کد ${token.tag.DeviceId})`"
+            >{{ token.word }}</span><span
+              v-else-if="wordClickEnabled && cleanWord(token.word)"
+              class="cursor-pointer hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-500/10 rounded px-0.5 transition-colors"
+              @click.stop="$emit('select-word', cleanWord(token.word))"
+              title="مشاهده معنی و جست‌وجوی واژه"
+            >{{ token.word }}</span><span v-else>{{ token.word }}</span>{{ token.trailingSpace }}
+          </template>
+        </span>
       </div>
 
       <!-- مصرع دوم (چپ) -->
       <div class="poem-misra font-medium text-ink-900 dark:text-ink-100">
-        <template v-for="(token, tIdx) in renderTokens(leftVerseText, 2)" :key="'l-' + tIdx">
-          <span
-            v-if="token.tag && showLiteraryTags"
-            class="literary-highlight"
-            :class="{ 'uncertain': token.tag.Uncertain }"
-            @click.stop="$emit('select-tag', token.tag)"
-            :title="`آرایه ادبی (کد ${token.tag.DeviceId})`"
-          >{{ token.word }}</span><span
-            v-else-if="wordClickEnabled && cleanWord(token.word)"
-            class="cursor-pointer hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-500/10 rounded px-0.5 transition-colors"
-            @click.stop="$emit('select-word', cleanWord(token.word))"
-            title="مشاهده معنی و جست‌وجوی واژه"
-          >{{ token.word }}</span><span v-else>{{ token.word }}</span>{{ token.trailingSpace }}
-        </template>
+        <span ref="leftLineRef" :class="singleLineFit ? 'whitespace-nowrap' : ''">
+          <template v-for="(token, tIdx) in renderTokens(leftVerseText, 2)" :key="'l-' + tIdx">
+            <span
+              v-if="token.tag && showLiteraryTags"
+              class="literary-highlight"
+              :class="{ 'uncertain': token.tag.Uncertain }"
+              @click.stop="$emit('select-tag', token.tag)"
+              :title="`آرایه ادبی (کد ${token.tag.DeviceId})`"
+            >{{ token.word }}</span><span
+              v-else-if="wordClickEnabled && cleanWord(token.word)"
+              class="cursor-pointer hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-500/10 rounded px-0.5 transition-colors"
+              @click.stop="$emit('select-word', cleanWord(token.word))"
+              title="مشاهده معنی و جست‌وجوی واژه"
+            >{{ token.word }}</span><span v-else>{{ token.word }}</span>{{ token.trailingSpace }}
+          </template>
+        </span>
       </div>
     </div>
 
@@ -134,7 +139,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { toPersianDigits } from '../../utils/persianNormalizer';
 import { calculateAbjad, cleanPoemWord, stripPersianDiacritics } from '../../utils/abjad';
 import type { GanjoorLiteraryTag } from '../../types/ganjoor';
@@ -165,6 +170,142 @@ var props = withDefaults(
     showAbjad: false,
     showDiacritics: true,
     wordClickEnabled: true
+  }
+);
+
+var beytRef = ref<HTMLElement | null>(null);
+var rightLineRef = ref<HTMLElement | null>(null);
+var leftLineRef = ref<HTMLElement | null>(null);
+var effectiveFontSize = ref<number>(props.fontSize);
+var singleLineFit = ref<boolean>(false);
+
+var resizeObserver: ResizeObserver | null = null;
+var rafId: number | null = null;
+var lastMeasuredWidth = 0;
+
+function measureLineWidth(el: HTMLElement): number {
+  if (!(el.textContent || '').trim()) return 0;
+  return el.getBoundingClientRect().width;
+}
+
+function fitCoupletFont() {
+  var beytEl = beytRef.value;
+  var rEl = rightLineRef.value;
+  var lEl = leftLineRef.value;
+  if (!beytEl || !rEl || !lEl) {
+    effectiveFontSize.value = props.fontSize;
+    singleLineFit.value = false;
+    return;
+  }
+
+  var containerW = beytEl.clientWidth;
+  if (containerW <= 0) return;
+
+  var computedStyle = window.getComputedStyle(beytEl);
+  var isRow = computedStyle.flexDirection === 'row';
+  var gapPx = isRow ? (parseFloat(computedStyle.columnGap || computedStyle.gap || '0') || 0) : 0;
+  var slotW = isRow ? Math.floor((containerW - gapPx) / 2) - 4 : containerW - 4;
+  if (slotW <= 60) {
+    effectiveFontSize.value = props.fontSize;
+    singleLineFit.value = false;
+    return;
+  }
+
+  // اندازه‌گیری عرض واقعی تک‌خطی در اندازه پایه
+  beytEl.style.fontSize = props.fontSize + 'px';
+  rEl.style.display = 'inline-block';
+  rEl.style.whiteSpace = 'nowrap';
+  lEl.style.display = 'inline-block';
+  lEl.style.whiteSpace = 'nowrap';
+
+  var neededW = Math.max(measureLineWidth(rEl), measureLineWidth(lEl));
+  var nextSize = props.fontSize;
+  var minAllowed = Math.max(12, Math.round(props.fontSize * 0.72 * 10) / 10);
+
+  if (neededW > slotW && neededW > 0) {
+    var ratio = slotW / neededW;
+    nextSize = Math.max(minAllowed, Math.floor(props.fontSize * ratio * 0.98 * 10) / 10);
+    beytEl.style.fontSize = nextSize + 'px';
+
+    for (var step = 0; step < 3; step++) {
+      var checkW = Math.max(measureLineWidth(rEl), measureLineWidth(lEl));
+      if (checkW <= slotW || nextSize <= minAllowed) break;
+      nextSize = Math.max(minAllowed, Math.round((nextSize - 0.5) * 10) / 10);
+      beytEl.style.fontSize = nextSize + 'px';
+    }
+  }
+
+  var finalW = Math.max(measureLineWidth(rEl), measureLineWidth(lEl));
+  rEl.style.display = '';
+  rEl.style.whiteSpace = '';
+  lEl.style.display = '';
+  lEl.style.whiteSpace = '';
+
+  effectiveFontSize.value = nextSize;
+  singleLineFit.value = finalW <= slotW + 1;
+}
+
+function scheduleFit() {
+  if (typeof window === 'undefined') return;
+  if (rafId !== null) {
+    cancelAnimationFrame(rafId);
+  }
+  rafId = requestAnimationFrame(function () {
+    rafId = null;
+    void nextTick(function () {
+      fitCoupletFont();
+    });
+  });
+}
+
+onMounted(function () {
+  scheduleFit();
+  if (typeof ResizeObserver !== 'undefined' && beytRef.value) {
+    resizeObserver = new ResizeObserver(function (entries) {
+      var w = entries[0]?.contentRect?.width || 0;
+      if (Math.abs(w - lastMeasuredWidth) >= 2) {
+        lastMeasuredWidth = w;
+        scheduleFit();
+      }
+    });
+    resizeObserver.observe(beytRef.value);
+  }
+  if (typeof document !== 'undefined' && document.fonts) {
+    void document.fonts.ready.then(scheduleFit);
+    if (typeof document.fonts.addEventListener === 'function') {
+      document.fonts.addEventListener('loadingdone', scheduleFit);
+    }
+  }
+});
+
+onBeforeUnmount(function () {
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+    resizeObserver = null;
+  }
+  if (rafId !== null) {
+    cancelAnimationFrame(rafId);
+    rafId = null;
+  }
+  if (typeof document !== 'undefined' && document.fonts && typeof document.fonts.removeEventListener === 'function') {
+    document.fonts.removeEventListener('loadingdone', scheduleFit);
+  }
+});
+
+watch(
+  function () {
+    return [
+      props.fontSize,
+      props.fontFamily,
+      props.rightVerseText,
+      props.leftVerseText,
+      props.showDiacritics,
+      props.showLiteraryTags
+    ];
+  },
+  function () {
+    effectiveFontSize.value = props.fontSize;
+    scheduleFit();
   }
 );
 

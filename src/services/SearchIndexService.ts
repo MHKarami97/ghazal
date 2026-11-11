@@ -14,6 +14,7 @@ export interface SearchResultItem {
   rhythm?: string;
   rhyme?: string;
   highlightQuery?: string;
+  source?: 'local' | 'online';
 }
 
 interface SearchOptions {

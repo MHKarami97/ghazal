@@ -55,13 +55,20 @@ body {
   @media (min-width: 640px) {
     .poem-beyt {
       flex-direction: row;
-      gap: 2.5rem;
+      gap: 1.25rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .poem-beyt {
+      gap: 1.75rem;
     }
   }
 
   .poem-misra {
     text-align: center;
-    flex: 1;
+    flex: 1 1 0%;
+    min-width: 0;
   }
 }
 
