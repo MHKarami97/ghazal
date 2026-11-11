@@ -79,7 +79,7 @@
           </div>
 
           <!-- متن ابیات شعر -->
-          <div class="space-y-4">
+          <div :class="isCompactCouplets ? 'space-y-0.5 sm:space-y-1' : 'space-y-3 sm:space-y-4'">
             <CoupletView
               v-for="pair in coupletPairs"
               :id="'couplet-' + pair.coupletIndex"
@@ -451,6 +451,10 @@ async function loadPoem() {
     recitations.value = [];
   }
 }
+
+var isCompactCouplets = computed(function () {
+  return (!appStore.showLiteraryTags && !appStore.showCoupletSummary) || appStore.readingMode;
+});
 
 var coupletPairs = computed(function () {
   if (!readingStore.currentPoem?.Verses) return [];

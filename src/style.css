@@ -41,26 +41,28 @@ body {
   padding-top: max(1rem, var(--sat));
 }
 
-/* Persian Poem Formatting Styles */
-.poem-beyt {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 1.5rem;
-  line-height: 2.2;
-}
-
-@media (min-width: 640px) {
+@layer components {
+  /* Persian Poem Formatting Styles */
   .poem-beyt {
-    flex-direction: row;
-    gap: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    line-height: 2.2;
   }
-}
 
-.poem-misra {
-  text-align: center;
-  flex: 1;
+  @media (min-width: 640px) {
+    .poem-beyt {
+      flex-direction: row;
+      gap: 2.5rem;
+    }
+  }
+
+  .poem-misra {
+    text-align: center;
+    flex: 1;
+  }
 }
 
 /* Literary Device Highlight Underline */

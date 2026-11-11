@@ -1,7 +1,8 @@
 <template>
   <div
-    class="group relative py-4 px-3 sm:px-6 rounded-2xl transition-all duration-200"
+    class="group relative px-3 sm:px-6 rounded-2xl transition-all duration-200"
     :class="[
+      isCompact ? 'py-1.5 sm:py-2' : 'py-3 sm:py-4',
       isSelected
         ? 'bg-brand-500/10 dark:bg-brand-500/15 ring-1 ring-brand-500/30'
         : 'hover:bg-ink-100/60 dark:hover:bg-paper-surface/50'
@@ -61,16 +62,19 @@
     </div>
 
     <!-- شماره بیت -->
-    <div class="text-[11px] font-bold text-brand-600/60 dark:text-brand-400/60 text-center mb-1">
+    <div
+      class="font-bold text-brand-600/60 dark:text-brand-400/60 text-center"
+      :class="isCompact ? 'text-[10px] leading-none mb-0.5' : 'text-[11px] mb-1'"
+    >
       {{ toPersianDigits(coupletIndex + 1) }}
     </div>
 
     <!-- متن ابیات -->
     <div
-      class="poem-beyt font-vazir"
+      class="poem-beyt mb-0 font-vazir"
       :style="{
         fontSize: `${fontSize}px`,
-        lineHeight: `${lineHeight}`
+        lineHeight: `${isCompact ? Math.min(lineHeight, 1.9) : lineHeight}`
       }"
     >
       <!-- مصرع اول (راست) -->
@@ -109,7 +113,7 @@
     <!-- معنی و خلاصه بیت (در صورت وجود و فعال بودن) -->
     <div
       v-if="summary && showSummary"
-      class="mt-2 text-xs text-ink-500 dark:text-ink-400 bg-brand-50/50 dark:bg-brand-950/20 p-2.5 rounded-xl border-r-2 border-brand-500 text-right leading-relaxed"
+      class="mt-2.5 text-xs text-ink-500 dark:text-ink-400 bg-brand-50/50 dark:bg-brand-950/20 p-2.5 rounded-xl border-r-2 border-brand-500 text-right leading-relaxed"
     >
       <span class="font-bold text-brand-700 dark:text-brand-300">مفهوم بیت:</span>
       {{ summary }}
@@ -143,6 +147,10 @@ var props = withDefaults(
     showSummary: true
   }
 );
+
+var isCompact = computed(function () {
+  return !props.showLiteraryTags && !props.showSummary;
+});
 
 defineEmits([
   'select-couplet',
