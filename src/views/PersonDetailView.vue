@@ -54,9 +54,9 @@
           <div
             v-for="rel in personRelations"
             :key="rel.Id"
-            class="p-3.5 rounded-xl border border-ink-200/80 dark:border-paper-border bg-paper-light dark:bg-paper-surface flex items-center justify-between text-xs"
+            class="p-3.5 rounded-xl border border-ink-200/80 dark:border-paper-border bg-paper-light dark:bg-paper-surface flex items-center justify-between gap-2 text-xs"
           >
-            <span class="text-ink-500">{{ formatRelationType(rel.RelationType) }}:</span>
+            <span class="text-ink-500 shrink-0">{{ formatRelationRole(rel) }}:</span>
             <router-link
               :to="`/person/${getRelatedPersonId(rel)}`"
               class="font-bold text-brand-700 dark:text-brand-300 hover:underline"
@@ -145,6 +145,7 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useLiteraryStore } from '../stores/literaryStore';
 import { toPersianDigits } from '../utils/persianNormalizer';
+import { formatRelatedPersonRole } from '../utils/kinshipFormatter';
 import type { GanjoorPerson, GanjoorPersonRelation } from '../types/ganjoor';
 import LoadingState from '../components/common/LoadingState.vue';
 
@@ -187,13 +188,13 @@ var evidenceItems = computed(function () {
     var rel = rels[i];
     if (rel.Evidence && rel.Evidence.length) {
       var otherName = getRelatedPersonName(rel);
-      var typeDesc = formatRelationType(rel.RelationType);
+      var typeDesc = formatRelationRole(rel);
       for (var j = 0; j < rel.Evidence.length; j++) {
         var ev = rel.Evidence[j];
         list.push({
           poemId: ev.PoemId,
           coupletIndex: ev.CoupletIndex,
-          relDesc: `${typeDesc} ${otherName}`
+          relDesc: `${typeDesc}: ${otherName}`
         });
       }
     }
@@ -205,20 +206,18 @@ function getRelatedPersonId(rel: GanjoorPersonRelation): number {
   return rel.Person1Id === personId.value ? rel.Person2Id : rel.Person1Id;
 }
 
+function getRelatedPerson(rel: GanjoorPersonRelation): GanjoorPerson | undefined {
+  return literaryStore.getPersonById(getRelatedPersonId(rel));
+}
+
 function getRelatedPersonName(rel: GanjoorPersonRelation): string {
   var targetId = getRelatedPersonId(rel);
-  var target = literaryStore.getPersonById(targetId);
+  var target = getRelatedPerson(rel);
   return target ? target.Name : `شخص کد ${targetId}`;
 }
 
-function formatRelationType(type: string): string {
-  switch (type) {
-    case 'Parent': return 'نسبت والد / فرزند';
-    case 'Sibling': return 'برادر / خواهر';
-    case 'Spouse': return 'همسر';
-    case 'Ancestor': return 'نیا و تبار';
-    default: return type;
-  }
+function formatRelationRole(rel: GanjoorPersonRelation): string {
+  return formatRelatedPersonRole(rel, personId.value, getRelatedPerson(rel));
 }
 
 function formatLifeDates(p: GanjoorPerson): string {

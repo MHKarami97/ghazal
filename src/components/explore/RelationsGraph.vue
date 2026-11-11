@@ -77,7 +77,7 @@
           :key="rel.Id"
           class="p-4 rounded-2xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border shadow-xs hover:border-brand-500/40 transition-all"
         >
-          <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center justify-between gap-2 mb-3">
             <router-link
               :to="`/person/${rel.Person1Id}`"
               class="font-bold text-sm text-brand-700 dark:text-brand-300 hover:underline"
@@ -85,8 +85,8 @@
               {{ getPersonName(rel.Person1Id) }}
             </router-link>
 
-            <span class="text-xs px-2.5 py-1 rounded-full bg-brand-50 dark:bg-brand-950/30 text-brand-800 dark:text-brand-300 font-medium border border-brand-500/20">
-              {{ formatRelationType(rel.RelationType) }}
+            <span class="shrink-0 text-xs px-2.5 py-1 rounded-full bg-brand-50 dark:bg-brand-950/30 text-brand-800 dark:text-brand-300 font-medium border border-brand-500/20">
+              {{ formatRelationLabel(rel) }}
             </span>
 
             <router-link
@@ -189,6 +189,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useLiteraryStore } from '../../stores/literaryStore';
 import { toPersianDigits } from '../../utils/persianNormalizer';
+import { formatPairRelationLabel } from '../../utils/kinshipFormatter';
 import type { GanjoorPersonRelation } from '../../types/ganjoor';
 
 var literaryStore = useLiteraryStore();
@@ -259,14 +260,8 @@ function getPersonName(id: number): string {
   return person ? person.Name : `شخص کد ${id}`;
 }
 
-function formatRelationType(type: string): string {
-  switch (type) {
-    case 'Parent': return 'پدر / مادرِ';
-    case 'Sibling': return 'برادر / خواهرِ';
-    case 'Spouse': return 'همسرِ';
-    case 'Ancestor': return 'نیا و تبارِ';
-    default: return type;
-  }
+function formatRelationLabel(rel: GanjoorPersonRelation): string {
+  return formatPairRelationLabel(rel.RelationType, literaryStore.getPersonById(rel.Person1Id));
 }
 
 function formatAffiliationType(type: string): string {
