@@ -1,28 +1,45 @@
 <template>
   <div class="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-2xl bg-paper-warm/80 dark:bg-paper-surface/80 border border-ink-200/80 dark:border-paper-border mb-6 backdrop-blur-xs text-xs">
-    <!-- کنترل اندازه فونت -->
-    <div class="flex items-center gap-1.5">
-      <span class="text-ink-500 dark:text-ink-400 font-medium ml-1">اندازه قلم:</span>
-      <button
-        @click="decreaseFont"
-        class="w-7 h-7 rounded-lg border border-ink-200 dark:border-paper-border flex items-center justify-center font-bold text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-paper-dark"
-        title="کوچک‌تر کردن متن"
-      >
-        -
-      </button>
-      <span class="w-6 text-center font-bold text-brand-600 dark:text-brand-400">
-        {{ toPersianDigits(appStore.fontSize) }}
-      </span>
-      <button
-        @click="increaseFont"
-        class="w-7 h-7 rounded-lg border border-ink-200 dark:border-paper-border flex items-center justify-center font-bold text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-paper-dark"
-        title="بزرگ‌تر کردن متن"
-      >
-        +
-      </button>
+    <!-- کنترل اندازه و نوع قلم شعر -->
+    <div class="flex flex-wrap items-center gap-2">
+      <div class="flex items-center gap-1.5">
+        <span class="text-ink-500 dark:text-ink-400 font-medium ml-0.5 hidden sm:inline">اندازه:</span>
+        <button
+          @click="decreaseFont"
+          class="w-7 h-7 rounded-lg border border-ink-200 dark:border-paper-border flex items-center justify-center font-bold text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-paper-dark"
+          title="کوچک‌تر کردن متن"
+        >
+          -
+        </button>
+        <span class="w-6 text-center font-bold text-brand-600 dark:text-brand-400">
+          {{ toPersianDigits(appStore.fontSize) }}
+        </span>
+        <button
+          @click="increaseFont"
+          class="w-7 h-7 rounded-lg border border-ink-200 dark:border-paper-border flex items-center justify-center font-bold text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-paper-dark"
+          title="بزرگ‌تر کردن متن"
+        >
+          +
+        </button>
+      </div>
+
+      <!-- انتخاب فونت فقط برای متن شعر -->
+      <div class="flex items-center gap-1">
+        <Type class="w-3.5 h-3.5 text-ink-400 shrink-0" />
+        <select
+          v-model="appStore.poemFont"
+          aria-label="فونت متن شعر"
+          title="انتخاب فونت متن شعر"
+          class="px-2 py-1 rounded-xl border border-ink-200 dark:border-paper-border bg-paper-light dark:bg-paper-dark text-ink-800 dark:text-ink-100 text-[11px] font-bold outline-hidden cursor-pointer max-w-[135px] sm:max-w-none"
+        >
+          <option v-for="font in POEM_FONTS" :key="font.id" :value="font.id">
+            {{ font.label }}
+          </option>
+        </select>
+      </div>
     </div>
 
-    <!-- دکمه‌های کنترل نمایش آرایه‌ها، مفهوم و حالت مطالعه -->
+    <!-- دکمه‌های کنترل نمایش آرایه‌ها، مفهوم، ابجد و حالت مطالعه -->
     <div class="flex flex-wrap items-center gap-1.5">
       <!-- ۱. دکمه نمایش یا مخفی‌سازی آرایه‌های ادبی -->
       <button
@@ -58,7 +75,23 @@
         <span class="sm:hidden">مفهوم</span>
       </button>
 
-      <!-- ۳. دکمه حالت مطالعه متمرکز -->
+      <!-- ۳. دکمه نمایش یا مخفی‌سازی محاسبه ابجد شعر و ابیات -->
+      <button
+        @click="appStore.showAbjad = !appStore.showAbjad"
+        class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border transition-all"
+        :class="[
+          appStore.showAbjad
+            ? 'border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-300 font-bold'
+            : 'border-ink-200 dark:border-paper-border text-ink-500 hover:bg-ink-100 dark:hover:bg-paper-dark'
+        ]"
+        :title="appStore.showAbjad ? 'مخفی‌سازی اعداد ابجد' : 'نمایش ابجد کبیر کل شعر و هر بیت'"
+      >
+        <Calculator class="w-3.5 h-3.5" :class="appStore.showAbjad ? 'text-amber-600 dark:text-amber-400' : 'text-ink-400'" />
+        <span class="hidden sm:inline">{{ appStore.showAbjad ? 'ابجد روشن' : 'ابجد' }}</span>
+        <span class="sm:hidden">ابجد</span>
+      </button>
+
+      <!-- ۴. دکمه حالت مطالعه متمرکز -->
       <button
         @click="appStore.readingMode = !appStore.readingMode"
         class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border transition-all"
@@ -75,7 +108,7 @@
         <span class="sm:hidden">مطالعه</span>
       </button>
 
-      <!-- ۴. دکمه باز کردن پنل آرایه‌ها در موبایل -->
+      <!-- ۵. دکمه باز کردن پنل آرایه‌ها در موبایل -->
       <button
         @click="$emit('toggle-literary-panel')"
         class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-ink-200 dark:border-paper-border text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-paper-dark transition-colors lg:hidden"
@@ -90,6 +123,7 @@
 
 <script setup lang="ts">
 import { useAppStore } from '../../stores/appStore';
+import { POEM_FONTS } from '../../config/fontConfig';
 import { toPersianDigits } from '../../utils/persianNormalizer';
 import {
   Maximize2,
@@ -97,7 +131,9 @@ import {
   Sparkles,
   EyeOff,
   BookOpenText,
-  FileText
+  FileText,
+  Calculator,
+  Type
 } from 'lucide-vue-next';
 
 defineEmits(['toggle-literary-panel']);

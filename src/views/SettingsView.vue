@@ -9,6 +9,142 @@
       </p>
     </div>
 
+    <!-- بخش ۱: تنظیمات مطالعه، قلم شعر و واژه‌نامه -->
+    <div class="p-6 rounded-3xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border shadow-soft space-y-5">
+      <div class="flex items-center gap-2 pb-3 border-b border-ink-200/60 dark:border-paper-border">
+        <Type class="w-5 h-5 text-brand-600" />
+        <h3 class="font-bold text-base text-ink-900 dark:text-ink-50">
+          تنظیمات مطالعه و نمایش شعر
+        </h3>
+      </div>
+
+      <!-- انتخاب فونت اختصاصی ابیات -->
+      <div class="space-y-2.5">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <span class="font-bold text-xs text-ink-800 dark:text-ink-200 block">
+              فونت متن اشعار:
+            </span>
+            <span class="text-[11px] text-ink-500">
+              این قلم تنها برای متن اشعار (صفحه شعر، فال و شعر روز) به‌کار می‌رود و ظاهر کلی برنامه تغییر نمی‌کند.
+            </span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+          <button
+            v-for="font in POEM_FONTS"
+            :key="font.id"
+            type="button"
+            @click="appStore.poemFont = font.id"
+            class="p-3.5 rounded-2xl border text-right transition-all flex flex-col justify-between gap-2"
+            :class="appStore.poemFont === font.id
+              ? 'border-brand-600 bg-brand-500/10 ring-1 ring-brand-500/30 shadow-2xs'
+              : 'border-ink-200/80 dark:border-paper-border bg-paper-warm/50 dark:bg-paper-dark/60 hover:border-brand-500/40'"
+          >
+            <div>
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-bold text-xs text-ink-900 dark:text-ink-50">{{ font.label }}</span>
+                <span
+                  v-if="appStore.poemFont === font.id"
+                  class="text-[10px] px-1.5 py-0.5 rounded-md bg-brand-600 text-white font-bold"
+                >
+                  فعال
+                </span>
+              </div>
+              <p class="text-[10px] text-ink-500 mt-0.5 leading-relaxed">
+                {{ font.description }}
+              </p>
+            </div>
+            <div
+              class="pt-2 border-t border-ink-200/50 dark:border-paper-border/60 text-sm text-ink-800 dark:text-ink-100 leading-relaxed truncate"
+              :style="{ fontFamily: font.cssFamily }"
+            >
+              شب تاریک و بیم موج و گردابی چنین هایل
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- اندازه قلم شعر -->
+      <div class="flex items-center justify-between gap-3 pt-3 border-t border-ink-200/60 dark:border-paper-border text-xs">
+        <div>
+          <span class="font-bold text-ink-800 dark:text-ink-200 block">اندازه قلم ابیات:</span>
+          <span class="text-[11px] text-ink-500">تنظیم بزرگی متن اشعار ({{ toPersianDigits(appStore.fontSize) }} پیکسل)</span>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            @click="appStore.fontSize = Math.max(14, appStore.fontSize - 1)"
+            class="w-8 h-8 rounded-xl border border-ink-200 dark:border-paper-border bg-paper-warm/70 dark:bg-paper-dark hover:border-brand-500/50 font-bold text-sm text-ink-800 dark:text-ink-100 transition-colors"
+            title="کوچک‌تر کردن قلم"
+          >
+            -
+          </button>
+          <span class="min-w-[3rem] text-center font-bold text-ink-900 dark:text-ink-50">
+            {{ toPersianDigits(appStore.fontSize) }}
+          </span>
+          <button
+            type="button"
+            @click="appStore.fontSize = Math.min(30, appStore.fontSize + 1)"
+            class="w-8 h-8 rounded-xl border border-ink-200 dark:border-paper-border bg-paper-warm/70 dark:bg-paper-dark hover:border-brand-500/50 font-bold text-sm text-ink-800 dark:text-ink-100 transition-colors"
+            title="بزرگ‌تر کردن قلم"
+          >
+            +
+          </button>
+        </div>
+      </div>
+
+      <!-- کلیک روی کلمه -->
+      <div class="flex items-center justify-between gap-3 pt-3 border-t border-ink-200/60 dark:border-paper-border text-xs">
+        <div class="min-w-0">
+          <span class="font-bold text-ink-800 dark:text-ink-200 block">
+            پنجره معنی و جست‌وجو با کلیک روی کلمات
+          </span>
+          <span class="text-[11px] text-ink-500 block mt-0.5 leading-relaxed">
+            با کلیک روی هر واژه در شعر، معنی لغت‌نامه، جست‌وجو در گوگل و واژه‌یاب باز می‌شود.
+          </span>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          :aria-checked="appStore.wordClickEnabled"
+          @click="appStore.wordClickEnabled = !appStore.wordClickEnabled"
+          class="px-3.5 py-1.5 rounded-xl font-bold transition-all shrink-0 border"
+          :class="appStore.wordClickEnabled
+            ? 'bg-emerald-600 border-emerald-600 text-white shadow-2xs'
+            : 'bg-paper-warm dark:bg-paper-dark border-ink-200 dark:border-paper-border text-ink-600 dark:text-ink-300'"
+        >
+          {{ appStore.wordClickEnabled ? 'فعال ✓' : 'غیرفعال' }}
+        </button>
+      </div>
+
+      <!-- نمایش ابجد -->
+      <div class="flex items-center justify-between gap-3 pt-3 border-t border-ink-200/60 dark:border-paper-border text-xs">
+        <div class="min-w-0">
+          <span class="font-bold text-ink-800 dark:text-ink-200 flex items-center gap-1.5">
+            <Calculator class="w-3.5 h-3.5 text-amber-600" />
+            <span>نمایش محاسبهٔ ابجد شعر و ابیات</span>
+          </span>
+          <span class="text-[11px] text-ink-500 block mt-0.5 leading-relaxed">
+            نمایش خودکار حساب ابجد کبیر و صغیر برای کل شعر و هر بیت در صفحه مطالعه
+          </span>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          :aria-checked="appStore.showAbjad"
+          @click="appStore.showAbjad = !appStore.showAbjad"
+          class="px-3.5 py-1.5 rounded-xl font-bold transition-all shrink-0 border"
+          :class="appStore.showAbjad
+            ? 'bg-amber-600 border-amber-600 text-white shadow-2xs'
+            : 'bg-paper-warm dark:bg-paper-dark border-ink-200 dark:border-paper-border text-ink-600 dark:text-ink-300'"
+        >
+          {{ appStore.showAbjad ? 'فعال ✓' : 'غیرفعال' }}
+        </button>
+      </div>
+    </div>
+
     <!-- بخش ۲: مدیریت بسته‌های آفلاین نصب‌شده -->
     <div class="p-6 rounded-3xl bg-paper-light dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border shadow-soft space-y-4">
       <div class="flex items-center justify-between pb-3 border-b border-ink-200/60 dark:border-paper-border">
@@ -361,6 +497,7 @@ import { exportService, type ImportResult } from '../services/ExportService';
 import { notificationService } from '../services/NotificationService';
 import { formatBytes } from '../utils/formatters';
 import { toPersianDigits } from '../utils/persianNormalizer';
+import { POEM_FONTS } from '../config/fontConfig';
 import {
   Database,
   HardDrive,
@@ -372,7 +509,9 @@ import {
   Info,
   Globe,
   ExternalLink,
-  BookOpen
+  BookOpen,
+  Type,
+  Calculator
 } from 'lucide-vue-next';
 
 var appStore = useAppStore();

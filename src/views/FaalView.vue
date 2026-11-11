@@ -67,8 +67,8 @@
           <div
             v-for="(pair, idx) in couplets"
             :key="idx"
-            class="poem-beyt font-vazir text-center"
-            :style="{ fontSize: `${appStore.fontSize}px` }"
+            class="poem-beyt text-center"
+            :style="{ fontSize: `${appStore.fontSize}px`, fontFamily: appStore.poemFontFamily }"
           >
             <div class="poem-misra font-medium text-ink-900 dark:text-ink-100">
               {{ pair.rightVerse?.Text }}

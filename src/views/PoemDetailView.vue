@@ -40,6 +40,39 @@
           <!-- نوار ابزار تنظیمات مطالعه -->
           <ReaderToolbar @toggle-literary-panel="showMobileLiterary = !showMobileLiterary" />
 
+          <!-- نوار محاسبه ابجد کل شعر -->
+          <div
+            v-if="appStore.showAbjad && !appStore.readingMode && poemAbjad.kabir > 0"
+            class="mb-4 p-3.5 rounded-2xl bg-amber-500/10 dark:bg-amber-500/5 border border-amber-500/30 flex flex-wrap items-center justify-between gap-3 text-xs"
+          >
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
+                <Calculator class="w-4 h-4" />
+              </div>
+              <div>
+                <span class="font-bold text-ink-900 dark:text-ink-50">حساب ابجد کل شعر</span>
+                <span class="text-ink-500 dark:text-ink-400 mr-1.5">
+                  ({{ formatAbjadNumber(poemAbjad.letterCount) }} حرف)
+                </span>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="px-2.5 py-1 rounded-lg bg-paper-light dark:bg-paper-dark border border-amber-500/25 font-bold text-amber-800 dark:text-amber-200">
+                ابجد کبیر کل: {{ formatAbjadNumber(poemAbjad.kabir) }}
+              </span>
+              <span
+                v-if="titleAbjad.kabir > 0"
+                class="px-2.5 py-1 rounded-lg bg-paper-light dark:bg-paper-dark border border-ink-200/60 dark:border-paper-border text-ink-700 dark:text-ink-300"
+              >
+                عنوان: {{ formatAbjadNumber(titleAbjad.kabir) }}
+              </span>
+              <span class="px-2.5 py-1 rounded-lg bg-paper-light dark:bg-paper-dark border border-ink-200/60 dark:border-paper-border text-ink-600 dark:text-ink-400">
+                صغیر (۹ / ۱۲): {{ toPersianDigits(poemAbjad.saghir9) }} / {{ toPersianDigits(poemAbjad.saghir12) }}
+              </span>
+            </div>
+          </div>
+
           <!-- نوار مدیریت حفظ کامل این شعر -->
           <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-paper-warm/70 dark:bg-paper-surface border border-ink-200/60 dark:border-paper-border text-xs mb-4">
             <div class="flex items-center gap-2 min-w-0">
@@ -90,14 +123,18 @@
               :summary="pair.summary"
               :font-size="appStore.fontSize"
               :line-height="appStore.lineHeight"
+              :font-family="appStore.poemFontFamily"
               :is-selected="readingStore.activeCoupletIndex === pair.coupletIndex"
               :is-bookmarked="readingStore.isBookmarked(readingStore.currentPoem.Id, pair.coupletIndex)"
               :is-memorized="memorizeStore.isCoupletMemorized(readingStore.currentPoem.Id, pair.coupletIndex)"
               :literary-tags="readingStore.currentPoem.LiteraryTags"
               :show-literary-tags="appStore.showLiteraryTags && !appStore.readingMode"
               :show-summary="appStore.showCoupletSummary && !appStore.readingMode"
+              :show-abjad="appStore.showAbjad && !appStore.readingMode"
+              :word-click-enabled="appStore.wordClickEnabled"
               @select-couplet="onSelectCouplet"
               @select-tag="onSelectTag"
+              @select-word="onSelectWord"
               @toggle-bookmark="onToggleBookmark"
               @add-to-memorize="onAddToMemorize"
               @step-memorize="onStepMemorize"
@@ -105,6 +142,34 @@
               @share-card="onShareCard"
             />
           </div>
+
+          <!-- خلاصه شعر (در انتهای ابیات) -->
+          <section
+            v-if="poemSummaryText"
+            class="mt-10 p-5 rounded-2xl bg-paper-warm/70 dark:bg-paper-surface border border-ink-200/80 dark:border-paper-border space-y-2.5 shadow-2xs"
+          >
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0">
+                <BookOpen class="w-4 h-4" />
+              </div>
+              <h3 class="font-bold text-sm text-ink-900 dark:text-ink-50">
+                خلاصه شعر
+              </h3>
+            </div>
+            <p class="text-xs sm:text-sm text-ink-700 dark:text-ink-300 leading-7 whitespace-pre-line">
+              {{ poemSummaryText }}
+            </p>
+          </section>
+
+          <!-- ترانه‌ها و آثار موسیقایی مرتبط -->
+          <PoemSongsCard :songs="songs" />
+
+          <!-- بخش واژگان و بسامد کلمات شعر -->
+          <PoemVocabularyCard
+            v-if="poemVocabulary.totalWords > 0"
+            :vocabulary="poemVocabulary"
+            @select-word="onSelectWord"
+          />
 
           <!-- بخش اشعار هم‌وزن و هم‌آهنگ -->
           <div v-if="similarPoems.length > 0" class="mt-12 pt-8 border-t border-ink-200/80 dark:border-paper-border space-y-4">
@@ -263,6 +328,14 @@
           </div>
         </div>
       </div>
+
+      <!-- مدال معنی و جست‌وجوی کلمه -->
+      <WordLookupModal
+        :show="showWordModal"
+        :word="selectedWord"
+        @close="showWordModal = false"
+        @disable="onDisableWordClick"
+      />
     </template>
 
     <EmptyState
@@ -297,15 +370,30 @@ import { toLocalDateString } from '../utils/dateUtils';
 import CoupletView from '../components/poem/CoupletView.vue';
 import LiteraryPanel from '../components/poem/LiteraryPanel.vue';
 import ReaderToolbar from '../components/poem/ReaderToolbar.vue';
+import PoemSongsCard from '../components/poem/PoemSongsCard.vue';
+import PoemVocabularyCard from '../components/poem/PoemVocabularyCard.vue';
+import WordLookupModal from '../components/poem/WordLookupModal.vue';
 import CardExportModal from '../components/common/CardExportModal.vue';
 import StepMemorizerModal from '../components/memorize/StepMemorizerModal.vue';
 import LoadingState from '../components/common/LoadingState.vue';
 import PoemAudioPlayer from '../components/reading/PoemAudioPlayer.vue';
 import { recitationService, type PoemRecitation } from '../services/RecitationService';
+import { songService, type PoemSongTrack } from '../services/SongService';
+import { calculateAbjad, analyzePoemVocabulary } from '../utils/abjad';
 import { toPersianDigits } from '../utils/persianNormalizer';
 import type { GanjoorLiteraryTag, GanjoorPoem } from '../types/ganjoor';
 import type { UserCollection, MemorizeCard } from '../types/user';
-import { Music, FolderPlus, X, Brain, Trash2, ArrowRight, ArrowLeft } from 'lucide-vue-next';
+import {
+  Music,
+  FolderPlus,
+  X,
+  Brain,
+  Trash2,
+  ArrowRight,
+  ArrowLeft,
+  Calculator,
+  BookOpen
+} from 'lucide-vue-next';
 
 var route = useRoute();
 var appStore = useAppStore();
@@ -332,6 +420,10 @@ var activeExportSecond = ref<string>('');
 
 var similarPoems = ref<GanjoorPoem[]>([]);
 var recitations = ref<PoemRecitation[]>([]);
+var songs = ref<PoemSongTrack[]>([]);
+var fetchedPoemSummary = ref<string>('');
+var showWordModal = ref<boolean>(false);
+var selectedWord = ref<string>('');
 var prevPoem = ref<{ title: string; route: string } | null>(null);
 var nextPoem = ref<{ title: string; route: string } | null>(null);
 var showStepMemorizer = ref<boolean>(false);
@@ -342,6 +434,24 @@ var userCollections = ref<UserCollection[]>([]);
 var selectedCoupletIndexForCollection = ref<number | null>(null);
 
 var isBooting = ref<boolean>(true);
+
+var poemSummaryText = computed(function () {
+  return (readingStore.currentPoem?.PoemSummary || fetchedPoemSummary.value || '').trim();
+});
+
+var poemAbjad = computed(function () {
+  var verses = readingStore.currentPoem?.Verses || [];
+  var combined = verses.map(function (v) { return v.Text || ''; }).join(' ');
+  return calculateAbjad(combined);
+});
+
+var titleAbjad = computed(function () {
+  return calculateAbjad(readingStore.currentPoem?.Title || '');
+});
+
+var poemVocabulary = computed(function () {
+  return analyzePoemVocabulary(readingStore.currentPoem?.Verses || []);
+});
 
 onMounted(async function () {
   literaryStore.loadBaseMeta().catch(function (err) {
@@ -361,6 +471,10 @@ async function loadPoem() {
   var isStale = function () { return loadId !== latestLoadId; };
 
   isBooting.value = true;
+  songs.value = [];
+  fetchedPoemSummary.value = '';
+  recitations.value = [];
+  showWordModal.value = false;
   try {
     await readingStore.loadPoem(poetSlug.value, catPath.value, poemSlug.value);
   } finally {
@@ -442,13 +556,24 @@ async function loadPoem() {
     similarPoems.value = [];
   }
 
-  // بارگذاری فایل‌های صوتی و دکلمه شعر از گنجور
+  // بارگذاری فایل‌های صوتی، دکلمه‌ها، ترانه‌ها و خلاصه شعر از گنجور
   if (readingStore.currentPoem) {
-    recitationService.getRecitations(readingStore.currentPoem.Id).then(function (list) {
+    var activePoemId = readingStore.currentPoem.Id;
+    recitationService.getRecitations(activePoemId).then(function (list) {
       if (!isStale()) recitations.value = list;
     });
+    songService.getSongs(activePoemId).then(function (list) {
+      if (!isStale()) songs.value = list;
+    });
+    if (!readingStore.currentPoem.PoemSummary) {
+      songService.getPoemSummaryFallback(activePoemId).then(function (summary) {
+        if (!isStale()) fetchedPoemSummary.value = summary;
+      });
+    }
   } else {
     recitations.value = [];
+    songs.value = [];
+    fetchedPoemSummary.value = '';
   }
 }
 
@@ -468,6 +593,21 @@ var memorizedCoupletCount = computed(function () {
     return memorizeStore.isCoupletMemorized(poemId, p.coupletIndex);
   }).length;
 });
+
+function formatAbjadNumber(num: number): string {
+  return toPersianDigits(num.toLocaleString('en-US').replace(/,/g, '٬'));
+}
+
+function onSelectWord(word: string) {
+  if (!word) return;
+  selectedWord.value = word;
+  showWordModal.value = true;
+}
+
+function onDisableWordClick() {
+  appStore.wordClickEnabled = false;
+  showWordModal.value = false;
+}
 
 function onSelectCouplet(index: number) {
   readingStore.selectCouplet(index);

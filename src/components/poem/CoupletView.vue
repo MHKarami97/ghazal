@@ -61,20 +61,28 @@
       </button>
     </div>
 
-    <!-- شماره بیت -->
+    <!-- شماره بیت و نمایش ابجد (در صورت فعال بودن) -->
     <div
-      class="font-bold text-brand-600/60 dark:text-brand-400/60 text-center"
+      class="flex items-center justify-center gap-2 font-bold text-brand-600/60 dark:text-brand-400/60 text-center"
       :class="isCompact ? 'text-[10px] leading-none mb-0.5' : 'text-[11px] mb-1'"
     >
-      {{ toPersianDigits(coupletIndex + 1) }}
+      <span>{{ toPersianDigits(coupletIndex + 1) }}</span>
+      <span
+        v-if="showAbjad"
+        class="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 text-[10px] font-bold"
+        :title="`مصرع اول: ${toPersianDigits(rightAbjad.kabir)} | مصرع دوم: ${toPersianDigits(leftAbjad.kabir)}`"
+      >
+        ابجد کبیر: {{ toPersianDigits(coupletAbjad.kabir) }}
+      </span>
     </div>
 
     <!-- متن ابیات -->
     <div
-      class="poem-beyt mb-0 font-vazir"
+      class="poem-beyt mb-0"
       :style="{
         fontSize: `${fontSize}px`,
-        lineHeight: `${isCompact ? Math.min(lineHeight, 1.9) : lineHeight}`
+        lineHeight: `${isCompact ? Math.min(lineHeight, 1.9) : lineHeight}`,
+        fontFamily: fontFamily || `'Vazirmatn', system-ui, sans-serif`
       }"
     >
       <!-- مصرع اول (راست) -->
@@ -86,10 +94,12 @@
             :class="{ 'uncertain': token.tag.Uncertain }"
             @click.stop="$emit('select-tag', token.tag)"
             :title="`آرایه ادبی (کد ${token.tag.DeviceId})`"
-          >
-            {{ token.text }}
-          </span>
-          <span v-else>{{ token.text }}</span>
+          >{{ token.word }}</span><span
+            v-else-if="wordClickEnabled && cleanWord(token.word)"
+            class="cursor-pointer hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-500/10 rounded px-0.5 transition-colors"
+            @click.stop="$emit('select-word', cleanWord(token.word))"
+            title="مشاهده معنی و جست‌وجوی واژه"
+          >{{ token.word }}</span><span v-else>{{ token.word }}</span>{{ token.trailingSpace }}
         </template>
       </div>
 
@@ -102,10 +112,12 @@
             :class="{ 'uncertain': token.tag.Uncertain }"
             @click.stop="$emit('select-tag', token.tag)"
             :title="`آرایه ادبی (کد ${token.tag.DeviceId})`"
-          >
-            {{ token.text }}
-          </span>
-          <span v-else>{{ token.text }}</span>
+          >{{ token.word }}</span><span
+            v-else-if="wordClickEnabled && cleanWord(token.word)"
+            class="cursor-pointer hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-500/10 rounded px-0.5 transition-colors"
+            @click.stop="$emit('select-word', cleanWord(token.word))"
+            title="مشاهده معنی و جست‌وجوی واژه"
+          >{{ token.word }}</span><span v-else>{{ token.word }}</span>{{ token.trailingSpace }}
         </template>
       </div>
     </div>
@@ -124,6 +136,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { toPersianDigits } from '../../utils/persianNormalizer';
+import { calculateAbjad, cleanPoemWord } from '../../utils/abjad';
 import type { GanjoorLiteraryTag } from '../../types/ganjoor';
 import { Bookmark, Brain, Share2, Sparkles, FolderPlus } from 'lucide-vue-next';
 
@@ -135,16 +148,21 @@ var props = withDefaults(
     summary?: string;
     fontSize: number;
     lineHeight: number;
+    fontFamily?: string;
     isSelected?: boolean;
     isBookmarked?: boolean;
     isMemorized?: boolean;
     literaryTags?: GanjoorLiteraryTag[];
     showLiteraryTags?: boolean;
     showSummary?: boolean;
+    showAbjad?: boolean;
+    wordClickEnabled?: boolean;
   }>(),
   {
     showLiteraryTags: true,
-    showSummary: true
+    showSummary: true,
+    showAbjad: false,
+    wordClickEnabled: true
   }
 );
 
@@ -152,9 +170,26 @@ var isCompact = computed(function () {
   return !props.showLiteraryTags && !props.showSummary;
 });
 
+var rightAbjad = computed(function () {
+  return calculateAbjad(props.rightVerseText || '');
+});
+
+var leftAbjad = computed(function () {
+  return calculateAbjad(props.leftVerseText || '');
+});
+
+var coupletAbjad = computed(function () {
+  return calculateAbjad(`${props.rightVerseText || ''} ${props.leftVerseText || ''}`);
+});
+
+function cleanWord(raw: string): string {
+  return cleanPoemWord(raw);
+}
+
 defineEmits([
   'select-couplet',
   'select-tag',
+  'select-word',
   'toggle-bookmark',
   'add-to-memorize',
   'step-memorize',
@@ -163,7 +198,8 @@ defineEmits([
 ]);
 
 interface WordToken {
-  text: string;
+  word: string;
+  trailingSpace: string;
   tag?: GanjoorLiteraryTag;
 }
 
@@ -204,7 +240,8 @@ function renderTokens(text: string, misraNumber: number): WordToken[] {
     }
 
     tokens.push({
-      text: word + (i < words.length - 1 ? ' ' : ''),
+      word: word,
+      trailingSpace: i < words.length - 1 ? ' ' : '',
       tag: matchedTag
     });
   }

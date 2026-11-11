@@ -66,7 +66,7 @@
         </router-link>
       </div>
 
-      <div class="poem-beyt font-vazir text-center my-6" :style="{ fontSize: `${appStore.fontSize}px` }">
+      <div class="poem-beyt text-center my-6" :style="{ fontSize: `${appStore.fontSize}px`, fontFamily: appStore.poemFontFamily }">
         <div class="poem-misra font-bold text-ink-900 dark:text-ink-50">
           {{ poemOfTheDay.Verses[0]?.Text }}
         </div>

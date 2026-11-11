@@ -82,5 +82,13 @@ export async function renderPoemCard(
     drawCenteredText(ctx, poemTitle, CARD_SIZE - 130, '400', 28, 18, '#64748b');
   }
 
+  ctx.save();
+  ctx.textAlign = 'right';
+  ctx.direction = 'ltr';
+  ctx.font = `400 19px ${FONT_FAMILY}`;
+  ctx.fillStyle = 'rgba(100, 116, 139, 0.78)';
+  ctx.fillText('ghazal.mhkarami97.ir', CARD_SIZE - 78, CARD_SIZE - 76);
+  ctx.restore();
+
   return canvas;
 }

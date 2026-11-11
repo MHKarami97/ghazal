@@ -10,6 +10,15 @@ export interface PoemRecitation {
   audioArtistUrl?: string;
   mp3SizeInBytes?: number;
   inSyncWithText?: boolean;
+  recitationType?: number | string;
+}
+
+export function isCommentaryRecitation(rec: PoemRecitation): boolean {
+  if (rec.recitationType === 1 || rec.recitationType === '1') return true;
+  if (typeof rec.recitationType === 'string' && rec.recitationType.toLowerCase() === 'commentary') {
+    return true;
+  }
+  return false;
 }
 
 export class RecitationService {
@@ -24,7 +33,7 @@ export class RecitationService {
 
     // 1. چک کردن دیتابیس محلی
     try {
-      var cached = await db.baseMeta.get(`recitations:${poemId}`);
+      var cached = await db.baseMeta.get(`recitations:v2:${poemId}`);
       if (cached && Array.isArray(cached.data)) {
         this.memCache.set(poemId, cached.data);
         return cached.data;
@@ -66,7 +75,8 @@ export class RecitationService {
           xmlUrl: item.xmlUrl || '',
           audioArtistUrl: item.audioArtistUrl || '',
           mp3SizeInBytes: item.mp3SizeInBytes || 0,
-          inSyncWithText: !!item.inSyncWithText
+          inSyncWithText: !!item.inSyncWithText,
+          recitationType: item.recitationType
         };
       }).filter(function (r) {
         return !!r.mp3Url;
@@ -76,7 +86,7 @@ export class RecitationService {
 
       try {
         await db.baseMeta.put({
-          key: `recitations:${poemId}`,
+          key: `recitations:v2:${poemId}`,
           data: JSON.parse(JSON.stringify(recitations)),
           updatedAt: new Date().toISOString()
         });

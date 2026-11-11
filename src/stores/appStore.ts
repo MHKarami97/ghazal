@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
-import { ref, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
+import { getPoemFontOption, type PoemFontId } from '../config/fontConfig';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -11,9 +12,16 @@ export const useAppStore = defineStore('app', () => {
   var isOnline = ref<boolean>(navigator.onLine);
   var fontSize = ref<number>(Number(localStorage.getItem('ghazal-font-size')) || 20);
   var lineHeight = ref<number>(Number(localStorage.getItem('ghazal-line-height')) || 2.4);
+  var savedPoemFont = (localStorage.getItem('ghazal-poem-font') as PoemFontId) || 'vazirmatn';
+  var poemFont = ref<PoemFontId>(getPoemFontOption(savedPoemFont).id);
+  var poemFontFamily = computed(function () {
+    return getPoemFontOption(poemFont.value).cssFamily;
+  });
   var readingMode = ref<boolean>(false);
   var showLiteraryTags = ref<boolean>(localStorage.getItem('ghazal-show-literary') !== 'false');
   var showCoupletSummary = ref<boolean>(localStorage.getItem('ghazal-show-summary') !== 'false');
+  var showAbjad = ref<boolean>(localStorage.getItem('ghazal-show-abjad') === 'true');
+  var wordClickEnabled = ref<boolean>(localStorage.getItem('ghazal-word-click') !== 'false');
   var notificationEnabled = ref<boolean>(localStorage.getItem('ghazal-notif') === 'true');
 
   function updateThemeColorMeta(isDark: boolean) {
@@ -75,6 +83,18 @@ export const useAppStore = defineStore('app', () => {
     localStorage.setItem('ghazal-show-summary', String(val));
   });
 
+  watch(poemFont, function (val) {
+    localStorage.setItem('ghazal-poem-font', val);
+  });
+
+  watch(showAbjad, function (val) {
+    localStorage.setItem('ghazal-show-abjad', String(val));
+  });
+
+  watch(wordClickEnabled, function (val) {
+    localStorage.setItem('ghazal-word-click', String(val));
+  });
+
   // اعمال اولیه تم
   applyTheme(savedTheme);
 
@@ -83,9 +103,13 @@ export const useAppStore = defineStore('app', () => {
     isOnline,
     fontSize,
     lineHeight,
+    poemFont,
+    poemFontFamily,
     readingMode,
     showLiteraryTags,
     showCoupletSummary,
+    showAbjad,
+    wordClickEnabled,
     notificationEnabled,
     applyTheme
   };
