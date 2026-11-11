@@ -37,6 +37,7 @@ export interface CachedPoemSongsRecord {
 
 var EMPTY_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 var SONGS_TIMEOUT_MS = 6000;
+var SONGS_CACHE_PREFIX = 'songs:v3:';
 
 export function safeSongExternalUrl(url?: string): string {
   if (!url) return '';
@@ -44,6 +45,29 @@ export function safeSongExternalUrl(url?: string): string {
   if (/^https?:\/\//i.test(trimmed)) {
     return trimmed;
   }
+  return '';
+}
+
+export function extractArtistFromTrackText(
+  trackName?: string,
+  trackUrl?: string,
+  golhaTrackId?: number
+): string {
+  var text = String(trackName || '').trim();
+  if (text) {
+    var match = text.match(
+      /خوانندهٔ?(?:\s*(?:ترانه|آواز|برنامه|تصنیف|محلی))?\s*[:：]\s*([^:\n]+?)(?=\s*(?:آهنگساز|آهنگ‌ساز|سراینده|شاعر|ترانه‌سرا|ترانه\s*سرا|نوازنده|نوازندگان|گوینده|تنظیم|ضبط|مطلع|دستگاه|اشعار|\n|$))/
+    );
+    if (match && match[1]) {
+      var candidate = match[1].replace(/[،؛\-–]+$/g, '').trim();
+      if (candidate) return candidate;
+    }
+  }
+
+  if (golhaTrackId || (trackUrl && trackUrl.toLowerCase().indexOf('golha.co.uk') !== -1)) {
+    return 'برنامهٔ گل‌ها';
+  }
+
   return '';
 }
 
@@ -70,6 +94,11 @@ export function detectSongPlatformLabel(track: PoemSongTrack): string {
       if (host.indexOf('shajarian') !== -1 || host.indexOf('khosousi') !== -1) return 'آرشیو خصوصی';
     } catch (e) {}
   }
+
+  if (track.trackType === 0 || track.trackType === '0') return 'بیپ‌تونز';
+  if (track.trackType === 1 || track.trackType === '1') return 'گل‌ها';
+  if (track.trackType === 2 || track.trackType === '2') return 'اپل موزیک';
+  if (track.trackType === 3 || track.trackType === '3') return 'اسپاتیفای';
 
   if (typeof track.trackType === 'string') {
     var rawType = track.trackType.trim();
@@ -157,6 +186,12 @@ function mapRawSongsPayload(
       var trackUrl = safeSongExternalUrl(item.trackUrl || item.TrackUrl || item.url) || undefined;
       var artistUrl = safeSongExternalUrl(item.artistUrl || item.ArtistUrl) || undefined;
       var albumUrl = safeSongExternalUrl(item.albumUrl || item.AlbumUrl) || undefined;
+      var trackName = String(item.trackName || item.TrackName || item.title || 'قطعه موسیقی').trim();
+      var rawArtist = String(item.artistName || item.ArtistName || item.singer || '').trim();
+      var resolvedArtist =
+        rawArtist ||
+        extractArtistFromTrackText(trackName, trackUrl, Number(item.golhaTrackId || item.GolhaTrackId || 0)) ||
+        'هنرمند ناشناس';
       var poemFullUrl = normalizeGanjoorFullUrl(
         item.poemFullUrl || item.poemUrl || meta?.poemFullUrl || ''
       ) || undefined;
@@ -165,11 +200,11 @@ function mapRawSongsPayload(
       return {
         id: Number(item.id || item.Id || 0),
         poemId: Number(item.poemId || item.PoemId || poemId),
-        artistName: String(item.artistName || item.ArtistName || item.singer || 'هنرمند ناشناس').trim(),
+        artistName: resolvedArtist,
         artistUrl: artistUrl,
         albumName: (item.albumName || item.AlbumName) ? String(item.albumName || item.AlbumName).trim() : undefined,
         albumUrl: albumUrl,
-        trackName: String(item.trackName || item.TrackName || item.title || 'قطعه موسیقی').trim(),
+        trackName: trackName,
         trackUrl: trackUrl,
         description: (item.description || item.Description) ? String(item.description || item.Description).trim() : undefined,
         trackType: item.trackType !== undefined ? item.trackType : item.TrackType,
@@ -200,38 +235,53 @@ export class SongService {
       if (hasRicherMeta(memEntry.meta, updatedMemMeta)) {
         memEntry.meta = updatedMemMeta;
         memEntry.tracks = applyMetaToTracks(memEntry.tracks, updatedMemMeta);
-        void this.saveV2Record(memEntry);
+        void this.saveV3Record(memEntry);
       }
       return memEntry.tracks;
     }
 
     if (!forceRefresh) {
       try {
-        var v2 = await db.baseMeta.get(`songs:v2:${poemId}`);
-        if (v2 && v2.data && Array.isArray(v2.data.tracks)) {
-          var v2Data = v2.data as CachedPoemSongsRecord;
+        var v3 = await db.baseMeta.get(`${SONGS_CACHE_PREFIX}${poemId}`);
+        if (v3 && v3.data && Array.isArray(v3.data.tracks)) {
+          var v3Data = v3.data as CachedPoemSongsRecord;
           var isEmptyExpired =
-            v2Data.tracks.length === 0 &&
-            Date.now() - Date.parse(v2.updatedAt || v2Data.updatedAt || '') > EMPTY_CACHE_TTL_MS;
+            v3Data.tracks.length === 0 &&
+            Date.now() - Date.parse(v3.updatedAt || v3Data.updatedAt || '') > EMPTY_CACHE_TTL_MS;
 
           if (!isEmptyExpired) {
-            var mergedMeta = mergeContextMeta(poemId, v2Data.meta, contextMeta);
-            var enrichedTracks = applyMetaToTracks(v2Data.tracks, mergedMeta);
+            var mergedMeta = mergeContextMeta(poemId, v3Data.meta, contextMeta);
+            var enrichedTracks = applyMetaToTracks(v3Data.tracks, mergedMeta);
             var resolvedRecord: CachedPoemSongsRecord = {
               poemId: poemId,
               tracks: enrichedTracks,
               meta: mergedMeta,
-              updatedAt: v2.updatedAt || v2Data.updatedAt || new Date().toISOString()
+              updatedAt: v3.updatedAt || v3Data.updatedAt || new Date().toISOString()
             };
             this.memCache.set(poemId, resolvedRecord);
-            if (hasRicherMeta(v2Data.meta, mergedMeta)) {
-              void this.saveV2Record(resolvedRecord);
+            if (hasRicherMeta(v3Data.meta, mergedMeta)) {
+              void this.saveV3Record(resolvedRecord);
             }
             return resolvedRecord.tracks;
           }
         }
 
-        // مهاجرت کش قدیمی تنها در صورت داشتن حداقل یک اثر معتبر (کش خالی قدیمی بازبینی می‌شود)
+        // مهاجرت کش‌های قدیمی تنها در صورت داشتن حداقل یک اثر (کش خالی پیش از ?approved=true نادیده گرفته می‌شود)
+        var v2 = await db.baseMeta.get(`songs:v2:${poemId}`);
+        if (v2 && v2.data && Array.isArray(v2.data.tracks) && v2.data.tracks.length > 0) {
+          var v2Data = v2.data as CachedPoemSongsRecord;
+          var v2Meta = mergeContextMeta(poemId, v2Data.meta, contextMeta);
+          var v2Migrated: CachedPoemSongsRecord = {
+            poemId: poemId,
+            tracks: applyMetaToTracks(v2Data.tracks, v2Meta),
+            meta: v2Meta,
+            updatedAt: v2.updatedAt || v2Data.updatedAt || new Date().toISOString()
+          };
+          this.memCache.set(poemId, v2Migrated);
+          void this.saveV3Record(v2Migrated);
+          return v2Migrated.tracks;
+        }
+
         var legacy = await db.baseMeta.get(`songs:${poemId}`);
         if (legacy && Array.isArray(legacy.data) && legacy.data.length > 0) {
           var legacyMeta = mergeContextMeta(poemId, undefined, contextMeta);
@@ -242,7 +292,7 @@ export class SongService {
             updatedAt: legacy.updatedAt || new Date().toISOString()
           };
           this.memCache.set(poemId, migratedRecord);
-          void this.saveV2Record(migratedRecord);
+          void this.saveV3Record(migratedRecord);
           return migratedRecord.tracks;
         }
       } catch (e) {}
@@ -264,7 +314,7 @@ export class SongService {
     }, SONGS_TIMEOUT_MS);
 
     try {
-      var url = `https://api.ganjoor.net/api/ganjoor/poem/${poemId}/songs`;
+      var url = `https://api.ganjoor.net/api/ganjoor/poem/${poemId}/songs?approved=true`;
       var res = await fetch(url, {
         headers: { 'Accept': 'application/json' },
         signal: controller.signal
@@ -284,7 +334,7 @@ export class SongService {
         updatedAt: new Date().toISOString()
       };
       this.memCache.set(poemId, newRecord);
-      await this.saveV2Record(newRecord);
+      await this.saveV3Record(newRecord);
       return tracks;
     } catch (e) {
       return [];
@@ -296,10 +346,10 @@ export class SongService {
     }
   }
 
-  private async saveV2Record(record: CachedPoemSongsRecord): Promise<void> {
+  private async saveV3Record(record: CachedPoemSongsRecord): Promise<void> {
     try {
       await db.baseMeta.put({
-        key: `songs:v2:${record.poemId}`,
+        key: `${SONGS_CACHE_PREFIX}${record.poemId}`,
         data: JSON.parse(JSON.stringify(record)),
         updatedAt: record.updatedAt
       });

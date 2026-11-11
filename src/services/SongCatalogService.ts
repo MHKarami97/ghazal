@@ -116,6 +116,7 @@ export async function loadCachedSongCatalog(
   var bySlug = buildPoetMapBySlug(poetsList);
   var byId = buildPoetMapById(poetsList);
 
+  var v3Rows = await db.baseMeta.where('key').startsWith('songs:v3:').toArray();
   var v2Rows = await db.baseMeta.where('key').startsWith('songs:v2:').toArray();
   var legacyRows = await db.baseMeta
     .where('key')
@@ -125,13 +126,23 @@ export async function loadCachedSongCatalog(
   var recordMap = new Map<number, CachedPoemSongsRecord>();
   var inspectedSet = new Set<number>();
 
-  for (var i = 0; i < v2Rows.length; i++) {
-    var row = v2Rows[i];
+  for (var i = 0; i < v3Rows.length; i++) {
+    var row = v3Rows[i];
     var data = row.data as CachedPoemSongsRecord | undefined;
     if (!data || !data.poemId) continue;
     inspectedSet.add(data.poemId);
     if (Array.isArray(data.tracks) && data.tracks.length > 0) {
       recordMap.set(data.poemId, data);
+    }
+  }
+
+  for (var v2i = 0; v2i < v2Rows.length; v2i++) {
+    var v2Row = v2Rows[v2i];
+    var v2Data = v2Row.data as CachedPoemSongsRecord | undefined;
+    if (!v2Data || !v2Data.poemId || recordMap.has(v2Data.poemId)) continue;
+    if (Array.isArray(v2Data.tracks) && v2Data.tracks.length > 0) {
+      inspectedSet.add(v2Data.poemId);
+      recordMap.set(v2Data.poemId, v2Data);
     }
   }
 
@@ -472,7 +483,7 @@ export async function savePoetSongScanRecord(record: PoetSongScanRecord): Promis
   try {
     var catKey = record.catPath ? `:${record.catPath}` : '';
     await db.baseMeta.put({
-      key: `songs-poet-scan:${record.poetSlug}${catKey}`,
+      key: `songs-poet-scan:v2:${record.poetSlug}${catKey}`,
       data: JSON.parse(JSON.stringify(record)),
       updatedAt: record.updatedAt
     });
@@ -481,7 +492,7 @@ export async function savePoetSongScanRecord(record: PoetSongScanRecord): Promis
 
 export async function loadPoetSongScanRecords(): Promise<PoetSongScanRecord[]> {
   try {
-    var rows = await db.baseMeta.where('key').startsWith('songs-poet-scan:').toArray();
+    var rows = await db.baseMeta.where('key').startsWith('songs-poet-scan:v2:').toArray();
     var list: PoetSongScanRecord[] = [];
     for (var i = 0; i < rows.length; i++) {
       var data = rows[i].data as PoetSongScanRecord | undefined;
