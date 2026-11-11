@@ -114,6 +114,14 @@ var EDGE_PUNCTUATION_REGEX = /^[\s،؛.؟!«»()\[\]{}:"'\-–—_*ـ]+|[\s،؛.
 var DIACRITICS_REGEX = /[\u064B-\u065F\u0670\u0640]/g;
 
 /**
+ * حذف موقت اعراب (حرکات) بدون آسیب به «آ» و فاصله‌ها برای نمایش بدون اعراب
+ */
+export function stripPersianDiacritics(text: string): string {
+  if (!text) return '';
+  return text.normalize('NFC').replace(/[\u064B-\u065F\u0670]/g, '');
+}
+
+/**
  * پاک‌سازی یک واژه از علائم نگارشی، اعراب و تبدیل حروف عربی برای شمارش و جستجو
  */
 export function cleanPoemWord(rawWord: string): string {

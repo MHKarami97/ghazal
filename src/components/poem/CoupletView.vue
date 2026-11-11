@@ -136,7 +136,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { toPersianDigits } from '../../utils/persianNormalizer';
-import { calculateAbjad, cleanPoemWord } from '../../utils/abjad';
+import { calculateAbjad, cleanPoemWord, stripPersianDiacritics } from '../../utils/abjad';
 import type { GanjoorLiteraryTag } from '../../types/ganjoor';
 import { Bookmark, Brain, Share2, Sparkles, FolderPlus } from 'lucide-vue-next';
 
@@ -156,12 +156,14 @@ var props = withDefaults(
     showLiteraryTags?: boolean;
     showSummary?: boolean;
     showAbjad?: boolean;
+    showDiacritics?: boolean;
     wordClickEnabled?: boolean;
   }>(),
   {
     showLiteraryTags: true,
     showSummary: true,
     showAbjad: false,
+    showDiacritics: true,
     wordClickEnabled: true
   }
 );
@@ -218,6 +220,7 @@ function renderTokens(text: string, misraNumber: number): WordToken[] {
   for (var i = 0; i < words.length; i++) {
     var word = words[i];
     var wordPos = i + 1; // 1-indexed
+    var displayWord = props.showDiacritics === false ? stripPersianDiacritics(word) : word;
 
     // جست‌وجوی تطبیق با اسلات‌های آرایه
     var matchedTag: GanjoorLiteraryTag | undefined;
@@ -240,7 +243,7 @@ function renderTokens(text: string, misraNumber: number): WordToken[] {
     }
 
     tokens.push({
-      word: word,
+      word: displayWord,
       trailingSpace: i < words.length - 1 ? ' ' : '',
       tag: matchedTag
     });

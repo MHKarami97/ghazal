@@ -31,6 +31,16 @@
               >
                 قافیه: {{ readingStore.currentPoem.RhymeLetters }}
               </span>
+
+              <button
+                @click="onShareFullPoem"
+                type="button"
+                class="px-2.5 py-1 rounded-full bg-paper-light dark:bg-paper-surface border border-brand-500/35 hover:border-brand-500 hover:bg-brand-500/10 text-brand-700 dark:text-brand-300 font-bold flex items-center gap-1.5 transition-colors shadow-2xs"
+                title="خروجی تصویر، متن کامل و لینک اشتراک شعر"
+              >
+                <Share2 class="w-3.5 h-3.5" />
+                <span>اشتراک و خروجی شعر کامل</span>
+              </button>
             </div>
           </div>
 
@@ -130,6 +140,7 @@
               :literary-tags="readingStore.currentPoem.LiteraryTags"
               :show-literary-tags="appStore.showLiteraryTags && !appStore.readingMode"
               :show-summary="appStore.showCoupletSummary && !appStore.readingMode"
+              :show-diacritics="appStore.showDiacritics"
               :show-abjad="appStore.showAbjad && !appStore.readingMode"
               :word-click-enabled="appStore.wordClickEnabled"
               @select-couplet="onSelectCouplet"
@@ -170,6 +181,9 @@
             :vocabulary="poemVocabulary"
             @select-word="onSelectWord"
           />
+
+          <!-- بخش نقل‌قول‌ها، تضمین‌ها و اشعار هم‌مضمون -->
+          <PoemQuotationsCard :quotations="quotations" />
 
           <!-- بخش اشعار هم‌وزن و هم‌آهنگ -->
           <div v-if="similarPoems.length > 0" class="mt-12 pt-8 border-t border-ink-200/80 dark:border-paper-border space-y-4">
@@ -252,10 +266,12 @@
           class="hidden lg:block w-80 sticky top-20 h-[calc(100vh-6rem)] rounded-2xl overflow-hidden shadow-soft border border-ink-200/80 dark:border-paper-border"
         >
           <LiteraryPanel
+            :poem="readingStore.currentPoem"
             :poem-tags="readingStore.currentPoem.LiteraryTags"
             :selected-tag="readingStore.selectedLiteraryTag"
             @select-tag="onSelectTag"
             @clear-selection="readingStore.selectLiteraryTag(null)"
+            @jump-couplet="onJumpToCouplet"
           />
         </aside>
       </div>
@@ -272,10 +288,12 @@
           </div>
           <div class="flex-1 overflow-y-auto">
             <LiteraryPanel
+              :poem="readingStore.currentPoem"
               :poem-tags="readingStore.currentPoem.LiteraryTags"
               :selected-tag="readingStore.selectedLiteraryTag"
               @select-tag="onSelectTag"
               @clear-selection="readingStore.selectLiteraryTag(null)"
+              @jump-couplet="onJumpToCouplet"
             />
           </div>
         </div>
@@ -284,10 +302,14 @@
       <!-- مدال کارت اشتراک -->
       <CardExportModal
         :show="showExportModal"
+        :mode="exportMode"
         :first-misra="activeExportFirst"
         :second-misra="activeExportSecond"
+        :couplets="exportCouplets"
         :poet-name="readingStore.currentPoet?.Nickname || poetSlug"
         :poem-title="readingStore.currentPoem.Title"
+        :share-url="exportShareUrl"
+        :font-family="appStore.poemFontFamily"
         @close="showExportModal = false"
       />
 
@@ -372,6 +394,7 @@ import LiteraryPanel from '../components/poem/LiteraryPanel.vue';
 import ReaderToolbar from '../components/poem/ReaderToolbar.vue';
 import PoemSongsCard from '../components/poem/PoemSongsCard.vue';
 import PoemVocabularyCard from '../components/poem/PoemVocabularyCard.vue';
+import PoemQuotationsCard from '../components/poem/PoemQuotationsCard.vue';
 import WordLookupModal from '../components/poem/WordLookupModal.vue';
 import CardExportModal from '../components/common/CardExportModal.vue';
 import StepMemorizerModal from '../components/memorize/StepMemorizerModal.vue';
@@ -379,7 +402,8 @@ import LoadingState from '../components/common/LoadingState.vue';
 import PoemAudioPlayer from '../components/reading/PoemAudioPlayer.vue';
 import { recitationService, type PoemRecitation } from '../services/RecitationService';
 import { songService, type PoemSongTrack } from '../services/SongService';
-import { calculateAbjad, analyzePoemVocabulary } from '../utils/abjad';
+import { quotationService, type PoemQuotationItem } from '../services/QuotationService';
+import { calculateAbjad, analyzePoemVocabulary, stripPersianDiacritics } from '../utils/abjad';
 import { toPersianDigits } from '../utils/persianNormalizer';
 import type { GanjoorLiteraryTag, GanjoorPoem } from '../types/ganjoor';
 import type { UserCollection, MemorizeCard } from '../types/user';
@@ -392,7 +416,8 @@ import {
   ArrowRight,
   ArrowLeft,
   Calculator,
-  BookOpen
+  BookOpen,
+  Share2
 } from 'lucide-vue-next';
 
 var route = useRoute();
@@ -415,12 +440,16 @@ var poemRhythm = computed(function () {
 
 var showMobileLiterary = ref<boolean>(false);
 var showExportModal = ref<boolean>(false);
+var exportMode = ref<'couplet' | 'poem'>('couplet');
 var activeExportFirst = ref<string>('');
 var activeExportSecond = ref<string>('');
+var exportCouplets = ref<{ firstMisra: string; secondMisra: string }[]>([]);
+var exportShareUrl = ref<string>('');
 
 var similarPoems = ref<GanjoorPoem[]>([]);
 var recitations = ref<PoemRecitation[]>([]);
 var songs = ref<PoemSongTrack[]>([]);
+var quotations = ref<PoemQuotationItem[]>([]);
 var fetchedPoemSummary = ref<string>('');
 var showWordModal = ref<boolean>(false);
 var selectedWord = ref<string>('');
@@ -472,6 +501,7 @@ async function loadPoem() {
 
   isBooting.value = true;
   songs.value = [];
+  quotations.value = [];
   fetchedPoemSummary.value = '';
   recitations.value = [];
   showWordModal.value = false;
@@ -556,7 +586,7 @@ async function loadPoem() {
     similarPoems.value = [];
   }
 
-  // بارگذاری فایل‌های صوتی، دکلمه‌ها، ترانه‌ها و خلاصه شعر از گنجور
+  // بارگذاری فایل‌های صوتی، دکلمه‌ها، ترانه‌ها، نقل‌قول‌ها و خلاصه شعر از گنجور
   if (readingStore.currentPoem) {
     var activePoemId = readingStore.currentPoem.Id;
     recitationService.getRecitations(activePoemId).then(function (list) {
@@ -564,6 +594,9 @@ async function loadPoem() {
     });
     songService.getSongs(activePoemId).then(function (list) {
       if (!isStale()) songs.value = list;
+    });
+    quotationService.getQuotations(activePoemId).then(function (list) {
+      if (!isStale()) quotations.value = list;
     });
     if (!readingStore.currentPoem.PoemSummary) {
       songService.getPoemSummaryFallback(activePoemId).then(function (summary) {
@@ -573,6 +606,7 @@ async function loadPoem() {
   } else {
     recitations.value = [];
     songs.value = [];
+    quotations.value = [];
     fetchedPoemSummary.value = '';
   }
 }
@@ -714,13 +748,58 @@ async function saveToCollection(collectionId: number) {
   }
 }
 
+function onJumpToCouplet(coupletIndex: number) {
+  readingStore.selectCouplet(coupletIndex);
+  showMobileLiterary.value = false;
+  var el = document.getElementById('couplet-' + coupletIndex);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+function buildShareUrl(coupletIndex?: number): string {
+  if (typeof window === 'undefined') return '';
+  try {
+    var url = new URL(window.location.href);
+    if (coupletIndex !== undefined) {
+      url.searchParams.set('couplet', String(coupletIndex));
+    } else {
+      url.searchParams.delete('couplet');
+    }
+    return url.toString();
+  } catch (e) {
+    return window.location.href;
+  }
+}
+
+function formatExportText(text: string): string {
+  return appStore.showDiacritics ? text : stripPersianDiacritics(text);
+}
+
 function onShareCard(coupletIndex: number) {
   var pair = coupletPairs.value.find(function (p) { return p.coupletIndex === coupletIndex; });
-  if (pair) {
-    activeExportFirst.value = pair.rightVerse?.Text || '';
-    activeExportSecond.value = pair.leftVerse?.Text || '';
-    showExportModal.value = true;
-  }
+  if (!pair) return;
+  exportMode.value = 'couplet';
+  activeExportFirst.value = formatExportText(pair.rightVerse?.Text || '');
+  activeExportSecond.value = formatExportText(pair.leftVerse?.Text || '');
+  exportCouplets.value = [];
+  exportShareUrl.value = buildShareUrl(coupletIndex);
+  showExportModal.value = true;
+}
+
+function onShareFullPoem() {
+  if (!readingStore.currentPoem || coupletPairs.value.length === 0) return;
+  exportMode.value = 'poem';
+  exportCouplets.value = coupletPairs.value.map(function (pair) {
+    return {
+      firstMisra: formatExportText(pair.rightVerse?.Text || ''),
+      secondMisra: formatExportText(pair.leftVerse?.Text || '')
+    };
+  });
+  activeExportFirst.value = '';
+  activeExportSecond.value = '';
+  exportShareUrl.value = buildShareUrl();
+  showExportModal.value = true;
 }
 
 function getSimilarPoemLink(p: GanjoorPoem): string {

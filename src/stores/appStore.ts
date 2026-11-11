@@ -20,6 +20,7 @@ export const useAppStore = defineStore('app', () => {
   var readingMode = ref<boolean>(false);
   var showLiteraryTags = ref<boolean>(localStorage.getItem('ghazal-show-literary') !== 'false');
   var showCoupletSummary = ref<boolean>(localStorage.getItem('ghazal-show-summary') !== 'false');
+  var showDiacritics = ref<boolean>(localStorage.getItem('ghazal-show-diacritics') !== 'false');
   var showAbjad = ref<boolean>(localStorage.getItem('ghazal-show-abjad') === 'true');
   var wordClickEnabled = ref<boolean>(localStorage.getItem('ghazal-word-click') !== 'false');
   var notificationEnabled = ref<boolean>(localStorage.getItem('ghazal-notif') === 'true');
@@ -92,6 +93,10 @@ export const useAppStore = defineStore('app', () => {
     localStorage.setItem('ghazal-show-abjad', String(val));
   });
 
+  watch(showDiacritics, function (val) {
+    localStorage.setItem('ghazal-show-diacritics', String(val));
+  });
+
   watch(wordClickEnabled, function (val) {
     localStorage.setItem('ghazal-word-click', String(val));
   });
@@ -113,6 +118,7 @@ export const useAppStore = defineStore('app', () => {
     readingMode,
     showLiteraryTags,
     showCoupletSummary,
+    showDiacritics,
     showAbjad,
     wordClickEnabled,
     notificationEnabled,

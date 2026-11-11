@@ -77,7 +77,24 @@
         <span class="sm:hidden">مفهوم</span>
       </button>
 
-      <!-- ۳. دکمه نمایش یا مخفی‌سازی محاسبه ابجد شعر و ابیات -->
+      <!-- ۳. دکمه نمایش یا حذف موقت اعراب -->
+      <button
+        @click="appStore.showDiacritics = !appStore.showDiacritics"
+        class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border transition-all"
+        :class="[
+          appStore.showDiacritics
+            ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 font-bold'
+            : 'border-ink-200 dark:border-paper-border text-ink-500 hover:bg-ink-100 dark:hover:bg-paper-dark'
+        ]"
+        :title="appStore.showDiacritics ? 'حذف موقت اعراب (حرکات) از متن ابیات' : 'نمایش اعراب (حرکات) روی کلمات'"
+      >
+        <Type v-if="appStore.showDiacritics" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+        <EyeOff v-else class="w-3.5 h-3.5 text-ink-400" />
+        <span class="hidden sm:inline">{{ appStore.showDiacritics ? 'اعراب روشن' : 'بدون اعراب' }}</span>
+        <span class="sm:hidden">{{ appStore.showDiacritics ? 'اعراب' : 'بی‌اعراب' }}</span>
+      </button>
+
+      <!-- ۴. دکمه نمایش یا مخفی‌سازی محاسبه ابجد شعر و ابیات -->
       <button
         @click="appStore.showAbjad = !appStore.showAbjad"
         class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border transition-all"
