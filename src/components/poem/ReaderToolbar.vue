@@ -30,6 +30,8 @@
           v-model="appStore.poemFont"
           aria-label="فونت متن شعر"
           title="انتخاب فونت متن شعر"
+          @focus="preloadAllPoemFonts"
+          @mouseenter="preloadAllPoemFonts"
           class="px-2 py-1 rounded-xl border border-ink-200 dark:border-paper-border bg-paper-light dark:bg-paper-dark text-ink-800 dark:text-ink-100 text-[11px] font-bold outline-hidden cursor-pointer max-w-[135px] sm:max-w-none"
         >
           <option v-for="font in POEM_FONTS" :key="font.id" :value="font.id">
@@ -122,8 +124,9 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue';
 import { useAppStore } from '../../stores/appStore';
-import { POEM_FONTS } from '../../config/fontConfig';
+import { POEM_FONTS, preloadAllPoemFonts } from '../../config/fontConfig';
 import { toPersianDigits } from '../../utils/persianNormalizer';
 import {
   Maximize2,
@@ -139,6 +142,10 @@ import {
 defineEmits(['toggle-literary-panel']);
 
 var appStore = useAppStore();
+
+onMounted(function () {
+  preloadAllPoemFonts();
+});
 
 function increaseFont() {
   if (appStore.fontSize < 32) {

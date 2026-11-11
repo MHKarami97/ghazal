@@ -1,0 +1,318 @@
+/* قلم‌های محلی متن اشعار (کش‌شده و آمادهٔ اجرای آنی و آفلاین) */
+
+/* === 1. گلزار (نستعلیق معاصر ایرانی) === */
+@font-face {
+  font-family: 'Gulzar';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('webfonts/gulzar-arabic-400-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FEFC;
+}
+@font-face {
+  font-family: 'Gulzar';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('webfonts/gulzar-arabic-400-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FEFC;
+}
+
+/* === 2. نستعلیق کلاسیک (Noto Nastaliq) === */
+@font-face {
+  font-family: 'Noto Nastaliq Urdu';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('webfonts/noto-nastaliq-urdu-arabic-400-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FEFC;
+}
+@font-face {
+  font-family: 'Noto Nastaliq Urdu';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('webfonts/noto-nastaliq-urdu-arabic-500-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FEFC;
+}
+@font-face {
+  font-family: 'Noto Nastaliq Urdu';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('webfonts/noto-nastaliq-urdu-arabic-700-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FEFC;
+}
+
+/* === 3. امیری (نسخ دیوانی) === */
+@font-face {
+  font-family: 'Amiri';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('webfonts/amiri-arabic-400-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FEFC;
+}
+@font-face {
+  font-family: 'Amiri';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('webfonts/amiri-arabic-400-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FEFC;
+}
+@font-face {
+  font-family: 'Amiri';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('webfonts/amiri-arabic-700-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FEFC;
+}
+
+/* === 4. نوتو نسخ === */
+@font-face {
+  font-family: 'Noto Naskh Arabic';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('webfonts/noto-naskh-arabic-arabic-400-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FEFC;
+}
+@font-face {
+  font-family: 'Noto Naskh Arabic';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('webfonts/noto-naskh-arabic-arabic-500-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FEFC;
+}
+@font-face {
+  font-family: 'Noto Naskh Arabic';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('webfonts/noto-naskh-arabic-arabic-700-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FEFC;
+}
+
+/* === 5. مرکزی (ادبی) === */
+@font-face {
+  font-family: 'Markazi Text';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('webfonts/markazi-text-arabic-400-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FEFC;
+}
+@font-face {
+  font-family: 'Markazi Text';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('webfonts/markazi-text-arabic-500-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FEFC;
+}
+@font-face {
+  font-family: 'Markazi Text';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('webfonts/markazi-text-arabic-700-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FEFC;
+}
+
+/* === 6. شهرزاد (نسخ کلاسیک با اعراب کامل) === */
+@font-face {
+  font-family: 'Scheherazade New';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('webfonts/scheherazade-new-arabic-400-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FEFC;
+}
+@font-face {
+  font-family: 'Scheherazade New';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('webfonts/scheherazade-new-arabic-500-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FEFC;
+}
+@font-face {
+  font-family: 'Scheherazade New';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('webfonts/scheherazade-new-arabic-700-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FEFC;
+}
+
+/* === 7. لطیف (نسخ نرم و کشیده) === */
+@font-face {
+  font-family: 'Lateef';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('webfonts/lateef-arabic-400-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FEFC;
+}
+@font-face {
+  font-family: 'Lateef';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('webfonts/lateef-arabic-500-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FEFC;
+}
+@font-face {
+  font-family: 'Lateef';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('webfonts/lateef-arabic-700-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FEFC;
+}
+
+/* === 8. میرزا (ثلث و نسخ کلاسیک) === */
+@font-face {
+  font-family: 'Mirza';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('webfonts/mirza-arabic-400-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FEFC;
+}
+@font-face {
+  font-family: 'Mirza';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('webfonts/mirza-arabic-500-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FEFC;
+}
+@font-face {
+  font-family: 'Mirza';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('webfonts/mirza-arabic-700-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FEFC;
+}
+
+/* === 9. پرستو (کتابی و ادبی فارسی) === */
+@font-face {
+  font-family: 'Parastoo';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('webfonts/Parastoo-FD.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Parastoo';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('webfonts/Parastoo-FD.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Parastoo';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('webfonts/Parastoo-Bold-FD.woff2') format('woff2');
+}
+
+/* === 10. ساحل (مدرن و نرم فارسی) === */
+@font-face {
+  font-family: 'Sahel';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('webfonts/Sahel-FD.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Sahel';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('webfonts/Sahel-FD.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Sahel';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('webfonts/Sahel-SemiBold-FD.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Sahel';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('webfonts/Sahel-Bold-FD.woff2') format('woff2');
+}
+
+/* === 11. صمیم (متعادل و آرام فارسی) === */
+@font-face {
+  font-family: 'Samim';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('webfonts/Samim-FD.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Samim';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('webfonts/Samim-Medium-FD.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Samim';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('webfonts/Samim-Bold-FD.woff2') format('woff2');
+}
+
+/* === 12. شبنم (گرد و ملایم فارسی) === */
+@font-face {
+  font-family: 'Shabnam';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('webfonts/Shabnam-FD.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Shabnam';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('webfonts/Shabnam-Medium-FD.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Shabnam';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('webfonts/Shabnam-Bold-FD.woff2') format('woff2');
+}
+
+/* === 13. لاله‌زار (ضخیم و نمایشی) === */
+@font-face {
+  font-family: 'Lalezar';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('webfonts/lalezar-arabic-400-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FEFC;
+}
+@font-face {
+  font-family: 'Lalezar';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('webfonts/lalezar-arabic-400-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FEFC;
+}

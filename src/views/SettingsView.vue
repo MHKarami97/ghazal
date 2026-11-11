@@ -75,7 +75,7 @@
         <div class="flex items-center gap-2 shrink-0">
           <button
             type="button"
-            @click="appStore.fontSize = Math.max(14, appStore.fontSize - 1)"
+            @click="appStore.fontSize = Math.max(16, appStore.fontSize - 1)"
             class="w-8 h-8 rounded-xl border border-ink-200 dark:border-paper-border bg-paper-warm/70 dark:bg-paper-dark hover:border-brand-500/50 font-bold text-sm text-ink-800 dark:text-ink-100 transition-colors"
             title="کوچک‌تر کردن قلم"
           >
@@ -86,7 +86,7 @@
           </span>
           <button
             type="button"
-            @click="appStore.fontSize = Math.min(30, appStore.fontSize + 1)"
+            @click="appStore.fontSize = Math.min(32, appStore.fontSize + 1)"
             class="w-8 h-8 rounded-xl border border-ink-200 dark:border-paper-border bg-paper-warm/70 dark:bg-paper-dark hover:border-brand-500/50 font-bold text-sm text-ink-800 dark:text-ink-100 transition-colors"
             title="بزرگ‌تر کردن قلم"
           >
@@ -497,7 +497,7 @@ import { exportService, type ImportResult } from '../services/ExportService';
 import { notificationService } from '../services/NotificationService';
 import { formatBytes } from '../utils/formatters';
 import { toPersianDigits } from '../utils/persianNormalizer';
-import { POEM_FONTS } from '../config/fontConfig';
+import { POEM_FONTS, preloadAllPoemFonts } from '../config/fontConfig';
 import {
   Database,
   HardDrive,
@@ -533,6 +533,7 @@ var isPersisted = ref<boolean>(false);
 var importResult = ref<ImportResult | null>(null);
 
 onMounted(async function () {
+  preloadAllPoemFonts();
   await dataStore.init();
   if (navigator.storage && navigator.storage.persisted) {
     isPersisted.value = await navigator.storage.persisted();

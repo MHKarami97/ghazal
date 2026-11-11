@@ -81,7 +81,7 @@
       class="poem-beyt mb-0"
       :style="{
         fontSize: `${fontSize}px`,
-        lineHeight: `${isCompact ? Math.min(lineHeight, 1.9) : lineHeight}`,
+        lineHeight: `${fontFamily?.includes('Noto Nastaliq') ? Math.max(lineHeight, 2.35) : (isCompact ? Math.min(lineHeight, 1.9) : lineHeight)}`,
         fontFamily: fontFamily || `'Vazirmatn', system-ui, sans-serif`
       }"
     >

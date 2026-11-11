@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
-import { getPoemFontOption, type PoemFontId } from '../config/fontConfig';
+import { getPoemFontOption, preloadPoemFont, preloadAllPoemFonts, type PoemFontId } from '../config/fontConfig';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -85,6 +85,7 @@ export const useAppStore = defineStore('app', () => {
 
   watch(poemFont, function (val) {
     localStorage.setItem('ghazal-poem-font', val);
+    void preloadPoemFont(val);
   });
 
   watch(showAbjad, function (val) {
@@ -95,8 +96,12 @@ export const useAppStore = defineStore('app', () => {
     localStorage.setItem('ghazal-word-click', String(val));
   });
 
-  // اعمال اولیه تم
+  // اعمال اولیه تم و پیش‌بارگذاری فونت منتخب شعر
   applyTheme(savedTheme);
+  void preloadPoemFont(poemFont.value);
+  if (typeof window !== 'undefined') {
+    setTimeout(preloadAllPoemFonts, 1200);
+  }
 
   return {
     theme,
