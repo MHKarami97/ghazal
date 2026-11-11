@@ -116,7 +116,7 @@
                 title="افزودن تمام ابیات این شعر به فهرست حفظ"
               >
                 <Brain class="w-3.5 h-3.5" />
-                <span>حفظ کامل این شعر ({{ toPersianDigits(coupletPairs.length) }} بیت)</span>
+                <span>حفظ کامل این شعر</span>
               </button>
             </div>
           </div>
