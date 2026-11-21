@@ -1,4 +1,5 @@
 import type { GanjoorPoem, GanjoorVerse } from '../types/ganjoor';
+import { cleanPoemSummary } from './formatters';
 
 /**
  * پاک‌سازی نشانی کامل شعر گنجور به مسیر نسبی استاندارد (مثلاً `/hafez/ghazal/sh1`)
@@ -61,7 +62,7 @@ export function mapApiPoemToGanjoorPoem(raw: any): GanjoorPoem | null {
       Position: mapVersePosition(rv.versePosition ?? rv.Position ?? rv.position, vOrder),
       Text: text,
       CoupletIndex: coupletIndex,
-      CoupletSummary: rv.coupletSummary || rv.CoupletSummary || undefined
+      CoupletSummary: cleanPoemSummary(rv.coupletSummary || rv.CoupletSummary) || undefined
     });
   }
 
@@ -97,7 +98,7 @@ export function mapApiPoemToGanjoorPoem(raw: any): GanjoorPoem | null {
     RhymeLetters: raw.rhymeLetters || raw.RhymeLetters || undefined,
     SourceName: raw.sourceName || raw.SourceName || undefined,
     SourceUrlSlug: raw.sourceUrlSlug || raw.SourceUrlSlug || undefined,
-    PoemSummary: raw.poemSummary || raw.PoemSummary || undefined,
+    PoemSummary: cleanPoemSummary(raw.poemSummary || raw.PoemSummary) || undefined,
     Rhythm: rhythm || undefined,
     Verses: verses
   };

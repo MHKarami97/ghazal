@@ -1,4 +1,4 @@
-export const DATA_COMMIT_SHA = '34f4ab3e463903f9399d7ca208b9333911389f94';
+export const DATA_COMMIT_SHA = '7d7beabc1edfbddbd51835e979b309d653d25e39';
 export const SUPPORTED_SCHEMA_VERSION = 4;
 
 /**

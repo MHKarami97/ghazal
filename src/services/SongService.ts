@@ -1,5 +1,6 @@
 import { db } from '../db/GhazalDB';
 import { normalizeGanjoorFullUrl } from '../utils/ganjoorPoemMapper';
+import { cleanPoemSummary } from '../utils/formatters';
 
 export interface PoemSongContextMeta {
   poemId: number;
@@ -390,7 +391,7 @@ export class SongService {
       if (!res.ok) return '';
 
       var data = await res.json();
-      var summary = String(data?.poemSummary || data?.PoemSummary || '').trim();
+      var summary = cleanPoemSummary(data?.poemSummary || data?.PoemSummary || '');
       this.summaryCache.set(poemId, summary);
 
       try {

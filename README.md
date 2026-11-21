@@ -31,7 +31,7 @@
 - **منبع داده:** ریپازیتوری استاتیک [`MHKarami97/ganjoor-data`](https://github.com/MHKarami97/ganjoor-data) از طریق شبکه لبه jsDelivr CDN.
 - **نسخه متعهد پین‌شده:**
   ```typescript
-  export const DATA_COMMIT_SHA = '34f4ab3e463903f9399d7ca208b9333911389f94';
+  export const DATA_COMMIT_SHA = '7d7beabc1edfbddbd51835e979b309d653d25e39';
   export const SUPPORTED_SCHEMA_VERSION = 4;
   ```
 - **علت پین کردن به SHA به جای `@main`:**

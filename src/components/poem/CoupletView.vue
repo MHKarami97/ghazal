@@ -129,11 +129,11 @@
 
     <!-- معنی و خلاصه بیت (در صورت وجود و فعال بودن) -->
     <div
-      v-if="summary && showSummary"
+      v-if="cleanedSummary && showSummary"
       class="mt-2.5 text-xs text-ink-500 dark:text-ink-400 bg-brand-50/50 dark:bg-brand-950/20 p-2.5 rounded-xl border-r-2 border-brand-500 text-right leading-relaxed"
     >
       <span class="font-bold text-brand-700 dark:text-brand-300">مفهوم بیت:</span>
-      {{ summary }}
+      {{ cleanedSummary }}
     </div>
   </div>
 </template>
@@ -142,6 +142,7 @@
 import { computed, ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { toPersianDigits } from '../../utils/persianNormalizer';
 import { calculateAbjad, cleanPoemWord, stripPersianDiacritics } from '../../utils/abjad';
+import { cleanPoemSummary } from '../../utils/formatters';
 import type { GanjoorLiteraryTag } from '../../types/ganjoor';
 import { Bookmark, Brain, Share2, Sparkles, FolderPlus } from 'lucide-vue-next';
 
@@ -172,6 +173,10 @@ var props = withDefaults(
     wordClickEnabled: true
   }
 );
+
+var cleanedSummary = computed(function () {
+  return cleanPoemSummary(props.summary);
+});
 
 var beytRef = ref<HTMLElement | null>(null);
 var rightLineRef = ref<HTMLElement | null>(null);

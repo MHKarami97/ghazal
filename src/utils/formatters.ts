@@ -34,6 +34,16 @@ export interface CoupletPair {
 }
 
 /**
+ * پاک‌سازی پیشوندهای خودکار نظیر «هوش مصنوعی: » از ابتدا و متن تفسیر و خلاصه اشعار
+ */
+export function cleanPoemSummary(text?: string | null): string {
+  if (!text) return '';
+  return String(text)
+    .replace(/^[\s\u200c\u00a0]*(?:(?:هوش[\s\u200c\u00a0]*مصنوعی)\s*[:：]\s*)+/gu, '')
+    .trim();
+}
+
+/**
  * گروه‌بندی ابیات شعر به جفت‌های مصرع اول و دوم بر اساس CoupletIndex
  */
 export function groupVersesIntoCouplets(verses: GanjoorVerse[]): CoupletPair[] {
@@ -43,16 +53,17 @@ export function groupVersesIntoCouplets(verses: GanjoorVerse[]): CoupletPair[] {
   for (var i = 0; i < verses.length; i++) {
     var v = verses[i];
     var cIndex = v.CoupletIndex;
+    var cleanedSummary = cleanPoemSummary(v.CoupletSummary);
     if (!map.has(cIndex)) {
       map.set(cIndex, {
         coupletIndex: cIndex,
-        summary: v.CoupletSummary
+        summary: cleanedSummary || undefined
       });
     }
 
     var pair = map.get(cIndex)!;
-    if (v.CoupletSummary && !pair.summary) {
-      pair.summary = v.CoupletSummary;
+    if (cleanedSummary && !pair.summary) {
+      pair.summary = cleanedSummary;
     }
 
     if (v.Position === 'Right' || v.VOrder % 2 === 1) {

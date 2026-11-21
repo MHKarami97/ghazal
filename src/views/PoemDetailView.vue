@@ -434,7 +434,7 @@ import { useLiteraryStore } from '../stores/literaryStore';
 import { poetAnalytics } from '../services/PoetAnalyticsService';
 import { collectionService } from '../services/CollectionService';
 import { loadCategoryData } from '../services/CategoryRepository';
-import { groupVersesIntoCouplets, getPoemMetreRhythm } from '../utils/formatters';
+import { groupVersesIntoCouplets, getPoemMetreRhythm, cleanPoemSummary } from '../utils/formatters';
 import { toLocalDateString } from '../utils/dateUtils';
 import CoupletView from '../components/poem/CoupletView.vue';
 import LiteraryPanel from '../components/poem/LiteraryPanel.vue';
@@ -541,7 +541,7 @@ var selectedCoupletIndexForCollection = ref<number | null>(null);
 var isBooting = ref<boolean>(true);
 
 var poemSummaryText = computed(function () {
-  return (readingStore.currentPoem?.PoemSummary || fetchedPoemSummary.value || '').trim();
+  return cleanPoemSummary(readingStore.currentPoem?.PoemSummary || fetchedPoemSummary.value || '');
 });
 
 var poemAbjad = computed(function () {
