@@ -11,9 +11,6 @@
             <span class="text-xs font-bold text-ink-900 dark:text-ink-50">
               {{ activeAudioTab === 'commentary' ? 'شرح صوتی و تفسیر' : 'خوانش و دکلمه صوتی' }}
             </span>
-            <span class="text-[10px] px-2 py-0.2 rounded-full bg-brand-500/15 text-brand-700 dark:text-brand-300 font-bold">
-              گنجور
-            </span>
             <span
               v-if="hasSyncData"
               class="hidden sm:inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-bold"

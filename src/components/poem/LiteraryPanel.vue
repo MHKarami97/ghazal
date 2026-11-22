@@ -309,7 +309,7 @@
       <!-- قافیه، ردیف و منبع -->
       <div class="p-3 rounded-xl bg-paper-warm/50 dark:bg-paper-surface border border-ink-200/60 dark:border-paper-border space-y-2 text-[11px]">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-ink-500">حروف قافیه (گنجور):</span>
+          <span class="text-ink-500">حروف قافیه:</span>
           <span class="font-bold text-brand-700 dark:text-brand-300">
             {{ styleStats.rhymeLetters || 'ثبت‌نشده' }}
           </span>

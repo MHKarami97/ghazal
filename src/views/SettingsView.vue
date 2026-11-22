@@ -587,7 +587,7 @@
               </div>
               <div>
                 <span class="font-bold text-ink-900 dark:text-ink-100 group-hover:text-brand-600 transition-colors block">
-                  منبع داده‌های شعر (گنجور):
+                  منبع داده‌های شعر:
                 </span>
                 <span class="text-xs text-amber-700 dark:text-amber-400 font-mono dir-ltr inline-block">
                   Ganjoor (ganjoor.net)
