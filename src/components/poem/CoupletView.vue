@@ -3,9 +3,11 @@
     class="group relative px-2 sm:px-4 rounded-2xl transition-all duration-200"
     :class="[
       isCompact ? 'py-1.5 sm:py-2' : 'py-3 sm:py-4',
-      isSelected
-        ? 'bg-brand-500/10 dark:bg-brand-500/15 ring-1 ring-brand-500/30'
-        : 'hover:bg-ink-100/60 dark:hover:bg-paper-surface/50'
+      isPlayingCouplet
+        ? 'bg-brand-500/15 dark:bg-brand-500/20 ring-2 ring-brand-500/40 shadow-sm'
+        : isSelected
+          ? 'bg-brand-500/10 dark:bg-brand-500/15 ring-1 ring-brand-500/30'
+          : 'hover:bg-ink-100/60 dark:hover:bg-paper-surface/50'
     ]"
     @click="$emit('select-couplet', coupletIndex)"
   >
@@ -13,11 +15,22 @@
     <div
       class="transition-opacity absolute -top-3.5 left-4 flex items-center gap-1 bg-paper-light dark:bg-paper-dark px-2.5 py-1 rounded-full shadow-md border border-ink-200/80 dark:border-paper-border text-xs z-10"
       :class="[
-        isSelected
+        isSelected || isPlayingCouplet
           ? 'opacity-100 pointer-events-auto'
           : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100 pointer-events-none group-hover:pointer-events-auto'
       ]"
     >
+      <!-- دکمه پخش صوت از این بیت -->
+      <button
+        v-if="hasAudioSync"
+        @click.stop="$emit('play-from-couplet', coupletIndex)"
+        class="p-1 rounded-full hover:bg-brand-500/10 transition-colors"
+        :class="isPlayingCouplet ? 'text-amber-600 dark:text-amber-400 font-bold bg-amber-500/15' : 'text-brand-600 dark:text-brand-400'"
+        :title="isPlayingCouplet ? 'در حال پخش این بیت' : 'پخش صوت از این بیت'"
+      >
+        <Volume2 class="w-3.5 h-3.5" :class="{ 'animate-pulse': isPlayingCouplet }" />
+      </button>
+
       <button
         @click.stop="$emit('toggle-bookmark', coupletIndex)"
         class="p-1 rounded-full hover:bg-ink-100 dark:hover:bg-paper-surface text-ink-600 dark:text-ink-400"
@@ -66,6 +79,13 @@
       class="flex items-center justify-center gap-2 font-bold text-brand-600/60 dark:text-brand-400/60 text-center"
       :class="isCompact ? 'text-[10px] leading-none mb-0.5' : 'text-[11px] mb-1'"
     >
+      <span
+        v-if="isPlayingCouplet"
+        class="inline-flex items-center gap-1 text-brand-700 dark:text-brand-300 font-bold animate-pulse text-[11px] px-2 py-0.5 rounded-full bg-brand-500/15"
+      >
+        <Headphones class="w-3.5 h-3.5" />
+        <span>در حال خوانش</span>
+      </span>
       <span>{{ toPersianDigits(coupletIndex + 1) }}</span>
       <span
         v-if="showAbjad"
@@ -87,41 +107,59 @@
       }"
     >
       <!-- مصرع اول (راست) -->
-      <div class="poem-misra font-medium text-ink-900 dark:text-ink-100">
+      <div
+        class="poem-misra font-medium transition-colors"
+        :class="[
+          isPlayingCouplet && activePlayingMisra === 1
+            ? 'text-ink-950 dark:text-white font-semibold'
+            : 'text-ink-900 dark:text-ink-100'
+        ]"
+      >
         <span ref="rightLineRef" :class="singleLineFit ? 'whitespace-nowrap' : ''">
           <template v-for="(token, tIdx) in renderTokens(rightVerseText, 1)" :key="'r-' + tIdx">
-            <span
-              v-if="token.tag && showLiteraryTags"
-              class="literary-highlight"
-              :class="{ 'uncertain': token.tag.Uncertain }"
-              @click.stop="$emit('select-tag', token.tag)"
-              :title="`آرایه ادبی (کد ${token.tag.DeviceId})`"
-            >{{ token.word }}</span><span
-              v-else-if="wordClickEnabled && cleanWord(token.word)"
-              class="cursor-pointer hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-500/10 rounded px-0.5 transition-colors"
-              @click.stop="$emit('select-word', cleanWord(token.word))"
-              title="مشاهده معنی و جست‌وجوی واژه"
-            >{{ token.word }}</span><span v-else>{{ token.word }}</span>{{ token.trailingSpace }}
+            <span :class="getWordHighlightClass(1, tIdx)">
+              <span
+                v-if="token.tag && showLiteraryTags"
+                class="literary-highlight"
+                :class="{ 'uncertain': token.tag.Uncertain }"
+                @click.stop="$emit('select-tag', token.tag)"
+                :title="`آرایه ادبی (کد ${token.tag.DeviceId})`"
+              >{{ token.word }}</span><span
+                v-else-if="wordClickEnabled && cleanWord(token.word)"
+                class="cursor-pointer hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-500/10 rounded px-0.5 transition-colors"
+                @click.stop="$emit('select-word', cleanWord(token.word))"
+                title="مشاهده معنی و جست‌وجوی واژه"
+              >{{ token.word }}</span><span v-else>{{ token.word }}</span>
+            </span>{{ token.trailingSpace }}
           </template>
         </span>
       </div>
 
       <!-- مصرع دوم (چپ) -->
-      <div class="poem-misra font-medium text-ink-900 dark:text-ink-100">
+      <div
+        class="poem-misra font-medium transition-colors"
+        :class="[
+          isPlayingCouplet && activePlayingMisra === 2
+            ? 'text-ink-950 dark:text-white font-semibold'
+            : 'text-ink-900 dark:text-ink-100'
+        ]"
+      >
         <span ref="leftLineRef" :class="singleLineFit ? 'whitespace-nowrap' : ''">
           <template v-for="(token, tIdx) in renderTokens(leftVerseText, 2)" :key="'l-' + tIdx">
-            <span
-              v-if="token.tag && showLiteraryTags"
-              class="literary-highlight"
-              :class="{ 'uncertain': token.tag.Uncertain }"
-              @click.stop="$emit('select-tag', token.tag)"
-              :title="`آرایه ادبی (کد ${token.tag.DeviceId})`"
-            >{{ token.word }}</span><span
-              v-else-if="wordClickEnabled && cleanWord(token.word)"
-              class="cursor-pointer hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-500/10 rounded px-0.5 transition-colors"
-              @click.stop="$emit('select-word', cleanWord(token.word))"
-              title="مشاهده معنی و جست‌وجوی واژه"
-            >{{ token.word }}</span><span v-else>{{ token.word }}</span>{{ token.trailingSpace }}
+            <span :class="getWordHighlightClass(2, tIdx)">
+              <span
+                v-if="token.tag && showLiteraryTags"
+                class="literary-highlight"
+                :class="{ 'uncertain': token.tag.Uncertain }"
+                @click.stop="$emit('select-tag', token.tag)"
+                :title="`آرایه ادبی (کد ${token.tag.DeviceId})`"
+              >{{ token.word }}</span><span
+                v-else-if="wordClickEnabled && cleanWord(token.word)"
+                class="cursor-pointer hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-500/10 rounded px-0.5 transition-colors"
+                @click.stop="$emit('select-word', cleanWord(token.word))"
+                title="مشاهده معنی و جست‌وجوی واژه"
+              >{{ token.word }}</span><span v-else>{{ token.word }}</span>
+            </span>{{ token.trailingSpace }}
           </template>
         </span>
       </div>
@@ -132,7 +170,6 @@
       v-if="cleanedSummary && showSummary"
       class="mt-2.5 text-xs text-ink-500 dark:text-ink-400 bg-brand-50/50 dark:bg-brand-950/20 p-2.5 rounded-xl border-r-2 border-brand-500 text-right leading-relaxed"
     >
-      <span class="font-bold text-brand-700 dark:text-brand-300">مفهوم بیت:</span>
       {{ cleanedSummary }}
     </div>
   </div>
@@ -144,7 +181,7 @@ import { toPersianDigits } from '../../utils/persianNormalizer';
 import { calculateAbjad, cleanPoemWord, stripPersianDiacritics } from '../../utils/abjad';
 import { cleanPoemSummary } from '../../utils/formatters';
 import type { GanjoorLiteraryTag } from '../../types/ganjoor';
-import { Bookmark, Brain, Share2, Sparkles, FolderPlus } from 'lucide-vue-next';
+import { Bookmark, Brain, Share2, Sparkles, FolderPlus, Volume2, Headphones } from 'lucide-vue-next';
 
 var props = withDefaults(
   defineProps<{
@@ -164,13 +201,23 @@ var props = withDefaults(
     showAbjad?: boolean;
     showDiacritics?: boolean;
     wordClickEnabled?: boolean;
+    isPlayingCouplet?: boolean;
+    activePlayingMisra?: 1 | 2 | null;
+    activePlayingWordIndex?: number | null;
+    wordHighlightEnabled?: boolean;
+    hasAudioSync?: boolean;
   }>(),
   {
     showLiteraryTags: true,
     showSummary: true,
     showAbjad: false,
     showDiacritics: true,
-    wordClickEnabled: true
+    wordClickEnabled: true,
+    isPlayingCouplet: false,
+    activePlayingMisra: null,
+    activePlayingWordIndex: null,
+    wordHighlightEnabled: true,
+    hasAudioSync: false
   }
 );
 
@@ -203,61 +250,34 @@ function fitCoupletFont() {
     return;
   }
 
-  var containerW = beytEl.clientWidth;
-  if (containerW <= 0) return;
+  var availableWidth = beytEl.getBoundingClientRect().width;
+  if (availableWidth <= 0) return;
 
-  var computedStyle = window.getComputedStyle(beytEl);
-  var isRow = computedStyle.flexDirection === 'row';
-  var gapPx = isRow ? (parseFloat(computedStyle.columnGap || computedStyle.gap || '0') || 0) : 0;
-  var slotW = isRow ? Math.floor((containerW - gapPx) / 2) - 4 : containerW - 4;
-  if (slotW <= 60) {
-    effectiveFontSize.value = props.fontSize;
-    singleLineFit.value = false;
-    return;
+  var baseSize = props.fontSize;
+  var minSize = Math.max(12, Math.round(baseSize * 0.72));
+
+  var rWidth = measureLineWidth(rEl);
+  var lWidth = measureLineWidth(lEl);
+  var maxMisraWidth = Math.max(rWidth, lWidth);
+
+  var isDesktopWide = availableWidth >= 640;
+  var maxTargetWidth = isDesktopWide ? (availableWidth * 0.48) : (availableWidth - 16);
+
+  if (maxMisraWidth > maxTargetWidth && maxMisraWidth > 0) {
+    var ratio = maxTargetWidth / maxMisraWidth;
+    var targetSize = Math.floor(baseSize * ratio);
+    effectiveFontSize.value = Math.max(minSize, Math.min(baseSize, targetSize));
+  } else {
+    effectiveFontSize.value = baseSize;
   }
 
-  // اندازه‌گیری عرض واقعی تک‌خطی در اندازه پایه
-  beytEl.style.fontSize = props.fontSize + 'px';
-  rEl.style.display = 'inline-block';
-  rEl.style.whiteSpace = 'nowrap';
-  lEl.style.display = 'inline-block';
-  lEl.style.whiteSpace = 'nowrap';
-
-  var neededW = Math.max(measureLineWidth(rEl), measureLineWidth(lEl));
-  var nextSize = props.fontSize;
-  var minAllowed = Math.max(12, Math.round(props.fontSize * 0.72 * 10) / 10);
-
-  if (neededW > slotW && neededW > 0) {
-    var ratio = slotW / neededW;
-    nextSize = Math.max(minAllowed, Math.floor(props.fontSize * ratio * 0.98 * 10) / 10);
-    beytEl.style.fontSize = nextSize + 'px';
-
-    for (var step = 0; step < 3; step++) {
-      var checkW = Math.max(measureLineWidth(rEl), measureLineWidth(lEl));
-      if (checkW <= slotW || nextSize <= minAllowed) break;
-      nextSize = Math.max(minAllowed, Math.round((nextSize - 0.5) * 10) / 10);
-      beytEl.style.fontSize = nextSize + 'px';
-    }
-  }
-
-  var finalW = Math.max(measureLineWidth(rEl), measureLineWidth(lEl));
-  rEl.style.display = '';
-  rEl.style.whiteSpace = '';
-  lEl.style.display = '';
-  lEl.style.whiteSpace = '';
-
-  effectiveFontSize.value = nextSize;
-  singleLineFit.value = finalW <= slotW + 1;
+  singleLineFit.value = true;
 }
 
 function scheduleFit() {
-  if (typeof window === 'undefined') return;
-  if (rafId !== null) {
-    cancelAnimationFrame(rafId);
-  }
+  if (rafId !== null) cancelAnimationFrame(rafId);
   rafId = requestAnimationFrame(function () {
-    rafId = null;
-    void nextTick(function () {
+    nextTick(function () {
       fitCoupletFont();
     });
   });
@@ -334,6 +354,16 @@ function cleanWord(raw: string): string {
   return cleanPoemWord(raw);
 }
 
+function getWordHighlightClass(misraNumber: number, tokenIndex: number): string {
+  if (!props.isPlayingCouplet || props.activePlayingMisra !== misraNumber) {
+    return '';
+  }
+  if (props.wordHighlightEnabled && props.activePlayingWordIndex === tokenIndex) {
+    return 'font-black text-brand-700 dark:text-brand-300 bg-brand-500/20 dark:bg-brand-400/25 rounded-md px-1 py-0.5 ring-1 ring-brand-500/40 transition-all duration-150 inline-block scale-105 shadow-2xs';
+  }
+  return '';
+}
+
 defineEmits([
   'select-couplet',
   'select-tag',
@@ -342,7 +372,8 @@ defineEmits([
   'add-to-memorize',
   'step-memorize',
   'add-to-collection',
-  'share-card'
+  'share-card',
+  'play-from-couplet'
 ]);
 
 interface WordToken {

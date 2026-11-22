@@ -143,6 +143,12 @@
               :show-diacritics="appStore.showDiacritics"
               :show-abjad="appStore.showAbjad && !appStore.readingMode"
               :word-click-enabled="appStore.wordClickEnabled"
+              :is-playing-couplet="readingStore.isAudioPlaying && readingStore.activeAudioCoupletIndex === pair.coupletIndex"
+              :active-playing-misra="readingStore.activeAudioCoupletIndex === pair.coupletIndex ? readingStore.activeAudioMisra : null"
+              :active-playing-word-index="readingStore.activeAudioCoupletIndex === pair.coupletIndex ? readingStore.activeAudioWordIndex : null"
+              :word-highlight-enabled="readingStore.wordHighlightAudio"
+              :has-audio-sync="readingStore.hasAudioSync"
+              @play-from-couplet="onPlayFromCouplet"
               @select-couplet="onSelectCouplet"
               @select-tag="onSelectTag"
               @select-word="onSelectWord"
@@ -736,6 +742,10 @@ function onDisableWordClick() {
 
 function onSelectCouplet(index: number) {
   readingStore.selectCouplet(index);
+}
+
+function onPlayFromCouplet(coupletIndex: number) {
+  readingStore.requestSeekToCouplet(coupletIndex);
 }
 
 function onSelectTag(tag: GanjoorLiteraryTag) {

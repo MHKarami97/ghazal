@@ -18,6 +18,17 @@ export const useReadingStore = defineStore('reading', () => {
   var error = ref<string | null>(null);
   var latestLoadId = 0;
 
+  // --- وضعیت همگام‌سازی صوت شعر (Audio Sync) ---
+  var isAudioPlaying = ref<boolean>(false);
+  var hasAudioSync = ref<boolean>(false);
+  var activeAudioCoupletIndex = ref<number | null>(null);
+  var activeAudioMisra = ref<1 | 2 | null>(null); // 1: راست، 2: چپ
+  var activeAudioWordIndex = ref<number | null>(null);
+  var activeAudioVerseOrder = ref<number | null>(null);
+  var autoScrollAudio = ref<boolean>(true);
+  var wordHighlightAudio = ref<boolean>(true);
+  var seekCoupletRequest = ref<number | null>(null);
+
   async function recordReadHistory(poem: GanjoorPoem, poetSlug: string) {
     var lastVisit = await db.userHistory
       .where('poemId')
@@ -91,6 +102,7 @@ export const useReadingStore = defineStore('reading', () => {
 
     isLoading.value = true;
     error.value = null;
+    resetAudioPlaybackState();
 
     try {
       var fullUrl = `/${poetSlug}/${catPath ? catPath + '/' : ''}${poemSlug}`.replace(/\/+/g, '/');
@@ -200,6 +212,47 @@ export const useReadingStore = defineStore('reading', () => {
     selectedLiteraryTag.value = tag;
   }
 
+  function setAudioPlaybackState(state: {
+    isPlaying: boolean;
+    hasSync: boolean;
+    coupletIndex: number | null;
+    misra: 1 | 2 | null;
+    wordIndex: number | null;
+    verseOrder: number | null;
+  }) {
+    isAudioPlaying.value = state.isPlaying;
+    hasAudioSync.value = state.hasSync;
+    activeAudioCoupletIndex.value = state.coupletIndex;
+    activeAudioMisra.value = state.misra;
+    activeAudioWordIndex.value = state.wordIndex;
+    activeAudioVerseOrder.value = state.verseOrder;
+  }
+
+  function resetAudioPlaybackState() {
+    isAudioPlaying.value = false;
+    hasAudioSync.value = false;
+    activeAudioCoupletIndex.value = null;
+    activeAudioMisra.value = null;
+    activeAudioWordIndex.value = null;
+    activeAudioVerseOrder.value = null;
+  }
+
+  function requestSeekToCouplet(coupletIndex: number) {
+    seekCoupletRequest.value = coupletIndex;
+  }
+
+  function clearSeekCoupletRequest() {
+    seekCoupletRequest.value = null;
+  }
+
+  function toggleAutoScrollAudio() {
+    autoScrollAudio.value = !autoScrollAudio.value;
+  }
+
+  function toggleWordHighlightAudio() {
+    wordHighlightAudio.value = !wordHighlightAudio.value;
+  }
+
   return {
     currentPoem,
     currentPoet,
@@ -208,12 +261,27 @@ export const useReadingStore = defineStore('reading', () => {
     selectedLiteraryTag,
     isLoading,
     error,
+    isAudioPlaying,
+    hasAudioSync,
+    activeAudioCoupletIndex,
+    activeAudioMisra,
+    activeAudioWordIndex,
+    activeAudioVerseOrder,
+    autoScrollAudio,
+    wordHighlightAudio,
+    seekCoupletRequest,
     loadPoem,
     loadPoet,
     loadBookmarks,
     isBookmarked,
     toggleBookmark,
     selectCouplet,
-    selectLiteraryTag
+    selectLiteraryTag,
+    setAudioPlaybackState,
+    resetAudioPlaybackState,
+    requestSeekToCouplet,
+    clearSeekCoupletRequest,
+    toggleAutoScrollAudio,
+    toggleWordHighlightAudio
   };
 });

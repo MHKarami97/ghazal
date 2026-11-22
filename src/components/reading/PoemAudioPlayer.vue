@@ -14,6 +14,14 @@
             <span class="text-[10px] px-2 py-0.2 rounded-full bg-brand-500/15 text-brand-700 dark:text-brand-300 font-bold">
               گنجور
             </span>
+            <span
+              v-if="hasSyncData"
+              class="hidden sm:inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-bold"
+              title="همگامی هوشمند بیت به بیت و کلمه به کلمه فعال است"
+            >
+              <Sparkles class="w-3 h-3 text-amber-500" />
+              همگام با متن
+            </span>
           </div>
           <div v-if="activeRecitation" class="text-[11px] text-ink-500">
             با صدای: <strong class="text-brand-700 dark:text-brand-400">{{ activeRecitation?.audioArtist || 'نامشخص' }}</strong>
@@ -148,6 +156,53 @@
           </a>
         </div>
       </div>
+
+      <!-- نوار وضعیت همگامی متن، پیمایش خودکار و بولد کلمه به کلمه -->
+      <div class="flex flex-wrap items-center justify-between gap-2 pt-2.5 mt-2 border-t border-brand-500/20 text-[11px]">
+        <div class="flex items-center gap-1.5">
+          <template v-if="isLoadingSync">
+            <Loader2 class="w-3.5 h-3.5 animate-spin text-brand-600" />
+            <span class="text-ink-500 text-[11px]">در حال دریافت داده‌های همگامی متن...</span>
+          </template>
+          <template v-else-if="hasSyncData">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="font-bold text-emerald-800 dark:text-emerald-300">
+              {{ isPlaying && activePosition ? `در حال خوانش: بیت ${toPersianDigits(activePosition.coupletIndex + 1)} (${activePosition.misra === 1 ? 'مصرع اول' : 'مصرع دوم'})` : 'همگام با متن فعال است' }}
+            </span>
+          </template>
+          <template v-else>
+            <Info class="w-3.5 h-3.5 text-ink-400" />
+            <span class="text-ink-500">فاقد داده همگامی متنی در گنجور</span>
+          </template>
+        </div>
+
+        <!-- کنترل‌های تنظیمات همگامی -->
+        <div v-if="hasSyncData" class="flex items-center gap-2">
+          <!-- دکمه بولد کلمه به کلمه -->
+          <button
+            type="button"
+            @click="readingStore.toggleWordHighlightAudio()"
+            class="px-2 py-0.5 rounded-lg border text-[11px] font-medium transition-colors flex items-center gap-1 shadow-2xs"
+            :class="readingStore.wordHighlightAudio ? 'bg-brand-500/15 border-brand-500/40 text-brand-700 dark:text-brand-300 font-bold' : 'border-ink-200 dark:border-paper-border text-ink-500 hover:text-ink-800'"
+            title="روشن یا خاموش کردن بولد شدن کلمه به کلمه"
+          >
+            <Highlighter class="w-3 h-3" />
+            <span>بولد کلمات</span>
+          </button>
+
+          <!-- دکمه پیمایش خودکار متن -->
+          <button
+            type="button"
+            @click="readingStore.toggleAutoScrollAudio()"
+            class="px-2 py-0.5 rounded-lg border text-[11px] font-medium transition-colors flex items-center gap-1 shadow-2xs"
+            :class="readingStore.autoScrollAudio ? 'bg-brand-500/15 border-brand-500/40 text-brand-700 dark:text-brand-300 font-bold' : 'border-ink-200 dark:border-paper-border text-ink-500 hover:text-ink-800'"
+            title="پیمایش خودکار صفحه همگام با ابیات"
+          >
+            <Navigation class="w-3 h-3" />
+            <span>پیمایش خودکار</span>
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- خطای پخش صوت -->
@@ -179,7 +234,9 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onBeforeUnmount } from 'vue';
-import { isCommentaryRecitation, type PoemRecitation } from '../../services/RecitationService';
+import { isCommentaryRecitation, recitationService, type PoemRecitation, type RecitationSyncPoint } from '../../services/RecitationService';
+import { useReadingStore } from '../../stores/readingStore';
+import { calculateAudioPosition, findCoupletSyncPoint, type ActiveAudioPosition } from '../../utils/audioSync';
 import { toPersianDigits } from '../../utils/persianNormalizer';
 import {
   Headphones,
@@ -190,12 +247,18 @@ import {
   Volume2,
   VolumeX,
   Download,
-  Loader2
+  Loader2,
+  Sparkles,
+  Highlighter,
+  Navigation,
+  Info
 } from 'lucide-vue-next';
 
 var props = defineProps<{
   recitations: PoemRecitation[];
 }>();
+
+var readingStore = useReadingStore();
 
 var audioElement = ref<HTMLAudioElement | null>(null);
 var activeAudioTab = ref<'normal' | 'commentary'>('normal');
@@ -208,7 +271,13 @@ var duration = ref<number>(0);
 var isMuted = ref<boolean>(false);
 var playbackRate = ref<number>(1);
 
+var syncPoints = ref<RecitationSyncPoint[]>([]);
+var isLoadingSync = ref<boolean>(false);
+var activePosition = ref<ActiveAudioPosition | null>(null);
+var lastScrolledCoupletIndex = ref<number | null>(null);
+
 var speeds = [1, 1.25, 1.5, 0.8];
+var rafId: number | null = null;
 
 var normalRecitations = computed(function () {
   return (props.recitations || []).filter(function (r) {
@@ -238,6 +307,39 @@ var activeRecitation = computed(function () {
   return list[0];
 });
 
+var hasSyncData = computed(function () {
+  return syncPoints.value.length > 0;
+});
+
+var progressPercent = computed(function () {
+  if (!duration.value || duration.value === 0) return 0;
+  return Math.min(100, Math.max(0, (currentTime.value / duration.value) * 100));
+});
+
+// بارگذاری نقاط همگامی هنگام تغییر فایل صوتی انتخاب‌شده
+watch(
+  activeRecitation,
+  async function (newRec) {
+    syncPoints.value = [];
+    activePosition.value = null;
+    lastScrolledCoupletIndex.value = null;
+    if (!newRec) return;
+
+    isLoadingSync.value = true;
+    try {
+      var syncData = await recitationService.getRecitationSync(newRec);
+      if (syncData && syncData.points && syncData.points.length > 0) {
+        syncPoints.value = syncData.points;
+      }
+    } catch (e) {
+      syncPoints.value = [];
+    } finally {
+      isLoadingSync.value = false;
+    }
+  },
+  { immediate: true }
+);
+
 watch(
   () => props.recitations,
   function () {
@@ -263,10 +365,113 @@ watch(selectedRecitationId, function () {
   stopAndReset();
 });
 
-var progressPercent = computed(function () {
-  if (!duration.value || duration.value === 0) return 0;
-  return Math.min(100, Math.max(0, (currentTime.value / duration.value) * 100));
-});
+// پاسخ به درخواست پرش به یک بیت از داخل CoupletView
+watch(
+  () => readingStore.seekCoupletRequest,
+  function (targetCoupletIndex) {
+    if (targetCoupletIndex === null || targetCoupletIndex === undefined) return;
+    seekToCouplet(targetCoupletIndex);
+    readingStore.clearSeekCoupletRequest();
+  }
+);
+
+function handleAutoScroll(coupletIndex: number) {
+  if (!readingStore.autoScrollAudio) return;
+  if (lastScrolledCoupletIndex.value === coupletIndex) return;
+  lastScrolledCoupletIndex.value = coupletIndex;
+
+  var el = document.getElementById('couplet-' + coupletIndex);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+function updateSyncPosition() {
+  if (!audioElement.value) return;
+  var currSec = audioElement.value.currentTime;
+  currentTime.value = currSec;
+  var currMs = currSec * 1000;
+  var durMs = (duration.value || audioElement.value.duration || 0) * 1000;
+
+  if (syncPoints.value.length > 0) {
+    var verses = readingStore.currentPoem?.Verses || [];
+    var pos = calculateAudioPosition(currMs, durMs, syncPoints.value, verses);
+    activePosition.value = pos;
+
+    if (pos) {
+      readingStore.setAudioPlaybackState({
+        isPlaying: isPlaying.value,
+        hasSync: true,
+        coupletIndex: pos.coupletIndex,
+        misra: pos.misra,
+        wordIndex: pos.wordIndex,
+        verseOrder: pos.verseOrder
+      });
+
+      if (pos.coupletIndex !== null) {
+        handleAutoScroll(pos.coupletIndex);
+      }
+    } else {
+      readingStore.setAudioPlaybackState({
+        isPlaying: isPlaying.value,
+        hasSync: true,
+        coupletIndex: null,
+        misra: null,
+        wordIndex: null,
+        verseOrder: null
+      });
+    }
+  } else {
+    readingStore.setAudioPlaybackState({
+      isPlaying: isPlaying.value,
+      hasSync: false,
+      coupletIndex: null,
+      misra: null,
+      wordIndex: null,
+      verseOrder: null
+    });
+  }
+}
+
+function startTicker() {
+  stopTicker();
+  function tick() {
+    if (!isPlaying.value || !audioElement.value) {
+      stopTicker();
+      return;
+    }
+    updateSyncPosition();
+    rafId = requestAnimationFrame(tick);
+  }
+  rafId = requestAnimationFrame(tick);
+}
+
+function stopTicker() {
+  if (rafId !== null) {
+    cancelAnimationFrame(rafId);
+    rafId = null;
+  }
+}
+
+function seekToCouplet(coupletIndex: number) {
+  if (!syncPoints.value || syncPoints.value.length === 0) return;
+  var pt = findCoupletSyncPoint(
+    coupletIndex,
+    syncPoints.value,
+    readingStore.currentPoem?.Verses || []
+  );
+  if (!pt) return;
+
+  var newTime = pt.audioMs / 1000;
+  if (audioElement.value) {
+    audioElement.value.currentTime = newTime;
+    currentTime.value = newTime;
+    updateSyncPosition();
+    if (!isPlaying.value) {
+      togglePlay();
+    }
+  }
+}
 
 function togglePlay() {
   if (!audioElement.value) return;
@@ -287,6 +492,7 @@ function togglePlay() {
 function stopAndReset() {
   audioError.value = false;
   isLoadingAudio.value = false;
+  stopTicker();
   if (audioElement.value) {
     audioElement.value.pause();
     audioElement.value.currentTime = 0;
@@ -294,39 +500,54 @@ function stopAndReset() {
   isPlaying.value = false;
   currentTime.value = 0;
   duration.value = 0;
+  activePosition.value = null;
+  lastScrolledCoupletIndex.value = null;
+  readingStore.resetAudioPlaybackState();
 }
 
 function onAudioPlay() {
   isPlaying.value = true;
   isLoadingAudio.value = false;
   audioError.value = false;
+  startTicker();
 }
 
 function onAudioPause() {
   isPlaying.value = false;
+  stopTicker();
+  updateSyncPosition();
 }
 
 function onTimeUpdate() {
   if (audioElement.value) {
     currentTime.value = audioElement.value.currentTime;
+    if (!isPlaying.value) {
+      updateSyncPosition();
+    }
   }
 }
 
 function onLoadedMetadata() {
   if (audioElement.value) {
     duration.value = audioElement.value.duration || 0;
+    updateSyncPosition();
   }
 }
 
 function onAudioEnded() {
   isPlaying.value = false;
   currentTime.value = 0;
+  stopTicker();
+  activePosition.value = null;
+  lastScrolledCoupletIndex.value = null;
+  readingStore.resetAudioPlaybackState();
 }
 
 function onAudioError() {
   isLoadingAudio.value = false;
   isPlaying.value = false;
   audioError.value = true;
+  stopTicker();
 }
 
 function seek(e: MouseEvent) {
@@ -337,6 +558,7 @@ function seek(e: MouseEvent) {
   var newTime = ratio * duration.value;
   audioElement.value.currentTime = newTime;
   currentTime.value = newTime;
+  updateSyncPosition();
 }
 
 function skipTime(delta: number) {
@@ -344,6 +566,7 @@ function skipTime(delta: number) {
   var next = Math.max(0, Math.min(duration.value, audioElement.value.currentTime + delta));
   audioElement.value.currentTime = next;
   currentTime.value = next;
+  updateSyncPosition();
 }
 
 function cycleSpeed() {
