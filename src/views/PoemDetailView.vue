@@ -11,9 +11,40 @@
             <div class="text-xs font-bold text-brand-600 dark:text-brand-400 mb-2">
               {{ readingStore.currentPoet?.Nickname || poetSlug }}
             </div>
-            <h2 class="text-2xl sm:text-3xl font-black text-ink-900 dark:text-ink-50 mb-3">
-              {{ readingStore.currentPoem.Title }}
-            </h2>
+
+            <!-- ردیف عنوان شعر به همراه دکمه‌های ناوبری شعر قبلی / بعدی در بالا -->
+            <div class="flex items-center justify-between gap-2 sm:gap-3 mb-3">
+              <!-- دکمه کوچک شعر قبلی در بالا -->
+              <router-link
+                v-if="prevPoem"
+                :to="prevPoem.route"
+                class="px-2 sm:px-2.5 py-1.5 rounded-xl border border-ink-200/80 dark:border-paper-border bg-paper-light/90 dark:bg-paper-dark hover:bg-brand-500/10 hover:border-brand-500/40 text-ink-600 dark:text-ink-400 hover:text-brand-600 dark:hover:text-brand-400 transition-all flex items-center gap-1.5 text-xs shadow-2xs shrink-0 group"
+                :title="`شعر قبلی: ${prevPoem.title}`"
+              >
+                <ArrowRight class="w-3.5 h-3.5 text-brand-600 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                <span class="hidden sm:inline font-medium truncate max-w-[110px] md:max-w-[140px]">{{ prevPoem.title }}</span>
+                <span class="sm:hidden font-medium text-[11px]">قبلی</span>
+              </router-link>
+              <div v-else class="w-7 sm:w-24 shrink-0"></div>
+
+              <!-- عنوان اصلی شعر -->
+              <h2 class="text-xl sm:text-2xl md:text-3xl font-black text-ink-900 dark:text-ink-50 text-center truncate px-1">
+                {{ readingStore.currentPoem.Title }}
+              </h2>
+
+              <!-- دکمه کوچک شعر بعدی در بالا -->
+              <router-link
+                v-if="nextPoem"
+                :to="nextPoem.route"
+                class="px-2 sm:px-2.5 py-1.5 rounded-xl border border-ink-200/80 dark:border-paper-border bg-paper-light/90 dark:bg-paper-dark hover:bg-brand-500/10 hover:border-brand-500/40 text-ink-600 dark:text-ink-400 hover:text-brand-600 dark:hover:text-brand-400 transition-all flex items-center gap-1.5 text-xs shadow-2xs shrink-0 group"
+                :title="`شعر بعدی: ${nextPoem.title}`"
+              >
+                <span class="hidden sm:inline font-medium truncate max-w-[110px] md:max-w-[140px]">{{ nextPoem.title }}</span>
+                <span class="sm:hidden font-medium text-[11px]">بعدی</span>
+                <ArrowLeft class="w-3.5 h-3.5 text-brand-600 shrink-0 group-hover:-translate-x-0.5 transition-transform" />
+              </router-link>
+              <div v-else class="w-7 sm:w-24 shrink-0"></div>
+            </div>
 
             <!-- برچسب‌های وزن، قالب و قافیه -->
             <div class="flex flex-wrap items-center justify-center gap-2 text-xs">
@@ -147,6 +178,7 @@
               :active-playing-misra="readingStore.activeAudioCoupletIndex === pair.coupletIndex ? readingStore.activeAudioMisra : null"
               :active-playing-word-index="readingStore.activeAudioCoupletIndex === pair.coupletIndex ? readingStore.activeAudioWordIndex : null"
               :word-highlight-enabled="readingStore.wordHighlightAudio"
+              :highlight-mode="readingStore.audioHighlightMode"
               :has-audio-sync="readingStore.hasAudioSync"
               @play-from-couplet="onPlayFromCouplet"
               @select-couplet="onSelectCouplet"

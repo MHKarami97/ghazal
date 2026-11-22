@@ -177,24 +177,43 @@
         </div>
 
         <!-- کنترل‌های تنظیمات همگامی -->
-        <div v-if="hasSyncData" class="flex items-center gap-2">
-          <!-- دکمه بولد کلمه به کلمه -->
-          <button
-            type="button"
-            @click="readingStore.toggleWordHighlightAudio()"
-            class="px-2 py-0.5 rounded-lg border text-[11px] font-medium transition-colors flex items-center gap-1 shadow-2xs"
-            :class="readingStore.wordHighlightAudio ? 'bg-brand-500/15 border-brand-500/40 text-brand-700 dark:text-brand-300 font-bold' : 'border-ink-200 dark:border-paper-border text-ink-500 hover:text-ink-800'"
-            title="روشن یا خاموش کردن بولد شدن کلمه به کلمه"
-          >
-            <Highlighter class="w-3 h-3" />
-            <span>بولد کلمات</span>
-          </button>
+        <div v-if="hasSyncData" class="flex flex-wrap items-center gap-2">
+          <!-- انتخاب حالت هایلایت: کلمه به کلمه / مصرع به مصرع / بدون هایلایت -->
+          <div class="flex items-center p-0.5 rounded-xl bg-paper-light dark:bg-paper-dark border border-ink-200/80 dark:border-paper-border text-[11px] shadow-2xs">
+            <button
+              type="button"
+              @click="readingStore.setAudioHighlightMode('word')"
+              class="px-2 py-0.5 rounded-lg transition-all"
+              :class="readingStore.audioHighlightMode === 'word' ? 'bg-brand-600 text-white font-bold shadow-xs' : 'text-ink-600 dark:text-ink-400 hover:text-ink-900'"
+              title="هایلایت کلمه به کلمه با رد ملایم"
+            >
+              کلمه به کلمه
+            </button>
+            <button
+              type="button"
+              @click="readingStore.setAudioHighlightMode('misra')"
+              class="px-2 py-0.5 rounded-lg transition-all"
+              :class="readingStore.audioHighlightMode === 'misra' ? 'bg-brand-600 text-white font-bold shadow-xs' : 'text-ink-600 dark:text-ink-400 hover:text-ink-900'"
+              title="هایلایت کلی مصرع به مصرع"
+            >
+              مصرع به مصرع
+            </button>
+            <button
+              type="button"
+              @click="readingStore.setAudioHighlightMode('none')"
+              class="px-2 py-0.5 rounded-lg transition-all"
+              :class="readingStore.audioHighlightMode === 'none' ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300 font-bold' : 'text-ink-400 hover:text-ink-700'"
+              title="غیرفعال کردن هرگونه هایلایت روی متن"
+            >
+              بدون هایلایت
+            </button>
+          </div>
 
           <!-- دکمه پیمایش خودکار متن -->
           <button
             type="button"
             @click="readingStore.toggleAutoScrollAudio()"
-            class="px-2 py-0.5 rounded-lg border text-[11px] font-medium transition-colors flex items-center gap-1 shadow-2xs"
+            class="px-2.5 py-1 rounded-xl border text-[11px] font-medium transition-colors flex items-center gap-1 shadow-2xs"
             :class="readingStore.autoScrollAudio ? 'bg-brand-500/15 border-brand-500/40 text-brand-700 dark:text-brand-300 font-bold' : 'border-ink-200 dark:border-paper-border text-ink-500 hover:text-ink-800'"
             title="پیمایش خودکار صفحه همگام با ابیات"
           >

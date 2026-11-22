@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { db } from '../db/GhazalDB';
 import { cdnClient } from '../services/CDNClient';
 import { mapApiPoemToGanjoorPoem } from '../utils/ganjoorPoemMapper';
@@ -26,7 +26,8 @@ export const useReadingStore = defineStore('reading', () => {
   var activeAudioWordIndex = ref<number | null>(null);
   var activeAudioVerseOrder = ref<number | null>(null);
   var autoScrollAudio = ref<boolean>(true);
-  var wordHighlightAudio = ref<boolean>(true);
+  var audioHighlightMode = ref<'word' | 'misra' | 'none'>('word');
+  var wordHighlightAudio = computed(() => audioHighlightMode.value === 'word');
   var seekCoupletRequest = ref<number | null>(null);
 
   async function recordReadHistory(poem: GanjoorPoem, poetSlug: string) {
@@ -249,8 +250,16 @@ export const useReadingStore = defineStore('reading', () => {
     autoScrollAudio.value = !autoScrollAudio.value;
   }
 
+  function setAudioHighlightMode(mode: 'word' | 'misra' | 'none') {
+    audioHighlightMode.value = mode;
+  }
+
   function toggleWordHighlightAudio() {
-    wordHighlightAudio.value = !wordHighlightAudio.value;
+    if (audioHighlightMode.value === 'word') {
+      audioHighlightMode.value = 'none';
+    } else {
+      audioHighlightMode.value = 'word';
+    }
   }
 
   return {
@@ -268,6 +277,7 @@ export const useReadingStore = defineStore('reading', () => {
     activeAudioWordIndex,
     activeAudioVerseOrder,
     autoScrollAudio,
+    audioHighlightMode,
     wordHighlightAudio,
     seekCoupletRequest,
     loadPoem,
@@ -282,6 +292,7 @@ export const useReadingStore = defineStore('reading', () => {
     requestSeekToCouplet,
     clearSeekCoupletRequest,
     toggleAutoScrollAudio,
-    toggleWordHighlightAudio
+    toggleWordHighlightAudio,
+    setAudioHighlightMode
   };
 });

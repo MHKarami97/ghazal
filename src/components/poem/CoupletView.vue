@@ -3,7 +3,7 @@
     class="group relative px-2 sm:px-4 rounded-2xl transition-all duration-200"
     :class="[
       isCompact ? 'py-1.5 sm:py-2' : 'py-3 sm:py-4',
-      isPlayingCouplet
+      highlightMode !== 'none' && isPlayingCouplet
         ? 'bg-brand-500/15 dark:bg-brand-500/20 ring-2 ring-brand-500/40 shadow-sm'
         : isSelected
           ? 'bg-brand-500/10 dark:bg-brand-500/15 ring-1 ring-brand-500/30'
@@ -15,7 +15,7 @@
     <div
       class="transition-opacity absolute -top-3.5 left-4 flex items-center gap-1 bg-paper-light dark:bg-paper-dark px-2.5 py-1 rounded-full shadow-md border border-ink-200/80 dark:border-paper-border text-xs z-10"
       :class="[
-        isSelected || isPlayingCouplet
+        isSelected || (highlightMode !== 'none' && isPlayingCouplet)
           ? 'opacity-100 pointer-events-auto'
           : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100 pointer-events-none group-hover:pointer-events-auto'
       ]"
@@ -80,7 +80,7 @@
       :class="isCompact ? 'text-[10px] leading-none mb-0.5' : 'text-[11px] mb-1'"
     >
       <span
-        v-if="isPlayingCouplet"
+        v-if="highlightMode !== 'none' && isPlayingCouplet"
         class="inline-flex items-center gap-1 text-brand-700 dark:text-brand-300 font-bold animate-pulse text-[11px] px-2 py-0.5 rounded-full bg-brand-500/15"
       >
         <Headphones class="w-3.5 h-3.5" />
@@ -108,11 +108,13 @@
     >
       <!-- مصرع اول (راست) -->
       <div
-        class="poem-misra font-medium transition-colors"
+        class="poem-misra font-medium transition-all duration-300"
         :class="[
-          isPlayingCouplet && activePlayingMisra === 1
-            ? 'text-ink-950 dark:text-white font-semibold'
-            : 'text-ink-900 dark:text-ink-100'
+          highlightMode === 'misra' && isPlayingCouplet && activePlayingMisra === 1
+            ? 'bg-brand-500/12 dark:bg-brand-400/15 rounded-xl px-2 py-0.5 text-ink-950 dark:text-white font-semibold shadow-2xs'
+            : (highlightMode === 'word' && isPlayingCouplet && activePlayingMisra === 1
+                ? 'text-ink-950 dark:text-white font-semibold'
+                : 'text-ink-900 dark:text-ink-100')
         ]"
       >
         <span ref="rightLineRef" :class="singleLineFit ? 'whitespace-nowrap' : ''">
@@ -137,11 +139,13 @@
 
       <!-- مصرع دوم (چپ) -->
       <div
-        class="poem-misra font-medium transition-colors"
+        class="poem-misra font-medium transition-all duration-300"
         :class="[
-          isPlayingCouplet && activePlayingMisra === 2
-            ? 'text-ink-950 dark:text-white font-semibold'
-            : 'text-ink-900 dark:text-ink-100'
+          highlightMode === 'misra' && isPlayingCouplet && activePlayingMisra === 2
+            ? 'bg-brand-500/12 dark:bg-brand-400/15 rounded-xl px-2 py-0.5 text-ink-950 dark:text-white font-semibold shadow-2xs'
+            : (highlightMode === 'word' && isPlayingCouplet && activePlayingMisra === 2
+                ? 'text-ink-950 dark:text-white font-semibold'
+                : 'text-ink-900 dark:text-ink-100')
         ]"
       >
         <span ref="leftLineRef" :class="singleLineFit ? 'whitespace-nowrap' : ''">
@@ -205,6 +209,7 @@ var props = withDefaults(
     activePlayingMisra?: 1 | 2 | null;
     activePlayingWordIndex?: number | null;
     wordHighlightEnabled?: boolean;
+    highlightMode?: 'word' | 'misra' | 'none';
     hasAudioSync?: boolean;
   }>(),
   {
@@ -217,6 +222,7 @@ var props = withDefaults(
     activePlayingMisra: null,
     activePlayingWordIndex: null,
     wordHighlightEnabled: true,
+    highlightMode: 'word',
     hasAudioSync: false
   }
 );
@@ -356,6 +362,7 @@ function cleanWord(raw: string): string {
 
 function getWordHighlightClass(misraNumber: number, tokenIndex: number): string {
   if (
+    props.highlightMode !== 'word' ||
     !props.isPlayingCouplet ||
     props.activePlayingMisra !== misraNumber ||
     props.activePlayingWordIndex === null ||
