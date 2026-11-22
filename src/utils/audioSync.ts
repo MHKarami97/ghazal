@@ -70,31 +70,31 @@ export function calculateAudioPosition(
   var wordIndex: number | null = null;
 
   if (words.length > 0 && verseText.trim()) {
-    // تخمین زمان خواندن هر کلمه بر اساس تعداد حروف بدون حرکت
+    // وزن‌دهی زمانی با حداقل وزن ۳ تا کلمات کوتاه خیلی سریع محو نشوند
     var weights: number[] = [];
     var totalWeight = 0;
     for (var w = 0; w < words.length; w++) {
-      var wt = Math.max(2, cleanForWeight(words[w]).length);
+      var wt = Math.max(3, cleanForWeight(words[w]).length);
       weights.push(wt);
       totalWeight += wt;
     }
 
-    // در نظر گرفتن مکث طبیعی پایان مصرع (سکت/تنفس)
-    var pauseMs = (vDuration >= 1800)
-      ? Math.min(900, Math.max(250, vDuration * 0.16))
+    // مکث ملایم پایان مصرع (حداکثر ۴۰۰ میلی‌ثانیه یا ۶٪ مدت مصرع)
+    var pauseMs = (vDuration >= 2000)
+      ? Math.min(400, Math.max(100, vDuration * 0.06))
       : 0;
     var speechDuration = Math.max(400, vDuration - pauseMs);
 
     if (elapsed >= speechDuration) {
-      // در بازهٔ مکث پایان مصرع، واژهٔ پایانی تا شروع مصرع بعدی هایلایت می‌ماند
+      // در بازهٔ کوتاه مکث انتهای مصرع، کلمهٔ آخر تا آغاز مصرع بعدی هایلایت می‌ماند
       wordIndex = words.length - 1;
     } else {
-      var ratio = Math.min(1, Math.max(0, elapsed / speechDuration));
+      var ratio = Math.min(0.9999, Math.max(0, elapsed / speechDuration));
       var targetWeight = ratio * totalWeight;
       var running = 0;
       for (var idx = 0; idx < words.length; idx++) {
         running += weights[idx];
-        if (running >= targetWeight) {
+        if (targetWeight < running) {
           wordIndex = idx;
           break;
         }

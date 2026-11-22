@@ -117,7 +117,7 @@
       >
         <span ref="rightLineRef" :class="singleLineFit ? 'whitespace-nowrap' : ''">
           <template v-for="(token, tIdx) in renderTokens(rightVerseText, 1)" :key="'r-' + tIdx">
-            <span :class="getWordHighlightClass(1, tIdx)">
+            <span class="inline rounded-sm transition-all duration-300 ease-in-out" :class="getWordHighlightClass(1, tIdx)">
               <span
                 v-if="token.tag && showLiteraryTags"
                 class="literary-highlight"
@@ -146,7 +146,7 @@
       >
         <span ref="leftLineRef" :class="singleLineFit ? 'whitespace-nowrap' : ''">
           <template v-for="(token, tIdx) in renderTokens(leftVerseText, 2)" :key="'l-' + tIdx">
-            <span :class="getWordHighlightClass(2, tIdx)">
+            <span class="inline rounded-sm transition-all duration-300 ease-in-out" :class="getWordHighlightClass(2, tIdx)">
               <span
                 v-if="token.tag && showLiteraryTags"
                 class="literary-highlight"
@@ -356,12 +356,12 @@ function cleanWord(raw: string): string {
 
 function getWordHighlightClass(misraNumber: number, tokenIndex: number): string {
   if (!props.isPlayingCouplet || props.activePlayingMisra !== misraNumber) {
-    return '';
+    return 'bg-transparent text-inherit ring-transparent';
   }
   if (props.wordHighlightEnabled && props.activePlayingWordIndex === tokenIndex) {
-    return 'font-black text-brand-700 dark:text-brand-300 bg-brand-500/20 dark:bg-brand-400/25 rounded-md px-1 py-0.5 ring-1 ring-brand-500/40 transition-all duration-150 inline-block scale-105 shadow-2xs';
+    return 'font-bold text-brand-700 dark:text-brand-300 bg-brand-500/15 dark:bg-brand-400/20 px-0.5 py-0 ring-1 ring-brand-500/30';
   }
-  return '';
+  return 'bg-transparent text-inherit ring-transparent';
 }
 
 defineEmits([

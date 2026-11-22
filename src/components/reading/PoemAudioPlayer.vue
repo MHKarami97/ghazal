@@ -381,7 +381,13 @@ function handleAutoScroll(coupletIndex: number) {
   lastScrolledCoupletIndex.value = coupletIndex;
 
   var el = document.getElementById('couplet-' + coupletIndex);
-  if (el) {
+  if (!el) return;
+
+  var rect = el.getBoundingClientRect();
+  var windowHeight = window.innerHeight || document.documentElement.clientHeight;
+  // تنها در صورتی که بیت خارج از محدوده راحت مطالعه باشد، اسکرول نرم انجام شود تا پرش مکرر رخ ندهد
+  var isOutOfComfortZone = rect.top < windowHeight * 0.18 || rect.bottom > windowHeight * 0.82;
+  if (isOutOfComfortZone) {
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 }
