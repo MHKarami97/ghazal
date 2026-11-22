@@ -63,7 +63,7 @@ export function parseGanjoorSyncXml(xml: string): RecitationSyncPoint[] {
 
   // ۲. پشتیبان با Regex در صورت خطای DOMParser یا محیط غیرمرورگر
   if (points.length === 0) {
-    var regex = /<SyncInfo>[\s\S]*?<VerseOrder>(\d+)<\/VerseOrder>[\s\S]*?<AudioMiliseconds>(\d+)<\/AudioMiliseconds>[\s\S]*?<\/SyncInfo>/gi;
+    var regex = /<SyncInfo>[\s\S]*?<VerseOrder>(-?\d+)<\/VerseOrder>[\s\S]*?<AudioMiliseconds>(\d+)<\/AudioMiliseconds>[\s\S]*?<\/SyncInfo>/gi;
     var match: RegExpExecArray | null;
     while ((match = regex.exec(xml)) !== null) {
       var parsedVo = parseInt(match[1], 10);

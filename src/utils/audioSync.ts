@@ -21,6 +21,25 @@ function cleanForWeight(raw: string): string {
 }
 
 /**
+ * محاسبه وزن زمانی هر کلمه متناسب با هجاها و وزن طبیعی عروضی شعر
+ * در شعر فارسی کلمات ۱ یا ۲ حرفی به نسبت کشیده خوانده می‌شوند و نباید خیلی سریع رد شوند،
+ * و کلمات طولانی‌تر نیز کشش افراطی ندارند تا مانع از عقب ماندن هایلایت شود.
+ */
+function getWordCadenceWeight(rawWord: string): number {
+  var clean = cleanForWeight(rawWord);
+  var len = clean.length;
+  if (len <= 0) return 0;
+  // حروف ربط و اضافه تک یا دو حرفی (مانند «و»، «به»، «که»، «در»، «یا»)
+  if (len <= 2) return 3.4;
+  // کلمات متداول ۳ تا ۴ حرفی (مانند «عشق»، «آسان»، «نمود»، «اول»)
+  if (len <= 4) return 4.0;
+  // کلمات ۵ تا ۶ حرفی (مانند «بگشاید»، «نافه‌ای»)
+  if (len <= 6) return 4.7;
+  // کلمات بلندتر (مانند «مشکل‌ها»، «سلسله‌مویش»)
+  return 5.3;
+}
+
+/**
  * محاسبه بیت، مصرع و واژهٔ در حال خوانده‌شدن بر اساس میلی‌ثانیه پخش صوت و نقاط همگامی
  */
 export function calculateAudioPosition(
@@ -43,6 +62,10 @@ export function calculateAudioPosition(
 
   var pt = points[k];
   var vo = pt.verseOrder;
+
+  // اگر شماره مصرع منفی باشد (اعلان عنوان شعر یا مقدمه در گنجور)، بیتی هایلایت نمی‌شود
+  if (vo < 0) return null;
+
   var tStart = pt.audioMs;
   var tEnd = (k < points.length - 1)
     ? points[k + 1].audioMs
@@ -70,26 +93,28 @@ export function calculateAudioPosition(
   var wordIndex: number | null = null;
 
   if (words.length > 0 && verseText.trim()) {
-    // وزن‌دهی زمانی با حداقل وزن ۳ تا کلمات کوتاه خیلی سریع محو نشوند
     var weights: number[] = [];
     var totalWeight = 0;
     for (var w = 0; w < words.length; w++) {
-      var wt = Math.max(3, cleanForWeight(words[w]).length);
+      var wt = getWordCadenceWeight(words[w]);
       weights.push(wt);
       totalWeight += wt;
     }
 
-    // مکث ملایم پایان مصرع (حداکثر ۴۰۰ میلی‌ثانیه یا ۶٪ مدت مصرع)
-    var pauseMs = (vDuration >= 2000)
-      ? Math.min(400, Math.max(100, vDuration * 0.06))
-      : 0;
-    var speechDuration = Math.max(400, vDuration - pauseMs);
+    // مکث ملایم آغاز مصرع (تنفس و ورود به مصرع) و مکث ملایم پایان مصرع (سکت عروضی)
+    var leadIn = Math.min(250, Math.max(80, vDuration * 0.035));
+    var tailPause = Math.min(450, Math.max(150, vDuration * 0.065));
+    var speechDuration = Math.max(400, vDuration - leadIn - tailPause);
+    var timeInSpeech = elapsed - leadIn;
 
-    if (elapsed >= speechDuration) {
-      // در بازهٔ کوتاه مکث انتهای مصرع، کلمهٔ آخر تا آغاز مصرع بعدی هایلایت می‌ماند
+    if (timeInSpeech <= 0) {
+      // در بازهٔ آغازین ورود به مصرع، کلمهٔ اول با آرامش فعال است
+      wordIndex = 0;
+    } else if (timeInSpeech >= speechDuration) {
+      // در بازهٔ مکث پایان مصرع، کلمهٔ پایانی تا شروع مصرع بعدی فعال می‌ماند
       wordIndex = words.length - 1;
     } else {
-      var ratio = Math.min(0.9999, Math.max(0, elapsed / speechDuration));
+      var ratio = Math.min(0.9999, Math.max(0, timeInSpeech / speechDuration));
       var targetWeight = ratio * totalWeight;
       var running = 0;
       for (var idx = 0; idx < words.length; idx++) {
@@ -129,6 +154,8 @@ export function findCoupletSyncPoint(
 
   for (var i = 0; i < points.length; i++) {
     var pt = points[i];
+    if (pt.verseOrder < 0) continue;
+
     var verse = (verses && pt.verseOrder >= 0 && pt.verseOrder < verses.length)
       ? verses[pt.verseOrder]
       : (verses ? verses.find(function (v) { return v.VOrder === pt.verseOrder || v.VOrder === pt.verseOrder + 1; }) : null);

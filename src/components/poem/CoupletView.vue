@@ -117,7 +117,7 @@
       >
         <span ref="rightLineRef" :class="singleLineFit ? 'whitespace-nowrap' : ''">
           <template v-for="(token, tIdx) in renderTokens(rightVerseText, 1)" :key="'r-' + tIdx">
-            <span class="inline rounded-sm transition-all duration-300 ease-in-out" :class="getWordHighlightClass(1, tIdx)">
+            <span class="inline rounded-md px-1 py-0 transition-all duration-700 ease-out" :class="getWordHighlightClass(1, tIdx)">
               <span
                 v-if="token.tag && showLiteraryTags"
                 class="literary-highlight"
@@ -146,7 +146,7 @@
       >
         <span ref="leftLineRef" :class="singleLineFit ? 'whitespace-nowrap' : ''">
           <template v-for="(token, tIdx) in renderTokens(leftVerseText, 2)" :key="'l-' + tIdx">
-            <span class="inline rounded-sm transition-all duration-300 ease-in-out" :class="getWordHighlightClass(2, tIdx)">
+            <span class="inline rounded-md px-1 py-0 transition-all duration-700 ease-out" :class="getWordHighlightClass(2, tIdx)">
               <span
                 v-if="token.tag && showLiteraryTags"
                 class="literary-highlight"
@@ -355,13 +355,37 @@ function cleanWord(raw: string): string {
 }
 
 function getWordHighlightClass(misraNumber: number, tokenIndex: number): string {
-  if (!props.isPlayingCouplet || props.activePlayingMisra !== misraNumber) {
-    return 'bg-transparent text-inherit ring-transparent';
+  if (
+    !props.isPlayingCouplet ||
+    props.activePlayingMisra !== misraNumber ||
+    props.activePlayingWordIndex === null ||
+    props.activePlayingWordIndex === undefined
+  ) {
+    return 'bg-transparent text-inherit shadow-none';
   }
-  if (props.wordHighlightEnabled && props.activePlayingWordIndex === tokenIndex) {
-    return 'font-bold text-brand-700 dark:text-brand-300 bg-brand-500/15 dark:bg-brand-400/20 px-0.5 py-0 ring-1 ring-brand-500/30';
+  if (!props.wordHighlightEnabled) {
+    return 'bg-transparent text-inherit shadow-none';
   }
-  return 'bg-transparent text-inherit ring-transparent';
+
+  var activeIdx = props.activePlayingWordIndex;
+  var diff = activeIdx - tokenIndex;
+
+  // ۱. کلمه در حال خوانده شدن (درخشش کامل بدون خط تیز کادر)
+  if (diff === 0) {
+    return 'font-extrabold text-brand-700 dark:text-brand-300 bg-brand-500/22 dark:bg-brand-400/26 shadow-[0_0_12px_rgba(217,119,6,0.30)] dark:shadow-[0_0_14px_rgba(251,191,36,0.28)]';
+  }
+
+  // ۲. رد کلمه قبلی (طیف پسین اول با ماندگاری نرم و محو)
+  if (diff === 1) {
+    return 'font-bold text-brand-700/85 dark:text-brand-300/85 bg-brand-500/12 dark:bg-brand-400/15 shadow-[0_0_8px_rgba(217,119,6,0.14)] dark:shadow-[0_0_10px_rgba(251,191,36,0.14)]';
+  }
+
+  // ۳. رد کلمه ماقبل قبلی (طیف پسین دوم در حال محو شدن کامل)
+  if (diff === 2) {
+    return 'font-semibold text-brand-700/55 dark:text-brand-300/55 bg-brand-500/6 dark:bg-brand-400/8 shadow-[0_0_5px_rgba(217,119,6,0.06)]';
+  }
+
+  return 'bg-transparent text-inherit shadow-none';
 }
 
 defineEmits([
