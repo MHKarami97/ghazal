@@ -13,65 +13,125 @@
   >
     <!-- نوار اقدام‌های سریع بیت (در حالت انتخاب یا Hover دسکتاپ) -->
     <div
-      class="transition-opacity absolute -top-3.5 left-4 flex items-center gap-1 bg-paper-light dark:bg-paper-dark px-2.5 py-1 rounded-full shadow-md border border-ink-200/80 dark:border-paper-border text-xs z-10"
+      class="absolute -top-4 left-2 sm:left-4 z-20 flex items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 rounded-2xl bg-paper-light/95 dark:bg-paper-surface/95 backdrop-blur-md border border-brand-500/25 dark:border-paper-border shadow-md shadow-brand-900/5 dark:shadow-ink-950/40 text-xs transition-all duration-200 ease-out"
       :class="[
         isSelected || (highlightMode !== 'none' && isPlayingCouplet)
-          ? 'opacity-100 pointer-events-auto'
-          : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100 pointer-events-none group-hover:pointer-events-auto'
+          ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto ring-1 ring-brand-500/20'
+          : 'opacity-0 scale-95 translate-y-1 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-0 group-hover:pointer-events-auto'
       ]"
     >
       <!-- دکمه پخش صوت از این بیت -->
-      <button
-        v-if="hasAudioSync"
-        @click.stop="$emit('play-from-couplet', coupletIndex)"
-        class="p-1 rounded-full hover:bg-brand-500/10 transition-colors"
-        :class="isPlayingCouplet ? 'text-amber-600 dark:text-amber-400 font-bold bg-amber-500/15' : 'text-brand-600 dark:text-brand-400'"
-        :title="isPlayingCouplet ? 'در حال پخش این بیت' : 'پخش صوت از این بیت'"
-      >
-        <Volume2 class="w-3.5 h-3.5" :class="{ 'animate-pulse': isPlayingCouplet }" />
-      </button>
+      <div v-if="hasAudioSync" class="relative group/btn flex items-center">
+        <button
+          type="button"
+          @click.stop="$emit('play-from-couplet', coupletIndex)"
+          class="flex items-center gap-1.5 p-2 sm:px-2.5 sm:py-1.5 rounded-xl transition-all duration-150 active:scale-95"
+          :class="isPlayingCouplet
+            ? 'text-brand-700 dark:text-brand-300 font-bold bg-brand-500/20 dark:bg-brand-500/25 ring-1 ring-brand-500/30'
+            : 'text-ink-600 dark:text-ink-300 hover:text-brand-700 dark:hover:text-brand-300 hover:bg-brand-500/10 dark:hover:bg-brand-500/15'"
+          :title="isPlayingCouplet ? 'در حال پخش این بیت' : 'پخش صوت از این بیت'"
+          :aria-label="isPlayingCouplet ? 'در حال پخش این بیت' : 'پخش صوت از این بیت'"
+        >
+          <Volume2 class="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" :class="{ 'animate-pulse text-brand-600': isPlayingCouplet }" />
+          <span class="hidden sm:inline text-[11px] font-medium leading-none">{{ isPlayingCouplet ? 'در حال پخش' : 'پخش' }}</span>
+        </button>
+        <span class="sm:hidden pointer-events-none absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-0.5 rounded-md bg-ink-900/90 dark:bg-paper-dark text-white dark:text-ink-100 text-[10px] font-medium shadow-md opacity-0 group-hover/btn:opacity-100 group-focus-within/btn:opacity-100 transition-opacity z-30">
+          {{ isPlayingCouplet ? 'در حال پخش' : 'پخش از این بیت' }}
+        </span>
+      </div>
 
-      <button
-        @click.stop="$emit('toggle-bookmark', coupletIndex)"
-        class="p-1 rounded-full hover:bg-ink-100 dark:hover:bg-paper-surface text-ink-600 dark:text-ink-400"
-        :class="{ 'text-amber-500 fill-amber-500': isBookmarked }"
-        title="نشانک‌گذاری بیت"
-      >
-        <Bookmark class="w-3.5 h-3.5" :class="{ 'fill-amber-500': isBookmarked }" />
-      </button>
+      <div v-if="hasAudioSync" class="w-px h-4 bg-ink-200/80 dark:bg-paper-border mx-0.5 shrink-0"></div>
 
-      <button
-        @click.stop="$emit('add-to-memorize', coupletIndex)"
-        class="p-1 rounded-full hover:bg-ink-100 dark:hover:bg-paper-surface transition-colors"
-        :class="isMemorized ? 'text-purple-600 dark:text-purple-400 bg-purple-500/15' : 'text-ink-600 dark:text-ink-400'"
-        :title="isMemorized ? 'حذف این بیت از جعبه حفظ' : 'افزودن این بیت به جعبه حفظ'"
-      >
-        <Brain class="w-3.5 h-3.5" :class="{ 'text-purple-600 dark:text-purple-400': isMemorized }" />
-      </button>
+      <!-- دکمه نشانک‌گذاری بیت -->
+      <div class="relative group/btn flex items-center">
+        <button
+          type="button"
+          @click.stop="$emit('toggle-bookmark', coupletIndex)"
+          class="flex items-center gap-1.5 p-2 sm:px-2.5 sm:py-1.5 rounded-xl transition-all duration-150 active:scale-95"
+          :class="isBookmarked
+            ? 'text-brand-700 dark:text-brand-300 font-semibold bg-brand-500/20 dark:bg-brand-500/25 ring-1 ring-brand-500/30'
+            : 'text-ink-600 dark:text-ink-300 hover:text-brand-700 dark:hover:text-brand-300 hover:bg-brand-500/10 dark:hover:bg-brand-500/15'"
+          :title="isBookmarked ? 'حذف از نشانک‌ها' : 'نشانک‌گذاری بیت'"
+          :aria-label="isBookmarked ? 'حذف از نشانک‌ها' : 'نشانک‌گذاری بیت'"
+        >
+          <Bookmark class="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" :class="{ 'fill-current': isBookmarked }" />
+          <span class="hidden sm:inline text-[11px] font-medium leading-none">{{ isBookmarked ? 'نشان‌شده' : 'نشانک' }}</span>
+        </button>
+        <span class="sm:hidden pointer-events-none absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-0.5 rounded-md bg-ink-900/90 dark:bg-paper-dark text-white dark:text-ink-100 text-[10px] font-medium shadow-md opacity-0 group-hover/btn:opacity-100 group-focus-within/btn:opacity-100 transition-opacity z-30">
+          {{ isBookmarked ? 'حذف نشانک' : 'نشانک‌گذاری' }}
+        </span>
+      </div>
 
-      <button
-        @click.stop="$emit('step-memorize', coupletIndex)"
-        class="p-1 rounded-full hover:bg-ink-100 dark:hover:bg-paper-surface text-ink-600 dark:text-ink-400"
-        title="تمرین و حفظ مرحله‌ای این بیت"
-      >
-        <Sparkles class="w-3.5 h-3.5 text-brand-600" />
-      </button>
+      <!-- دکمه جعبه حفظ بیت -->
+      <div class="relative group/btn flex items-center">
+        <button
+          type="button"
+          @click.stop="$emit('add-to-memorize', coupletIndex)"
+          class="flex items-center gap-1.5 p-2 sm:px-2.5 sm:py-1.5 rounded-xl transition-all duration-150 active:scale-95"
+          :class="isMemorized
+            ? 'text-brand-700 dark:text-brand-300 font-semibold bg-brand-500/20 dark:bg-brand-500/25 ring-1 ring-brand-500/30'
+            : 'text-ink-600 dark:text-ink-300 hover:text-brand-700 dark:hover:text-brand-300 hover:bg-brand-500/10 dark:hover:bg-brand-500/15'"
+          :title="isMemorized ? 'حذف از جعبه حفظ' : 'افزودن این بیت به جعبه حفظ'"
+          :aria-label="isMemorized ? 'حذف از جعبه حفظ' : 'افزودن این بیت به جعبه حفظ'"
+        >
+          <Brain class="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" />
+          <span class="hidden sm:inline text-[11px] font-medium leading-none">{{ isMemorized ? 'در حفظ' : 'حفظ' }}</span>
+        </button>
+        <span class="sm:hidden pointer-events-none absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-0.5 rounded-md bg-ink-900/90 dark:bg-paper-dark text-white dark:text-ink-100 text-[10px] font-medium shadow-md opacity-0 group-hover/btn:opacity-100 group-focus-within/btn:opacity-100 transition-opacity z-30">
+          {{ isMemorized ? 'حذف از حفظ' : 'افزودن به حفظ' }}
+        </span>
+      </div>
 
-      <button
-        @click.stop="$emit('add-to-collection', coupletIndex)"
-        class="p-1 rounded-full hover:bg-ink-100 dark:hover:bg-paper-surface text-ink-600 dark:text-ink-400"
-        title="افزودن به مجموعه‌های شخصی"
-      >
-        <FolderPlus class="w-3.5 h-3.5" />
-      </button>
+      <!-- دکمه تمرین مرحله‌ای حفظ -->
+      <div class="relative group/btn flex items-center">
+        <button
+          type="button"
+          @click.stop="$emit('step-memorize', coupletIndex)"
+          class="flex items-center gap-1.5 p-2 sm:px-2.5 sm:py-1.5 rounded-xl text-ink-600 dark:text-ink-300 hover:text-brand-700 dark:hover:text-brand-300 hover:bg-brand-500/10 dark:hover:bg-brand-500/15 transition-all duration-150 active:scale-95"
+          title="تمرین و حفظ مرحله‌ای این بیت"
+          aria-label="تمرین و حفظ مرحله‌ای این بیت"
+        >
+          <Sparkles class="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" />
+          <span class="hidden sm:inline text-[11px] font-medium leading-none">تمرین</span>
+        </button>
+        <span class="sm:hidden pointer-events-none absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-0.5 rounded-md bg-ink-900/90 dark:bg-paper-dark text-white dark:text-ink-100 text-[10px] font-medium shadow-md opacity-0 group-hover/btn:opacity-100 group-focus-within/btn:opacity-100 transition-opacity z-30">
+          تمرین حفظ بیت
+        </span>
+      </div>
 
-      <button
-        @click.stop="$emit('share-card', coupletIndex)"
-        class="p-1 rounded-full hover:bg-ink-100 dark:hover:bg-paper-surface text-ink-600 dark:text-ink-400"
-        title="اشتراک‌گذاری کارت تصویر"
-      >
-        <Share2 class="w-3.5 h-3.5" />
-      </button>
+      <!-- دکمه افزودن به مجموعه‌های شخصی -->
+      <div class="relative group/btn flex items-center">
+        <button
+          type="button"
+          @click.stop="$emit('add-to-collection', coupletIndex)"
+          class="flex items-center gap-1.5 p-2 sm:px-2.5 sm:py-1.5 rounded-xl text-ink-600 dark:text-ink-300 hover:text-brand-700 dark:hover:text-brand-300 hover:bg-brand-500/10 dark:hover:bg-brand-500/15 transition-all duration-150 active:scale-95"
+          title="افزودن این بیت به مجموعه‌ها"
+          aria-label="افزودن این بیت به مجموعه‌ها"
+        >
+          <FolderPlus class="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" />
+          <span class="hidden sm:inline text-[11px] font-medium leading-none">مجموعه</span>
+        </button>
+        <span class="sm:hidden pointer-events-none absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-0.5 rounded-md bg-ink-900/90 dark:bg-paper-dark text-white dark:text-ink-100 text-[10px] font-medium shadow-md opacity-0 group-hover/btn:opacity-100 group-focus-within/btn:opacity-100 transition-opacity z-30">
+          افزودن به مجموعه
+        </span>
+      </div>
+
+      <!-- دکمه اشتراک‌گذاری کارت تصویر بیت -->
+      <div class="relative group/btn flex items-center">
+        <button
+          type="button"
+          @click.stop="$emit('share-card', coupletIndex)"
+          class="flex items-center gap-1.5 p-2 sm:px-2.5 sm:py-1.5 rounded-xl text-ink-600 dark:text-ink-300 hover:text-brand-700 dark:hover:text-brand-300 hover:bg-brand-500/10 dark:hover:bg-brand-500/15 transition-all duration-150 active:scale-95"
+          title="اشتراک‌گذاری و خروجی کارت تصویر"
+          aria-label="اشتراک‌گذاری و خروجی کارت تصویر"
+        >
+          <Share2 class="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" />
+          <span class="hidden sm:inline text-[11px] font-medium leading-none">اشتراک</span>
+        </button>
+        <span class="sm:hidden pointer-events-none absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-0.5 rounded-md bg-ink-900/90 dark:bg-paper-dark text-white dark:text-ink-100 text-[10px] font-medium shadow-md opacity-0 group-hover/btn:opacity-100 group-focus-within/btn:opacity-100 transition-opacity z-30">
+          اشتراک کارت تصویر
+        </span>
+      </div>
     </div>
 
     <!-- شماره بیت و نمایش ابجد (در صورت فعال بودن) -->
