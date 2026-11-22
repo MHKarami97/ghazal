@@ -50,6 +50,10 @@ body {
     justify-content: center;
     margin-bottom: 1.5rem;
     line-height: 2.2;
+    width: 100%;
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   @media (min-width: 640px) {

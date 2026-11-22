@@ -179,7 +179,7 @@
       >
         <span ref="rightLineRef" :class="singleLineFit ? 'whitespace-nowrap' : ''">
           <template v-for="(token, tIdx) in renderTokens(rightVerseText, 1)" :key="'r-' + tIdx">
-            <span class="inline rounded-md px-1 py-0 transition-all duration-700 ease-out" :class="getWordHighlightClass(1, tIdx)">
+            <span class="inline rounded-md transition-all duration-700 ease-out" :class="getWordHighlightClass(1, tIdx)">
               <span
                 v-if="token.tag && showLiteraryTags"
                 class="literary-highlight"
@@ -188,7 +188,7 @@
                 :title="`آرایه ادبی (کد ${token.tag.DeviceId})`"
               >{{ token.word }}</span><span
                 v-else-if="wordClickEnabled && cleanWord(token.word)"
-                class="cursor-pointer hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-500/10 rounded px-0.5 transition-colors"
+                class="cursor-pointer hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-500/10 rounded transition-colors"
                 @click.stop="$emit('select-word', cleanWord(token.word))"
                 title="مشاهده معنی و جست‌وجوی واژه"
               >{{ token.word }}</span><span v-else>{{ token.word }}</span>
@@ -210,7 +210,7 @@
       >
         <span ref="leftLineRef" :class="singleLineFit ? 'whitespace-nowrap' : ''">
           <template v-for="(token, tIdx) in renderTokens(leftVerseText, 2)" :key="'l-' + tIdx">
-            <span class="inline rounded-md px-1 py-0 transition-all duration-700 ease-out" :class="getWordHighlightClass(2, tIdx)">
+            <span class="inline rounded-md transition-all duration-700 ease-out" :class="getWordHighlightClass(2, tIdx)">
               <span
                 v-if="token.tag && showLiteraryTags"
                 class="literary-highlight"
@@ -219,7 +219,7 @@
                 :title="`آرایه ادبی (کد ${token.tag.DeviceId})`"
               >{{ token.word }}</span><span
                 v-else-if="wordClickEnabled && cleanWord(token.word)"
-                class="cursor-pointer hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-500/10 rounded px-0.5 transition-colors"
+                class="cursor-pointer hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-500/10 rounded transition-colors"
                 @click.stop="$emit('select-word', cleanWord(token.word))"
                 title="مشاهده معنی و جست‌وجوی واژه"
               >{{ token.word }}</span><span v-else>{{ token.word }}</span>
@@ -320,19 +320,26 @@ function fitCoupletFont() {
   if (availableWidth <= 0) return;
 
   var baseSize = props.fontSize;
-  var minSize = Math.max(12, Math.round(baseSize * 0.72));
+  var minSize = Math.max(12, Math.round(baseSize * 0.65));
+
+  var isDesktopWide = availableWidth >= 640;
+  var gap = availableWidth >= 1024 ? 28 : (availableWidth >= 640 ? 20 : 0);
+  var maxTargetWidth = isDesktopWide ? Math.floor((availableWidth - gap) / 2) - 8 : (availableWidth - 16);
 
   var rWidth = measureLineWidth(rEl);
   var lWidth = measureLineWidth(lEl);
   var maxMisraWidth = Math.max(rWidth, lWidth);
 
-  var isDesktopWide = availableWidth >= 640;
-  var maxTargetWidth = isDesktopWide ? (availableWidth * 0.48) : (availableWidth - 16);
+  var currentSize = effectiveFontSize.value || baseSize;
 
   if (maxMisraWidth > maxTargetWidth && maxMisraWidth > 0) {
     var ratio = maxTargetWidth / maxMisraWidth;
-    var targetSize = Math.floor(baseSize * ratio);
+    var targetSize = Math.floor(currentSize * ratio);
     effectiveFontSize.value = Math.max(minSize, Math.min(baseSize, targetSize));
+  } else if (maxMisraWidth < maxTargetWidth * 0.85 && currentSize < baseSize) {
+    var upscaleRatio = maxTargetWidth / maxMisraWidth;
+    var recoveredSize = Math.min(baseSize, Math.floor(currentSize * Math.min(upscaleRatio, 1.15)));
+    effectiveFontSize.value = Math.max(minSize, recoveredSize);
   } else {
     effectiveFontSize.value = baseSize;
   }
@@ -439,17 +446,17 @@ function getWordHighlightClass(misraNumber: number, tokenIndex: number): string 
 
   // ۱. کلمه در حال خوانده شدن (درخشش کامل بدون خط تیز کادر)
   if (diff === 0) {
-    return 'font-extrabold text-brand-700 dark:text-brand-300 bg-brand-500/22 dark:bg-brand-400/26 shadow-[0_0_12px_rgba(217,119,6,0.30)] dark:shadow-[0_0_14px_rgba(251,191,36,0.28)]';
+    return 'font-extrabold text-brand-700 dark:text-brand-300 bg-brand-500/22 dark:bg-brand-400/26 px-1 py-0.5 rounded shadow-[0_0_12px_rgba(217,119,6,0.30)] dark:shadow-[0_0_14px_rgba(251,191,36,0.28)]';
   }
 
   // ۲. رد کلمه قبلی (طیف پسین اول با ماندگاری نرم و محو)
   if (diff === 1) {
-    return 'font-bold text-brand-700/85 dark:text-brand-300/85 bg-brand-500/12 dark:bg-brand-400/15 shadow-[0_0_8px_rgba(217,119,6,0.14)] dark:shadow-[0_0_10px_rgba(251,191,36,0.14)]';
+    return 'font-bold text-brand-700/85 dark:text-brand-300/85 bg-brand-500/12 dark:bg-brand-400/15 px-1 py-0.5 rounded shadow-[0_0_8px_rgba(217,119,6,0.14)] dark:shadow-[0_0_10px_rgba(251,191,36,0.14)]';
   }
 
   // ۳. رد کلمه ماقبل قبلی (طیف پسین دوم در حال محو شدن کامل)
   if (diff === 2) {
-    return 'font-semibold text-brand-700/55 dark:text-brand-300/55 bg-brand-500/6 dark:bg-brand-400/8 shadow-[0_0_5px_rgba(217,119,6,0.06)]';
+    return 'font-semibold text-brand-700/55 dark:text-brand-300/55 bg-brand-500/6 dark:bg-brand-400/8 px-0.5 py-0.5 rounded shadow-[0_0_5px_rgba(217,119,6,0.06)]';
   }
 
   return 'bg-transparent text-inherit shadow-none';
