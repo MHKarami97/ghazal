@@ -5,6 +5,7 @@ import { getPoemFontOption, preloadPoemFont, preloadAllPoemFonts, type PoemFontI
 export type ThemeMode = 'light' | 'dark' | 'system';
 
 export type PoemCollapsibleSectionKey =
+  | 'audioPlayer'
   | 'summary'
   | 'vocabulary'
   | 'quotations'
@@ -21,6 +22,7 @@ export interface CollapsibleSectionMeta {
 }
 
 export var COLLAPSIBLE_SECTIONS_META: CollapsibleSectionMeta[] = [
+  { key: 'audioPlayer', label: 'نوار پخش صوت و خوانش شعر', group: 'poem' },
   { key: 'summary', label: 'خلاصه شعر', group: 'poem' },
   { key: 'vocabulary', label: 'واژگان و بسامد کلمات این شعر', group: 'poem' },
   { key: 'quotations', label: 'نقل‌قول‌ها، استقبال‌ها و تضمین‌ها', group: 'poem' },
@@ -35,6 +37,7 @@ var COLLAPSED_SECTIONS_KEY = 'ghazal-collapsed-sections';
 
 function loadCollapsedSections(): Record<PoemCollapsibleSectionKey, boolean> {
   var defaults: Record<PoemCollapsibleSectionKey, boolean> = {
+    audioPlayer: false,
     summary: false,
     vocabulary: false,
     quotations: false,
@@ -76,6 +79,7 @@ export const useAppStore = defineStore('app', () => {
     return getPoemFontOption(poemFont.value).cssFamily;
   });
   var readingMode = ref<boolean>(false);
+  var showAudioPlayer = ref<boolean>(localStorage.getItem('ghazal-show-audio') !== 'false');
   var showLiteraryTags = ref<boolean>(localStorage.getItem('ghazal-show-literary') !== 'false');
   var showCoupletSummary = ref<boolean>(localStorage.getItem('ghazal-show-summary') !== 'false');
   var showDiacritics = ref<boolean>(localStorage.getItem('ghazal-show-diacritics') !== 'false');
@@ -167,6 +171,10 @@ export const useAppStore = defineStore('app', () => {
     localStorage.setItem('ghazal-line-height', String(newHeight));
   });
 
+  watch(showAudioPlayer, function (val) {
+    localStorage.setItem('ghazal-show-audio', String(val));
+  });
+
   watch(showLiteraryTags, function (val) {
     localStorage.setItem('ghazal-show-literary', String(val));
   });
@@ -207,6 +215,7 @@ export const useAppStore = defineStore('app', () => {
     poemFont,
     poemFontFamily,
     readingMode,
+    showAudioPlayer,
     showLiteraryTags,
     showCoupletSummary,
     showDiacritics,

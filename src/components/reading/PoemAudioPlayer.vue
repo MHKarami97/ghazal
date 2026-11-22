@@ -1,14 +1,17 @@
 <template>
   <div v-if="recitations && recitations.length > 0" class="my-4 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-brand-500/10 to-paper-warm/70 dark:to-paper-surface border border-brand-500/30 shadow-xs transition-all">
-    <!-- سربرگ و سوئیچ خوانش / شرح صوتی -->
-    <div class="flex flex-wrap items-center justify-between gap-2.5 mb-3">
-      <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-xl bg-brand-600 text-white flex items-center justify-center shadow-xs shrink-0">
+    <!-- ۱. حالت فشرده و کوچک نوار خوانش صوت (Collapsed) -->
+    <div v-if="isCollapsed" class="flex items-center justify-between gap-3">
+      <div
+        class="flex items-center gap-2.5 min-w-0 cursor-pointer flex-1 group"
+        @click="appStore.toggleSectionCollapsed('audioPlayer')"
+      >
+        <div class="w-8 h-8 rounded-xl bg-brand-600 text-white flex items-center justify-center shadow-xs shrink-0 group-hover:scale-105 transition-transform">
           <Headphones class="w-4 h-4" :class="{ 'animate-pulse': isPlaying }" />
         </div>
-        <div>
+        <div class="min-w-0">
           <div class="flex items-center gap-1.5">
-            <span class="text-xs font-bold text-ink-900 dark:text-ink-50">
+            <span class="text-xs font-bold text-ink-900 dark:text-ink-50 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
               {{ activeAudioTab === 'commentary' ? 'شرح صوتی و تفسیر' : 'خوانش و دکلمه صوتی' }}
             </span>
             <span
@@ -17,35 +20,108 @@
               title="همگامی هوشمند بیت به بیت و کلمه به کلمه فعال است"
             >
               <Sparkles class="w-3 h-3 text-amber-500" />
-              همگام با متن
+              همگام
+            </span>
+            <span
+              v-if="isPlaying"
+              class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-brand-500/15 text-brand-700 dark:text-brand-300 font-bold animate-pulse"
+            >
+              در حال پخش...
             </span>
           </div>
-          <div v-if="activeRecitation" class="text-[11px] text-ink-500">
-            با صدای: <strong class="text-brand-700 dark:text-brand-400">{{ activeRecitation?.audioArtist || 'نامشخص' }}</strong>
+          <div v-if="activeRecitation" class="text-[11px] text-ink-500 truncate">
+            با صدای: <strong class="text-brand-700 dark:text-brand-400 font-bold">{{ activeRecitation?.audioArtist || 'نامشخص' }}</strong>
           </div>
         </div>
       </div>
 
-      <!-- تب تغییر بین خوانش‌ها و شرح‌های صوتی -->
-      <div class="flex items-center p-0.5 rounded-xl bg-paper-light/80 dark:bg-paper-dark border border-ink-200/70 dark:border-paper-border text-[11px]">
+      <div class="flex items-center gap-2 shrink-0">
+        <!-- دکمه مینی پخش / توقف در حالت فشرده -->
         <button
+          v-if="currentTabList.length > 0"
           type="button"
-          @click="activeAudioTab = 'normal'"
-          class="px-2.5 py-1 rounded-lg font-bold transition-all whitespace-nowrap"
-          :class="activeAudioTab === 'normal' ? 'bg-brand-600 text-white shadow-xs' : 'text-ink-600 dark:text-ink-400 hover:text-ink-900'"
+          @click.stop="togglePlay"
+          class="w-8 h-8 rounded-xl bg-brand-600 hover:bg-brand-700 active:scale-95 text-white flex items-center justify-center shadow-xs transition-all"
+          :title="isPlaying ? 'توقف پخش' : 'پخش دکلمه'"
         >
-          خوانش ({{ toPersianDigits(normalRecitations.length) }})
+          <Loader2 v-if="isLoadingAudio" class="w-3.5 h-3.5 animate-spin" />
+          <Pause v-else-if="isPlaying" class="w-3.5 h-3.5" />
+          <Play v-else class="w-3.5 h-3.5 translate-x-[-1px]" />
         </button>
+
+        <!-- دکمه باز کردن پنل کامل -->
         <button
           type="button"
-          @click="activeAudioTab = 'commentary'"
-          class="px-2.5 py-1 rounded-lg font-bold transition-all whitespace-nowrap"
-          :class="activeAudioTab === 'commentary' ? 'bg-brand-600 text-white shadow-xs' : 'text-ink-600 dark:text-ink-400 hover:text-ink-900'"
+          @click="appStore.toggleSectionCollapsed('audioPlayer')"
+          class="p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl border border-ink-200/80 dark:border-paper-border bg-paper-light dark:bg-paper-dark hover:bg-brand-500/10 hover:border-brand-500/40 text-ink-700 dark:text-ink-200 hover:text-brand-600 transition-colors flex items-center gap-1 text-xs font-bold shadow-2xs"
+          title="باز کردن پنل کامل خوانش صوت"
         >
-          شرح‌های صوتی ({{ toPersianDigits(commentaryRecitations.length) }})
+          <span class="hidden sm:inline text-[11px]">باز کردن</span>
+          <ChevronDown class="w-4 h-4 text-brand-600" />
         </button>
       </div>
     </div>
+
+    <!-- ۲. حالت کامل و گسترده نوار خوانش صوت (Expanded) -->
+    <template v-else>
+      <!-- سربرگ و سوئیچ خوانش / شرح صوتی -->
+      <div class="flex flex-wrap items-center justify-between gap-2.5 mb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-brand-600 text-white flex items-center justify-center shadow-xs shrink-0">
+            <Headphones class="w-4 h-4" :class="{ 'animate-pulse': isPlaying }" />
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-xs font-bold text-ink-900 dark:text-ink-50">
+                {{ activeAudioTab === 'commentary' ? 'شرح صوتی و تفسیر' : 'خوانش و دکلمه صوتی' }}
+              </span>
+              <span
+                v-if="hasSyncData"
+                class="hidden sm:inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-bold"
+                title="همگامی هوشمند بیت به بیت و کلمه به کلمه فعال است"
+              >
+                <Sparkles class="w-3 h-3 text-amber-500" />
+                همگام با متن
+              </span>
+            </div>
+            <div v-if="activeRecitation" class="text-[11px] text-ink-500">
+              با صدای: <strong class="text-brand-700 dark:text-brand-400">{{ activeRecitation?.audioArtist || 'نامشخص' }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- تب تغییر بین خوانش‌ها و شرح‌های صوتی -->
+          <div class="flex items-center p-0.5 rounded-xl bg-paper-light/80 dark:bg-paper-dark border border-ink-200/70 dark:border-paper-border text-[11px]">
+            <button
+              type="button"
+              @click="activeAudioTab = 'normal'"
+              class="px-2.5 py-1 rounded-lg font-bold transition-all whitespace-nowrap"
+              :class="activeAudioTab === 'normal' ? 'bg-brand-600 text-white shadow-xs' : 'text-ink-600 dark:text-ink-400 hover:text-ink-900'"
+            >
+              خوانش ({{ toPersianDigits(normalRecitations.length) }})
+            </button>
+            <button
+              type="button"
+              @click="activeAudioTab = 'commentary'"
+              class="px-2.5 py-1 rounded-lg font-bold transition-all whitespace-nowrap"
+              :class="activeAudioTab === 'commentary' ? 'bg-brand-600 text-white shadow-xs' : 'text-ink-600 dark:text-ink-400 hover:text-ink-900'"
+            >
+              شرح‌های صوتی ({{ toPersianDigits(commentaryRecitations.length) }})
+            </button>
+          </div>
+
+          <!-- دکمه بستن و کوچک کردن نوار -->
+          <button
+            type="button"
+            @click="appStore.toggleSectionCollapsed('audioPlayer')"
+            class="p-1.5 rounded-xl border border-ink-200/80 dark:border-paper-border bg-paper-light/90 dark:bg-paper-dark hover:bg-brand-500/10 hover:border-brand-500/40 text-ink-600 dark:text-ink-300 hover:text-brand-600 transition-colors shadow-2xs shrink-0"
+            title="بستن و کوچک کردن نوار خوانش صوت"
+          >
+            <ChevronUp class="w-4 h-4" />
+          </button>
+        </div>
+      </div>
 
     <!-- انتخاب خوانشگر / شارح در صورت تعدد -->
     <div v-if="currentTabList.length > 1" class="flex items-center gap-1.5 text-xs mb-3">
@@ -220,6 +296,7 @@
         </div>
       </div>
     </div>
+  </template>
 
     <!-- خطای پخش صوت -->
     <div
@@ -251,6 +328,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onBeforeUnmount } from 'vue';
 import { isCommentaryRecitation, recitationService, type PoemRecitation, type RecitationSyncPoint } from '../../services/RecitationService';
+import { useAppStore } from '../../stores/appStore';
 import { useReadingStore } from '../../stores/readingStore';
 import { calculateAudioPosition, findCoupletSyncPoint, type ActiveAudioPosition } from '../../utils/audioSync';
 import { toPersianDigits } from '../../utils/persianNormalizer';
@@ -267,14 +345,21 @@ import {
   Sparkles,
   Highlighter,
   Navigation,
-  Info
+  Info,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-vue-next';
 
 var props = defineProps<{
   recitations: PoemRecitation[];
 }>();
 
+var appStore = useAppStore();
 var readingStore = useReadingStore();
+
+var isCollapsed = computed(function () {
+  return appStore.isSectionCollapsed('audioPlayer');
+});
 
 var audioElement = ref<HTMLAudioElement | null>(null);
 var activeAudioTab = ref<'normal' | 'commentary'>('normal');

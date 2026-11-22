@@ -144,6 +144,31 @@
         </button>
       </div>
 
+      <!-- نمایش بخش پخش صوت و دکلمه -->
+      <div class="flex items-center justify-between gap-3 pt-3 border-t border-ink-200/60 dark:border-paper-border text-xs">
+        <div class="min-w-0">
+          <span class="font-bold text-ink-800 dark:text-ink-200 flex items-center gap-1.5">
+            <Headphones class="w-3.5 h-3.5 text-brand-600" />
+            <span>نمایش نوار پخش صوت و دکلمه در بالای شعر</span>
+          </span>
+          <span class="text-[11px] text-ink-500 block mt-0.5 leading-relaxed">
+            امکان شنیدن خوانش‌های صوتی گنجور و همگام‌سازی کلمه به کلمه متن با صدا
+          </span>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          :aria-checked="appStore.showAudioPlayer"
+          @click="appStore.showAudioPlayer = !appStore.showAudioPlayer"
+          class="px-3.5 py-1.5 rounded-xl font-bold transition-all shrink-0 border"
+          :class="appStore.showAudioPlayer
+            ? 'bg-emerald-600 border-emerald-600 text-white shadow-2xs'
+            : 'bg-paper-warm dark:bg-paper-dark border-ink-200 dark:border-paper-border text-ink-600 dark:text-ink-300'"
+        >
+          {{ appStore.showAudioPlayer ? 'فعال ✓' : 'غیرفعال' }}
+        </button>
+      </div>
+
       <!-- وضعیت باز یا بسته بودن بخش‌های صفحه شعر و منوی تحلیل -->
       <div class="pt-4 border-t border-ink-200/60 dark:border-paper-border space-y-3 text-xs">
         <div class="flex flex-wrap items-center justify-between gap-2">
@@ -636,7 +661,8 @@ import {
   BookOpen,
   Type,
   Calculator,
-  LayoutList
+  LayoutList,
+  Headphones
 } from 'lucide-vue-next';
 
 var appStore = useAppStore();

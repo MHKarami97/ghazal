@@ -66,7 +66,7 @@
           </div>
 
           <!-- نوار پخش صوت و دکلمه گنجور -->
-          <PoemAudioPlayer v-if="recitations.length > 0" :recitations="recitations" />
+          <PoemAudioPlayer v-if="appStore.showAudioPlayer && recitations.length > 0" :recitations="recitations" />
 
           <!-- نوار ابزار تنظیمات مطالعه -->
           <ReaderToolbar @toggle-literary-panel="showMobileLiterary = !showMobileLiterary" />
@@ -463,7 +463,7 @@
 
 <script setup lang="ts">
 import EmptyState from '../components/common/EmptyState.vue';
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAppStore } from '../stores/appStore';
 import { useReadingStore } from '../stores/readingStore';
@@ -596,11 +596,26 @@ var poemVocabulary = computed(function () {
   return analyzePoemVocabulary(readingStore.currentPoem?.Verses || []);
 });
 
+function onDocumentClick(e: MouseEvent) {
+  if (readingStore.activeCoupletIndex === null) return;
+  var target = e.target as HTMLElement | null;
+  if (!target) return;
+  if (target.closest('[data-couplet-view]')) {
+    return;
+  }
+  readingStore.selectCouplet(null);
+}
+
 onMounted(async function () {
+  window.addEventListener('click', onDocumentClick);
   literaryStore.loadBaseMeta().catch(function (err) {
     console.warn('Base meta load failed:', err);
   });
   await loadPoem();
+});
+
+onBeforeUnmount(function () {
+  window.removeEventListener('click', onDocumentClick);
 });
 
 watch(() => route.params, loadPoem);
@@ -773,7 +788,11 @@ function onDisableWordClick() {
 }
 
 function onSelectCouplet(index: number) {
-  readingStore.selectCouplet(index);
+  if (readingStore.activeCoupletIndex === index) {
+    readingStore.selectCouplet(null);
+  } else {
+    readingStore.selectCouplet(index);
+  }
 }
 
 function onPlayFromCouplet(coupletIndex: number) {

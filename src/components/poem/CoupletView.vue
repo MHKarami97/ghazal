@@ -1,5 +1,6 @@
 <template>
   <div
+    data-couplet-view
     class="group relative px-2 sm:px-4 rounded-2xl transition-all duration-200"
     :class="[
       isCompact ? 'py-1.5 sm:py-2' : 'py-3 sm:py-4',
