@@ -80,6 +80,7 @@ export const useAppStore = defineStore('app', () => {
   });
   var readingMode = ref<boolean>(false);
   var showAudioPlayer = ref<boolean>(localStorage.getItem('ghazal-show-audio') !== 'false');
+  var showCoupletQuickActions = ref<boolean>(localStorage.getItem('ghazal-show-couplet-actions') !== 'false');
   var showLiteraryTags = ref<boolean>(localStorage.getItem('ghazal-show-literary') !== 'false');
   var showCoupletSummary = ref<boolean>(localStorage.getItem('ghazal-show-summary') !== 'false');
   var showDiacritics = ref<boolean>(localStorage.getItem('ghazal-show-diacritics') !== 'false');
@@ -175,6 +176,10 @@ export const useAppStore = defineStore('app', () => {
     localStorage.setItem('ghazal-show-audio', String(val));
   });
 
+  watch(showCoupletQuickActions, function (val) {
+    localStorage.setItem('ghazal-show-couplet-actions', String(val));
+  });
+
   watch(showLiteraryTags, function (val) {
     localStorage.setItem('ghazal-show-literary', String(val));
   });
@@ -216,6 +221,7 @@ export const useAppStore = defineStore('app', () => {
     poemFontFamily,
     readingMode,
     showAudioPlayer,
+    showCoupletQuickActions,
     showLiteraryTags,
     showCoupletSummary,
     showDiacritics,

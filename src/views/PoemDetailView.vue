@@ -173,6 +173,7 @@
               :show-summary="appStore.showCoupletSummary && !appStore.readingMode"
               :show-diacritics="appStore.showDiacritics"
               :show-abjad="appStore.showAbjad && !appStore.readingMode"
+              :show-quick-actions="appStore.showCoupletQuickActions"
               :word-click-enabled="appStore.wordClickEnabled"
               :is-playing-couplet="readingStore.isAudioPlaying && readingStore.activeAudioCoupletIndex === pair.coupletIndex"
               :active-playing-misra="readingStore.activeAudioCoupletIndex === pair.coupletIndex ? readingStore.activeAudioMisra : null"

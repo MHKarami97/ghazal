@@ -1,22 +1,23 @@
 <template>
   <div v-if="recitations && recitations.length > 0" class="my-4 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-brand-500/10 to-paper-warm/70 dark:to-paper-surface border border-brand-500/30 shadow-xs transition-all">
     <!-- ۱. حالت فشرده و کوچک نوار خوانش صوت (Collapsed) -->
-    <div v-if="isCollapsed" class="flex items-center justify-between gap-3">
+    <div v-if="isCollapsed" class="flex items-center justify-between gap-2.5 sm:gap-3">
       <div
-        class="flex items-center gap-2.5 min-w-0 cursor-pointer flex-1 group"
+        class="flex items-center gap-2 sm:gap-2.5 min-w-0 cursor-pointer flex-1 group"
         @click="appStore.toggleSectionCollapsed('audioPlayer')"
       >
         <div class="w-8 h-8 rounded-xl bg-brand-600 text-white flex items-center justify-center shadow-xs shrink-0 group-hover:scale-105 transition-transform">
           <Headphones class="w-4 h-4" :class="{ 'animate-pulse': isPlaying }" />
         </div>
-        <div class="min-w-0">
+        <div class="min-w-0 flex-1">
           <div class="flex items-center gap-1.5">
-            <span class="text-xs font-bold text-ink-900 dark:text-ink-50 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
-              {{ activeAudioTab === 'commentary' ? 'شرح صوتی و تفسیر' : 'خوانش و دکلمه صوتی' }}
+            <span class="text-xs font-bold text-ink-900 dark:text-ink-50 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors truncate">
+              <span class="hidden sm:inline">{{ activeAudioTab === 'commentary' ? 'شرح صوتی و تفسیر' : 'خوانش و دکلمه صوتی' }}</span>
+              <span class="sm:hidden">{{ activeAudioTab === 'commentary' ? 'شرح صوتی' : 'خوانش صوتی' }}</span>
             </span>
             <span
               v-if="hasSyncData"
-              class="hidden sm:inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-bold"
+              class="hidden sm:inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-bold shrink-0"
               title="همگامی هوشمند بیت به بیت و کلمه به کلمه فعال است"
             >
               <Sparkles class="w-3 h-3 text-amber-500" />
@@ -24,9 +25,9 @@
             </span>
             <span
               v-if="isPlaying"
-              class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-brand-500/15 text-brand-700 dark:text-brand-300 font-bold animate-pulse"
+              class="inline-flex items-center gap-1 text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full bg-brand-500/15 text-brand-700 dark:text-brand-300 font-bold animate-pulse shrink-0"
             >
-              در حال پخش...
+              پخش...
             </span>
           </div>
           <div v-if="activeRecitation" class="text-[11px] text-ink-500 truncate">
@@ -35,7 +36,7 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-2 shrink-0">
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
         <!-- دکمه مینی پخش / توقف در حالت فشرده -->
         <button
           v-if="currentTabList.length > 0"
@@ -65,38 +66,42 @@
     <!-- ۲. حالت کامل و گسترده نوار خوانش صوت (Expanded) -->
     <template v-else>
       <!-- سربرگ و سوئیچ خوانش / شرح صوتی -->
-      <div class="flex flex-wrap items-center justify-between gap-2.5 mb-3">
-        <div class="flex items-center gap-2">
+      <div class="flex items-center justify-between gap-2 mb-3">
+        <div class="flex items-center gap-2 min-w-0">
           <div class="w-8 h-8 rounded-xl bg-brand-600 text-white flex items-center justify-center shadow-xs shrink-0">
             <Headphones class="w-4 h-4" :class="{ 'animate-pulse': isPlaying }" />
           </div>
-          <div>
+          <div class="min-w-0">
             <div class="flex items-center gap-1.5">
-              <span class="text-xs font-bold text-ink-900 dark:text-ink-50">
-                {{ activeAudioTab === 'commentary' ? 'شرح صوتی و تفسیر' : 'خوانش و دکلمه صوتی' }}
+              <span class="text-xs font-bold text-ink-900 dark:text-ink-50 truncate">
+                <span class="hidden sm:inline">{{ activeAudioTab === 'commentary' ? 'شرح صوتی و تفسیر' : 'خوانش و دکلمه صوتی' }}</span>
+                <span class="sm:hidden">{{ activeAudioTab === 'commentary' ? 'شرح صوتی' : 'خوانش صوتی' }}</span>
               </span>
               <span
                 v-if="hasSyncData"
-                class="hidden sm:inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-bold"
+                class="hidden md:inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-bold shrink-0"
                 title="همگامی هوشمند بیت به بیت و کلمه به کلمه فعال است"
               >
                 <Sparkles class="w-3 h-3 text-amber-500" />
                 همگام با متن
               </span>
             </div>
-            <div v-if="activeRecitation" class="text-[11px] text-ink-500">
+            <div v-if="activeRecitation" class="text-[11px] text-ink-500 truncate">
               با صدای: <strong class="text-brand-700 dark:text-brand-400">{{ activeRecitation?.audioArtist || 'نامشخص' }}</strong>
             </div>
           </div>
         </div>
 
-        <div class="flex items-center gap-2">
-          <!-- تب تغییر بین خوانش‌ها و شرح‌های صوتی -->
-          <div class="flex items-center p-0.5 rounded-xl bg-paper-light/80 dark:bg-paper-dark border border-ink-200/70 dark:border-paper-border text-[11px]">
+        <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <!-- تب تغییر بین خوانش‌ها و شرح‌های صوتی (فقط اگر هر دو نوع وجود داشتند) -->
+          <div
+            v-if="commentaryRecitations.length > 0 && normalRecitations.length > 0"
+            class="flex items-center p-0.5 rounded-xl bg-paper-light/80 dark:bg-paper-dark border border-ink-200/70 dark:border-paper-border text-[11px]"
+          >
             <button
               type="button"
               @click="activeAudioTab = 'normal'"
-              class="px-2.5 py-1 rounded-lg font-bold transition-all whitespace-nowrap"
+              class="px-2 sm:px-2.5 py-1 rounded-lg font-bold transition-all whitespace-nowrap"
               :class="activeAudioTab === 'normal' ? 'bg-brand-600 text-white shadow-xs' : 'text-ink-600 dark:text-ink-400 hover:text-ink-900'"
             >
               خوانش ({{ toPersianDigits(normalRecitations.length) }})
@@ -104,10 +109,12 @@
             <button
               type="button"
               @click="activeAudioTab = 'commentary'"
-              class="px-2.5 py-1 rounded-lg font-bold transition-all whitespace-nowrap"
+              class="px-2 sm:px-2.5 py-1 rounded-lg font-bold transition-all whitespace-nowrap"
               :class="activeAudioTab === 'commentary' ? 'bg-brand-600 text-white shadow-xs' : 'text-ink-600 dark:text-ink-400 hover:text-ink-900'"
             >
-              شرح‌های صوتی ({{ toPersianDigits(commentaryRecitations.length) }})
+              <span class="hidden sm:inline">شرح‌های صوتی</span>
+              <span class="sm:hidden">شرح</span>
+              ({{ toPersianDigits(commentaryRecitations.length) }})
             </button>
           </div>
 
@@ -123,20 +130,20 @@
         </div>
       </div>
 
-    <!-- انتخاب خوانشگر / شارح در صورت تعدد -->
-    <div v-if="currentTabList.length > 1" class="flex items-center gap-1.5 text-xs mb-3">
-      <span class="text-ink-500 text-[11px] shrink-0">
-        {{ activeAudioTab === 'commentary' ? 'انتخاب شرح:' : 'تغییر راوی:' }}
-      </span>
-      <select
-        v-model="selectedRecitationId"
-        class="px-2.5 py-1 rounded-xl text-xs font-bold border border-ink-200/80 dark:border-paper-border bg-paper-light dark:bg-paper-dark text-ink-900 dark:text-ink-100 outline-hidden cursor-pointer max-w-[200px] sm:max-w-xs truncate"
-      >
-        <option v-for="r in currentTabList" :key="r.id" :value="r.id">
-          {{ r.audioArtist }} ({{ r.audioTitle }})
-        </option>
-      </select>
-    </div>
+      <!-- انتخاب خوانشگر / شارح در صورت تعدد -->
+      <div v-if="currentTabList.length > 1" class="flex items-center gap-1.5 text-xs mb-3">
+        <span class="text-ink-500 text-[11px] shrink-0">
+          {{ activeAudioTab === 'commentary' ? 'انتخاب شرح:' : 'تغییر راوی:' }}
+        </span>
+        <select
+          v-model="selectedRecitationId"
+          class="flex-1 sm:flex-initial px-2.5 py-1 rounded-xl text-xs font-bold border border-ink-200/80 dark:border-paper-border bg-paper-light dark:bg-paper-dark text-ink-900 dark:text-ink-100 outline-hidden cursor-pointer max-w-full sm:max-w-xs truncate"
+        >
+          <option v-for="r in currentTabList" :key="r.id" :value="r.id">
+            {{ r.audioArtist }} ({{ r.audioTitle }})
+          </option>
+        </select>
+      </div>
 
     <!-- پیام در صورت خالی بودن تب فعلی -->
     <div
@@ -231,54 +238,60 @@
       </div>
 
       <!-- نوار وضعیت همگامی متن، پیمایش خودکار و بولد کلمه به کلمه -->
-      <div class="flex flex-wrap items-center justify-between gap-2 pt-2.5 mt-2 border-t border-brand-500/20 text-[11px]">
-        <div class="flex items-center gap-1.5">
-          <template v-if="isLoadingSync">
-            <Loader2 class="w-3.5 h-3.5 animate-spin text-brand-600" />
-            <span class="text-ink-500 text-[11px]">در حال دریافت داده‌های همگامی متن...</span>
-          </template>
-          <template v-else-if="hasSyncData">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span class="font-bold text-emerald-800 dark:text-emerald-300">
-              {{ isPlaying && activePosition ? `در حال خوانش: بیت ${toPersianDigits(activePosition.coupletIndex + 1)} (${activePosition.misra === 1 ? 'مصرع اول' : 'مصرع دوم'})` : 'همگام با متن فعال است' }}
-            </span>
-          </template>
-          <template v-else>
-            <Info class="w-3.5 h-3.5 text-ink-400" />
-            <span class="text-ink-500">فاقد داده همگامی متنی در گنجور</span>
-          </template>
+      <div class="pt-2.5 mt-2 border-t border-brand-500/20 text-[11px] space-y-2">
+        <!-- وضعیت همگامی -->
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <template v-if="isLoadingSync">
+              <Loader2 class="w-3.5 h-3.5 animate-spin text-brand-600 shrink-0" />
+              <span class="text-ink-500 text-[11px] truncate">در حال دریافت داده‌های همگامی متن...</span>
+            </template>
+            <template v-else-if="hasSyncData">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+              <span class="font-bold text-emerald-800 dark:text-emerald-300 truncate">
+                {{ isPlaying && activePosition ? `در حال خوانش: بیت ${toPersianDigits(activePosition.coupletIndex + 1)} (${activePosition.misra === 1 ? 'مصرع اول' : 'مصرع دوم'})` : 'همگام با متن فعال است' }}
+              </span>
+            </template>
+            <template v-else>
+              <Info class="w-3.5 h-3.5 text-ink-400 shrink-0" />
+              <span class="text-ink-500 truncate">فاقد داده همگامی متنی در گنجور</span>
+            </template>
+          </div>
         </div>
 
         <!-- کنترل‌های تنظیمات همگامی -->
-        <div v-if="hasSyncData" class="flex flex-wrap items-center gap-2">
+        <div v-if="hasSyncData" class="flex items-center justify-between gap-2">
           <!-- انتخاب حالت هایلایت: کلمه به کلمه / مصرع به مصرع / بدون هایلایت -->
           <div class="flex items-center p-0.5 rounded-xl bg-paper-light dark:bg-paper-dark border border-ink-200/80 dark:border-paper-border text-[11px] shadow-2xs">
             <button
               type="button"
               @click="readingStore.setAudioHighlightMode('word')"
-              class="px-2 py-0.5 rounded-lg transition-all"
+              class="px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg transition-all"
               :class="readingStore.audioHighlightMode === 'word' ? 'bg-brand-600 text-white font-bold shadow-xs' : 'text-ink-600 dark:text-ink-400 hover:text-ink-900'"
               title="هایلایت کلمه به کلمه با رد ملایم"
             >
-              کلمه به کلمه
+              <span class="hidden sm:inline">کلمه به کلمه</span>
+              <span class="sm:hidden">کلمه</span>
             </button>
             <button
               type="button"
               @click="readingStore.setAudioHighlightMode('misra')"
-              class="px-2 py-0.5 rounded-lg transition-all"
+              class="px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg transition-all"
               :class="readingStore.audioHighlightMode === 'misra' ? 'bg-brand-600 text-white font-bold shadow-xs' : 'text-ink-600 dark:text-ink-400 hover:text-ink-900'"
               title="هایلایت کلی مصرع به مصرع"
             >
-              مصرع به مصرع
+              <span class="hidden sm:inline">مصرع به مصرع</span>
+              <span class="sm:hidden">مصرع</span>
             </button>
             <button
               type="button"
               @click="readingStore.setAudioHighlightMode('none')"
-              class="px-2 py-0.5 rounded-lg transition-all"
+              class="px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg transition-all"
               :class="readingStore.audioHighlightMode === 'none' ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300 font-bold' : 'text-ink-400 hover:text-ink-700'"
               title="غیرفعال کردن هرگونه هایلایت روی متن"
             >
-              بدون هایلایت
+              <span class="hidden sm:inline">بدون هایلایت</span>
+              <span class="sm:hidden">خاموش</span>
             </button>
           </div>
 
@@ -286,12 +299,13 @@
           <button
             type="button"
             @click="readingStore.toggleAutoScrollAudio()"
-            class="px-2.5 py-1 rounded-xl border text-[11px] font-medium transition-colors flex items-center gap-1 shadow-2xs"
+            class="px-2 sm:px-2.5 py-1 rounded-xl border text-[11px] font-medium transition-colors flex items-center gap-1 shadow-2xs shrink-0"
             :class="readingStore.autoScrollAudio ? 'bg-brand-500/15 border-brand-500/40 text-brand-700 dark:text-brand-300 font-bold' : 'border-ink-200 dark:border-paper-border text-ink-500 hover:text-ink-800'"
             title="پیمایش خودکار صفحه همگام با ابیات"
           >
             <Navigation class="w-3 h-3" />
-            <span>پیمایش خودکار</span>
+            <span class="hidden sm:inline">پیمایش خودکار</span>
+            <span class="sm:hidden">پیمایش</span>
           </button>
         </div>
       </div>

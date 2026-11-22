@@ -10,15 +10,20 @@
           ? 'bg-brand-500/10 dark:bg-brand-500/15 ring-1 ring-brand-500/30'
           : 'hover:bg-ink-100/60 dark:hover:bg-paper-surface/50'
     ]"
-    @click="$emit('select-couplet', coupletIndex)"
+    @click="onCoupletClick"
+    @touchstart.passive="onTouchStart"
+    @touchmove.passive="onTouchMove"
+    @touchend.passive="onTouchEnd"
+    @touchcancel.passive="onTouchCancel"
   >
     <!-- نوار اقدام‌های سریع بیت (در حالت انتخاب یا Hover دسکتاپ) -->
     <div
+      v-if="showQuickActions"
       class="absolute -top-4 left-2 sm:left-4 z-20 flex items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 rounded-2xl bg-paper-light/95 dark:bg-paper-surface/95 backdrop-blur-md border border-brand-500/25 dark:border-paper-border shadow-md shadow-brand-900/5 dark:shadow-ink-950/40 text-xs transition-all duration-200 ease-out"
       :class="[
         isSelected || (highlightMode !== 'none' && isPlayingCouplet)
           ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto ring-1 ring-brand-500/20'
-          : 'opacity-0 scale-95 translate-y-1 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-0 group-hover:pointer-events-auto'
+          : 'opacity-0 scale-95 translate-y-1 pointer-events-none md:group-hover:opacity-100 md:group-hover:scale-100 md:group-hover:translate-y-0 md:group-hover:pointer-events-auto'
       ]"
     >
       <!-- دکمه پخش صوت از این بیت -->
@@ -272,6 +277,7 @@ var props = withDefaults(
     wordHighlightEnabled?: boolean;
     highlightMode?: 'word' | 'misra' | 'none';
     hasAudioSync?: boolean;
+    showQuickActions?: boolean;
   }>(),
   {
     showLiteraryTags: true,
@@ -284,9 +290,97 @@ var props = withDefaults(
     activePlayingWordIndex: null,
     wordHighlightEnabled: true,
     highlightMode: 'word',
-    hasAudioSync: false
+    hasAudioSync: false,
+    showQuickActions: true
   }
 );
+
+var emit = defineEmits<{
+  (e: 'select-couplet', index: number): void;
+  (e: 'play-from-couplet', index: number): void;
+  (e: 'toggle-bookmark', index: number): void;
+  (e: 'add-to-memorize', index: number): void;
+  (e: 'step-memorize', index: number): void;
+  (e: 'add-to-collection', index: number): void;
+  (e: 'share-card', index: number): void;
+  (e: 'select-tag', tag: GanjoorLiteraryTag): void;
+  (e: 'select-word', word: string): void;
+}>();
+
+var longPressTimer: any = null;
+var touchStartX = 0;
+var touchStartY = 0;
+var isTouchMoving = false;
+var didLongPress = false;
+var preventNextClick = false;
+
+function onTouchStart(e: TouchEvent) {
+  if (!props.showQuickActions) return;
+  if (e.touches.length !== 1) return;
+
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+  isTouchMoving = false;
+  didLongPress = false;
+
+  clearTimeout(longPressTimer);
+  longPressTimer = setTimeout(function () {
+    if (!isTouchMoving) {
+      didLongPress = true;
+      preventNextClick = true;
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        try {
+          navigator.vibrate(35);
+        } catch (_) {}
+      }
+      emit('select-couplet', props.coupletIndex);
+    }
+  }, 450);
+}
+
+function onTouchMove(e: TouchEvent) {
+  if (e.touches.length !== 1) return;
+  var deltaX = Math.abs(e.touches[0].clientX - touchStartX);
+  var deltaY = Math.abs(e.touches[0].clientY - touchStartY);
+  if (deltaX > 7 || deltaY > 7) {
+    isTouchMoving = true;
+    clearTimeout(longPressTimer);
+  }
+}
+
+function onTouchEnd() {
+  clearTimeout(longPressTimer);
+  if (didLongPress) {
+    preventNextClick = true;
+    setTimeout(function () {
+      preventNextClick = false;
+    }, 350);
+  }
+}
+
+function onTouchCancel() {
+  clearTimeout(longPressTimer);
+  isTouchMoving = false;
+  didLongPress = false;
+}
+
+function onCoupletClick(e: MouseEvent) {
+  if (!props.showQuickActions) return;
+  if (preventNextClick) {
+    preventNextClick = false;
+    return;
+  }
+
+  var isMouse = (e as any).pointerType === 'mouse' || (e as any).pointerType === '';
+  if (isMouse) {
+    emit('select-couplet', props.coupletIndex);
+  } else {
+    // Touch tap on mobile
+    if (props.isSelected) {
+      emit('select-couplet', props.coupletIndex);
+    }
+  }
+}
 
 var cleanedSummary = computed(function () {
   return cleanPoemSummary(props.summary);
@@ -378,6 +472,7 @@ onMounted(function () {
 });
 
 onBeforeUnmount(function () {
+  clearTimeout(longPressTimer);
   if (resizeObserver) {
     resizeObserver.disconnect();
     resizeObserver = null;
@@ -462,18 +557,6 @@ function getWordHighlightClass(misraNumber: number, tokenIndex: number): string 
 
   return 'bg-transparent text-inherit shadow-none';
 }
-
-defineEmits([
-  'select-couplet',
-  'select-tag',
-  'select-word',
-  'toggle-bookmark',
-  'add-to-memorize',
-  'step-memorize',
-  'add-to-collection',
-  'share-card',
-  'play-from-couplet'
-]);
 
 interface WordToken {
   word: string;

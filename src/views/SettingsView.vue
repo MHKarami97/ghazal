@@ -169,6 +169,31 @@
         </button>
       </div>
 
+      <!-- نمایش نوار دسترسی و اقدام‌های سریع بیت -->
+      <div class="flex items-center justify-between gap-3 pt-3 border-t border-ink-200/60 dark:border-paper-border text-xs">
+        <div class="min-w-0">
+          <span class="font-bold text-ink-800 dark:text-ink-200 flex items-center gap-1.5">
+            <Zap class="w-3.5 h-3.5 text-brand-600" />
+            <span>نوار اقدام‌های سریع هر بیت</span>
+          </span>
+          <span class="text-[11px] text-ink-500 block mt-0.5 leading-relaxed">
+            ابزار شناور پخش، نشانک، جعبه حفظ و اشتراک‌گذاری در کنار ابیات (در موبایل با نگه‌داشتن انگشت روی بیت ظاهر می‌شود)
+          </span>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          :aria-checked="appStore.showCoupletQuickActions"
+          @click="appStore.showCoupletQuickActions = !appStore.showCoupletQuickActions"
+          class="px-3.5 py-1.5 rounded-xl font-bold transition-all shrink-0 border"
+          :class="appStore.showCoupletQuickActions
+            ? 'bg-emerald-600 border-emerald-600 text-white shadow-2xs'
+            : 'bg-paper-warm dark:bg-paper-dark border-ink-200 dark:border-paper-border text-ink-600 dark:text-ink-300'"
+        >
+          {{ appStore.showCoupletQuickActions ? 'فعال ✓' : 'غیرفعال' }}
+        </button>
+      </div>
+
       <!-- وضعیت باز یا بسته بودن بخش‌های صفحه شعر و منوی تحلیل -->
       <div class="pt-4 border-t border-ink-200/60 dark:border-paper-border space-y-3 text-xs">
         <div class="flex flex-wrap items-center justify-between gap-2">
@@ -662,7 +687,8 @@ import {
   Type,
   Calculator,
   LayoutList,
-  Headphones
+  Headphones,
+  Zap
 } from 'lucide-vue-next';
 
 var appStore = useAppStore();

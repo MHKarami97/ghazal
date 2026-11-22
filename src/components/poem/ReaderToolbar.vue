@@ -1,12 +1,12 @@
 <template>
-  <div class="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-2xl bg-paper-warm/80 dark:bg-paper-surface/80 border border-ink-200/80 dark:border-paper-border mb-6 backdrop-blur-xs text-xs">
+  <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-2 sm:p-2.5 rounded-2xl bg-paper-warm/80 dark:bg-paper-surface/80 border border-ink-200/80 dark:border-paper-border mb-6 backdrop-blur-xs text-xs">
     <!-- کنترل اندازه و نوع قلم شعر -->
-    <div class="flex flex-wrap items-center gap-2">
-      <div class="flex items-center gap-1.5">
+    <div class="flex items-center justify-between gap-2 w-full sm:w-auto pb-2 sm:pb-0 border-b sm:border-b-0 border-ink-200/50 dark:border-paper-border/50">
+      <div class="flex items-center gap-1.5 shrink-0">
         <span class="text-ink-500 dark:text-ink-400 font-medium ml-0.5 hidden sm:inline">اندازه:</span>
         <button
           @click="decreaseFont"
-          class="w-7 h-7 rounded-lg border border-ink-200 dark:border-paper-border flex items-center justify-center font-bold text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-paper-dark"
+          class="w-7 h-7 rounded-lg border border-ink-200 dark:border-paper-border flex items-center justify-center font-bold text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-paper-dark active:scale-95 transition-transform"
           title="کوچک‌تر کردن متن"
         >
           -
@@ -16,7 +16,7 @@
         </span>
         <button
           @click="increaseFont"
-          class="w-7 h-7 rounded-lg border border-ink-200 dark:border-paper-border flex items-center justify-center font-bold text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-paper-dark"
+          class="w-7 h-7 rounded-lg border border-ink-200 dark:border-paper-border flex items-center justify-center font-bold text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-paper-dark active:scale-95 transition-transform"
           title="بزرگ‌تر کردن متن"
         >
           +
@@ -24,7 +24,7 @@
       </div>
 
       <!-- انتخاب فونت فقط برای متن شعر -->
-      <div class="flex items-center gap-1">
+      <div class="flex items-center gap-1 min-w-0">
         <Type class="w-3.5 h-3.5 text-ink-400 shrink-0" />
         <select
           v-model="appStore.poemFont"
@@ -32,7 +32,7 @@
           title="انتخاب فونت متن شعر"
           @focus="preloadAllPoemFonts"
           @mouseenter="preloadAllPoemFonts"
-          class="px-2 py-1 rounded-xl border border-ink-200 dark:border-paper-border bg-paper-light dark:bg-paper-dark text-ink-800 dark:text-ink-100 text-[11px] font-bold outline-hidden cursor-pointer max-w-[135px] sm:max-w-none"
+          class="px-2 py-1 rounded-xl border border-ink-200 dark:border-paper-border bg-paper-light dark:bg-paper-dark text-ink-800 dark:text-ink-100 text-[11px] font-bold outline-hidden cursor-pointer max-w-[145px] sm:max-w-none truncate"
         >
           <option v-for="font in POEM_FONTS" :key="font.id" :value="font.id">
             {{ font.label }}
@@ -42,11 +42,11 @@
     </div>
 
     <!-- دکمه‌های کنترل نمایش آرایه‌ها، مفهوم، ابجد و حالت مطالعه -->
-    <div class="flex flex-wrap items-center gap-1.5">
+    <div class="flex items-center gap-1.5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:overflow-visible sm:flex-wrap w-full sm:w-auto py-0.5">
       <!-- ۱. دکمه نمایش یا مخفی‌سازی آرایه‌های ادبی -->
       <button
         @click="appStore.showLiteraryTags = !appStore.showLiteraryTags"
-        class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border transition-all"
+        class="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-xl border transition-all text-[11px] sm:text-xs"
         :class="[
           appStore.showLiteraryTags
             ? 'border-brand-500/40 bg-brand-500/10 text-brand-800 dark:text-brand-300 font-bold'
@@ -63,7 +63,7 @@
       <!-- ۲. دکمه نمایش یا مخفی‌سازی معنی و مفهوم ابیات -->
       <button
         @click="appStore.showCoupletSummary = !appStore.showCoupletSummary"
-        class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border transition-all"
+        class="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-xl border transition-all text-[11px] sm:text-xs"
         :class="[
           appStore.showCoupletSummary
             ? 'border-brand-500/40 bg-brand-500/10 text-brand-800 dark:text-brand-300 font-bold'
@@ -80,7 +80,7 @@
       <!-- ۳. دکمه نمایش یا حذف موقت اعراب -->
       <button
         @click="appStore.showDiacritics = !appStore.showDiacritics"
-        class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border transition-all"
+        class="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-xl border transition-all text-[11px] sm:text-xs"
         :class="[
           appStore.showDiacritics
             ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 font-bold'
@@ -97,7 +97,7 @@
       <!-- ۴. دکمه نمایش یا مخفی‌سازی محاسبه ابجد شعر و ابیات -->
       <button
         @click="appStore.showAbjad = !appStore.showAbjad"
-        class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border transition-all"
+        class="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-xl border transition-all text-[11px] sm:text-xs"
         :class="[
           appStore.showAbjad
             ? 'border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-300 font-bold'
@@ -113,7 +113,7 @@
       <!-- ۴. دکمه حالت مطالعه متمرکز -->
       <button
         @click="appStore.readingMode = !appStore.readingMode"
-        class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border transition-all"
+        class="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-xl border transition-all text-[11px] sm:text-xs"
         :class="[
           appStore.readingMode
             ? 'bg-brand-600 text-white border-brand-600 font-bold shadow-xs'
@@ -130,7 +130,7 @@
       <!-- ۵. دکمه باز کردن پنل آرایه‌ها در موبایل -->
       <button
         @click="$emit('toggle-literary-panel')"
-        class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-ink-200 dark:border-paper-border text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-paper-dark transition-colors lg:hidden"
+        class="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-ink-200 dark:border-paper-border text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-paper-dark transition-colors lg:hidden text-[11px] sm:text-xs"
         title="مشاهده پنل جزئیات آرایه‌ها"
       >
         <Sparkles class="w-3.5 h-3.5 text-brand-600" />
