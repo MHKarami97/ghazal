@@ -154,7 +154,7 @@ export interface FullPoemCardResult {
 }
 
 /**
- * ساخت کارت تصویری شعر کامل (با سقف منطقی تعداد ابیات برای جلوگیری از افت خوانایی یا خطای حافظهٔ بوم)
+ * ساخت کارت تصویری شعر کامل (با سقف منطقی تعداد ابیات برای جلوگیری از افت خوانایی یا خطای حافظه بوم)
  */
 export async function renderFullPoemCard(
   couplets: { firstMisra: string; secondMisra: string }[],
@@ -274,7 +274,7 @@ export async function renderFullPoemCard(
     var remaining = totalCouplets - visibleCouplets.length;
     drawCenteredText(
       ctx,
-      `ادامهٔ شعر (${toPersianDigits(remaining)} بیت دیگر) در ghazal.mhkarami97.ir`,
+      `ادامه شعر (${toPersianDigits(remaining)} بیت دیگر) در ghazal.mhkarami97.ir`,
       finalHeight - 122,
       'bold',
       22,

@@ -74,7 +74,7 @@
         class="p-4 rounded-2xl bg-paper-warm/50 dark:bg-paper-surface border border-ink-200/70 dark:border-paper-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
       >
         <p class="text-ink-500 leading-relaxed">
-          برای این سروده فعلاً آهنگی در فهرست ترانه‌های گنجور ثبت نشده است. می‌توانید همهٔ ترانه‌های گردآوری‌شده یا ترانه‌های سایر اشعار
+          برای این سروده فعلاً آهنگی در فهرست ترانه‌های گنجور ثبت نشده است. می‌توانید همه ترانه‌های گردآوری‌شده یا ترانه‌های سایر اشعار
           <span v-if="poetName" class="font-bold text-ink-700 dark:text-ink-200">{{ poetName }}</span>
           را در بخش ترانه‌ها جست‌وجو کنید.
         </p>

@@ -206,7 +206,7 @@ export class RecitationService {
         var text = await res.text();
         if (!text || text.trim().length === 0) continue;
 
-        // اگر خروجی رشتهٔ JSON احاطه‌شده در گیومه باشد (مانند API گنجور)
+        // اگر خروجی رشته JSON احاطه‌شده در گیومه باشد (مانند API گنجور)
         if ((text.startsWith('"') && text.endsWith('"')) || (text.startsWith('"{') && text.endsWith('}"'))) {
           try {
             text = JSON.parse(text);

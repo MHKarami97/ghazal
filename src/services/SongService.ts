@@ -57,7 +57,7 @@ export function extractArtistFromTrackText(
   var text = String(trackName || '').trim();
   if (text) {
     var match = text.match(
-      /خوانندهٔ?(?:\s*(?:ترانه|آواز|برنامه|تصنیف|محلی))?\s*[:：]\s*([^:\n]+?)(?=\s*(?:آهنگساز|آهنگ‌ساز|سراینده|شاعر|ترانه‌سرا|ترانه\s*سرا|نوازنده|نوازندگان|گوینده|تنظیم|ضبط|مطلع|دستگاه|اشعار|\n|$))/
+      /خواننده?(?:\s*(?:ترانه|آواز|برنامه|تصنیف|محلی))?\s*[:：]\s*([^:\n]+?)(?=\s*(?:آهنگساز|آهنگ‌ساز|سراینده|شاعر|ترانه‌سرا|ترانه\s*سرا|نوازنده|نوازندگان|گوینده|تنظیم|ضبط|مطلع|دستگاه|اشعار|\n|$))/
     );
     if (match && match[1]) {
       var candidate = match[1].replace(/[،؛\-–]+$/g, '').trim();
@@ -66,7 +66,7 @@ export function extractArtistFromTrackText(
   }
 
   if (golhaTrackId || (trackUrl && trackUrl.toLowerCase().indexOf('golha.co.uk') !== -1)) {
-    return 'برنامهٔ گل‌ها';
+    return 'برنامه گل‌ها';
   }
 
   return '';
@@ -358,7 +358,7 @@ export class SongService {
   }
 
   /**
-   * در صورت نبودن خلاصه شعر در بستهٔ دانلودشده، از API سبک گنجور دریافت و کش می‌کند
+   * در صورت نبودن خلاصه شعر در بسته دانلودشده، از API سبک گنجور دریافت و کش می‌کند
    */
   async getPoemSummaryFallback(poemId: number): Promise<string> {
     if (!poemId) return '';

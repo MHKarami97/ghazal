@@ -35,12 +35,12 @@
           </button>
         </div>
 
-        <!-- بخش ۱: نمایش ساختاریافتهٔ معنی کلمه -->
+        <!-- بخش ۱: نمایش ساختاریافته معنی کلمه -->
         <div class="rounded-2xl bg-paper-warm/70 dark:bg-paper-dark border border-ink-200/70 dark:border-paper-border flex-1 min-h-0 flex flex-col overflow-hidden">
           <div class="px-4 py-2.5 border-b border-ink-200/50 dark:border-paper-border/60 flex items-center justify-between text-xs font-bold text-brand-700 dark:text-brand-300 shrink-0 bg-paper-warm/90 dark:bg-paper-dark">
             <span class="flex items-center gap-1.5">
               <BookOpen class="w-4 h-4" />
-              معنی و شناسنامهٔ واژه
+              معنی و شناسنامه واژه
             </span>
             <a
               v-if="lookupResult?.sourceUrl && lookupResult.found"
@@ -91,7 +91,7 @@
                     v-if="sec.altForms.length > 0"
                     class="px-2 py-0.5 rounded-lg bg-ink-100 dark:bg-paper-dark border border-ink-200/60 dark:border-paper-border text-ink-600 dark:text-ink-300"
                   >
-                    <strong class="font-bold">گونهٔ دیگر: </strong>{{ sec.altForms.join('، ') }}
+                    <strong class="font-bold">گونه دیگر: </strong>{{ sec.altForms.join('، ') }}
                   </span>
                 </div>
 

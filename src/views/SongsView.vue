@@ -6,13 +6,13 @@
         <div class="space-y-2 max-w-2xl">
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 text-rose-700 dark:text-rose-300 text-xs font-bold">
             <Disc3 class="w-3.5 h-3.5" />
-            <span>گنجینهٔ موسیقی و تصنیف‌ها</span>
+            <span>گنجینه موسیقی و تصنیف‌ها</span>
           </div>
           <h1 class="text-2xl sm:text-3xl font-black text-ink-900 dark:text-ink-50">
             ترانه‌ها و آثار موسیقایی برگرفته از شعرها
           </h1>
           <p class="text-xs sm:text-sm text-ink-600 dark:text-ink-300 leading-relaxed">
-            فهرست سروده‌هایی که خوانندگان و آهنگ‌سازان از آن‌ها ترانه یا تصنیف اجرا کرده‌اند. با مراجعه به هر شعر، ترانه‌های آن به‌صورت خودکار در حافظهٔ دستگاه شما نمایه می‌شوند و با اسکنر زیر می‌توانید یک‌جا همهٔ اشعار آهنگ‌دارِ شاعر یا دفتر دلخواهتان را کشف و فیلتر کنید.
+            فهرست سروده‌هایی که خوانندگان و آهنگ‌سازان از آن‌ها ترانه یا تصنیف اجرا کرده‌اند. با مراجعه به هر شعر، ترانه‌های آن به‌صورت خودکار در حافظه دستگاه شما نمایه می‌شوند و با اسکنر زیر می‌توانید یک‌جا همه اشعار آهنگ‌دارِ شاعر یا دفتر دلخواهتان را کشف و فیلتر کنید.
           </p>
         </div>
 
@@ -60,7 +60,7 @@
         </div>
 
         <p class="text-[11px] text-ink-500 leading-relaxed">
-          پایگاه گنجور فهرست ترانه‌ها را در API عمومی برای هر شعر به‌طور جداگانه ارائه می‌دهد؛ بنابراین برای یافتن تمام شعرهای آهنگ‌دارِ یک شاعر (یا یکی از دفترهای او مانند «غزلیات»)، شاعر را انتخاب و دکمهٔ اسکن را بزنید تا نتایج برای همیشه در دستگاه شما ذخیره شوند.
+          پایگاه گنجور فهرست ترانه‌ها را در API عمومی برای هر شعر به‌طور جداگانه ارائه می‌دهد؛ بنابراین برای یافتن تمام شعرهای آهنگ‌دارِ یک شاعر (یا یکی از دفترهای او مانند «غزلیات»)، شاعر را انتخاب و دکمه اسکن را بزنید تا نتایج برای همیشه در دستگاه شما ذخیره شوند.
         </p>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
@@ -354,7 +354,7 @@
       <div class="space-y-1.5 max-w-lg mx-auto">
         <h3 class="font-bold text-base text-ink-900 dark:text-ink-50">
           <template v-if="catalogEntries.length === 0">
-            هنوز ترانه‌ای در حافظهٔ محلی نمایه نشده است
+            هنوز ترانه‌ای در حافظه محلی نمایه نشده است
           </template>
           <template v-else-if="filterPoet">
             برای «{{ selectedFilterPoetLabel }}» هنوز شعر آهنگ‌داری با این فیلترها پیدا نشد
@@ -364,7 +364,7 @@
           </template>
         </h3>
         <p class="text-xs text-ink-500 leading-relaxed">
-          با انتخاب شاعر در بخش «کشف خودکار اشعار آهنگ‌دار» در بالای همین صفحه (یا اسکن دیوان‌های دانلودشدهٔ دستگاه)، می‌توانید همهٔ شعرهای آهنگ‌دار را دریافت و اینجا فیلتر کنید.
+          با انتخاب شاعر در بخش «کشف خودکار اشعار آهنگ‌دار» در بالای همین صفحه (یا اسکن دیوان‌های دانلودشده دستگاه)، می‌توانید همه شعرهای آهنگ‌دار را دریافت و اینجا فیلتر کنید.
         </p>
       </div>
 
@@ -479,7 +479,7 @@
               :to="entry.poemRoute"
               class="font-bold text-brand-600 dark:text-brand-400 hover:underline inline-flex items-center gap-1"
             >
-              <span>مطالعهٔ متن شعر در غزل</span>
+              <span>مطالعه متن شعر در غزل</span>
               <ArrowLeft class="w-3 h-3" />
             </router-link>
             <router-link
@@ -487,7 +487,7 @@
               :to="`/poet/${entry.poetSlug}`"
               class="text-ink-500 hover:text-ink-800 dark:hover:text-ink-200"
             >
-              صفحهٔ شاعر
+              صفحه شاعر
             </router-link>
           </div>
         </article>
@@ -1000,7 +1000,7 @@ async function runScanWithRefs(
   if (summary.cancelled) {
     scanStatusMessage.value = 'بخشی از اشعار پیش از توقف بررسی و در حافظه ذخیره شدند.';
   } else if (summary.foundPoemsCount === 0) {
-    scanStatusMessage.value = 'در این محدوده قطعهٔ موسیقی ثبت‌شده‌ای در گنجور یافت نشد.';
+    scanStatusMessage.value = 'در این محدوده قطعه موسیقی ثبت‌شده‌ای در گنجور یافت نشد.';
   } else {
     scanStatusMessage.value = 'نتایج جدید به فهرست ترانه‌ها اضافه شد و به‌صورت آفلاین نیز در دسترس است.';
   }

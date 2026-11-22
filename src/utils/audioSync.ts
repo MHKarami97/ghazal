@@ -40,7 +40,7 @@ function getWordCadenceWeight(rawWord: string): number {
 }
 
 /**
- * محاسبه بیت، مصرع و واژهٔ در حال خوانده‌شدن بر اساس میلی‌ثانیه پخش صوت و نقاط همگامی
+ * محاسبه بیت، مصرع و واژه در حال خوانده‌شدن بر اساس میلی‌ثانیه پخش صوت و نقاط همگامی
  */
 export function calculateAudioPosition(
   currentAudioMs: number,
@@ -108,10 +108,10 @@ export function calculateAudioPosition(
     var timeInSpeech = elapsed - leadIn;
 
     if (timeInSpeech <= 0) {
-      // در بازهٔ آغازین ورود به مصرع، کلمهٔ اول با آرامش فعال است
+      // در بازه آغازین ورود به مصرع، کلمه اول با آرامش فعال است
       wordIndex = 0;
     } else if (timeInSpeech >= speechDuration) {
-      // در بازهٔ مکث پایان مصرع، کلمهٔ پایانی تا شروع مصرع بعدی فعال می‌ماند
+      // در بازه مکث پایان مصرع، کلمه پایانی تا شروع مصرع بعدی فعال می‌ماند
       wordIndex = words.length - 1;
     } else {
       var ratio = Math.min(0.9999, Math.max(0, timeInSpeech / speechDuration));

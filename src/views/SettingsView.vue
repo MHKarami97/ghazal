@@ -124,7 +124,7 @@
         <div class="min-w-0">
           <span class="font-bold text-ink-800 dark:text-ink-200 flex items-center gap-1.5">
             <Calculator class="w-3.5 h-3.5 text-amber-600" />
-            <span>نمایش محاسبهٔ ابجد شعر و ابیات</span>
+            <span>نمایش محاسبه ابجد شعر و ابیات</span>
           </span>
           <span class="text-[11px] text-ink-500 block mt-0.5 leading-relaxed">
             نمایش خودکار حساب ابجد کبیر و صغیر برای کل شعر و هر بیت در صفحه مطالعه

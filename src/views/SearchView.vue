@@ -133,7 +133,7 @@
         <span>
           یافته‌ها: {{ toPersianDigits(results.length) }} مورد
           <template v-if="totalOnlineCount && totalOnlineCount > results.length">
-            (از مجموع {{ toPersianDigits(totalOnlineCount) }} نتیجهٔ آنلاین)
+            (از مجموع {{ toPersianDigits(totalOnlineCount) }} نتیجه آنلاین)
           </template>
         </span>
         <span v-if="isSearchingOnline" class="text-brand-600 dark:text-brand-400 font-medium animate-pulse">

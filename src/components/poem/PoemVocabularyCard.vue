@@ -99,7 +99,7 @@
       >
         {{
           showAll
-            ? 'نمایش خلاصه (۱۸ واژهٔ نخست)'
+            ? 'نمایش خلاصه (۱۸ واژه نخست)'
             : `نمایش همه واژگان (${toPersianDigits(filteredItems.length)} کلمه)`
         }}
       </button>

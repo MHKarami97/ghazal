@@ -33,7 +33,7 @@ export var POEM_FONTS: PoemFontOption[] = [
   {
     id: 'gulzar',
     label: 'گلزار (نستعلیق معاصر)',
-    description: 'قلم شاعرانه و نستعلیق‌گونه ویژهٔ غزل و شعر',
+    description: 'قلم شاعرانه و نستعلیق‌گونه ویژه غزل و شعر',
     faceName: 'Gulzar',
     cssFamily: "'Gulzar', 'Vazirmatn', serif"
   },
@@ -54,7 +54,7 @@ export var POEM_FONTS: PoemFontOption[] = [
   {
     id: 'parastoo',
     label: 'پرستو (کتابی فارسی)',
-    description: 'قلم ادبی و ظریف ویژهٔ متون و دواوین فارسی',
+    description: 'قلم ادبی و ظریف ویژه متون و دواوین فارسی',
     faceName: 'Parastoo',
     cssFamily: "'Parastoo', 'Vazirmatn', serif"
   },
@@ -117,7 +117,7 @@ export var POEM_FONTS: PoemFontOption[] = [
   {
     id: 'lalezar',
     label: 'لاله‌زار (نمایشی پررنگ)',
-    description: 'قلم ضخیم و کتیبه‌مانند برای جلوهٔ پرقدرت ابیات',
+    description: 'قلم ضخیم و کتیبه‌مانند برای جلوه پرقدرت ابیات',
     faceName: 'Lalezar',
     cssFamily: "'Lalezar', 'Vazirmatn', sans-serif"
   }
