@@ -61,6 +61,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        globIgnores: ['share/**/*', '**/screenshots/**/*', '**/banners/**/*', '**/*.md'],
         // We avoid caching poetry data JSON in Cache API as requested; IndexedDB is used instead.
         navigateFallback: '/index.html',
         cleanupOutdatedCaches: true

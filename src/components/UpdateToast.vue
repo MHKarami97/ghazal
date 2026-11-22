@@ -4,6 +4,25 @@ import { Sparkles, RefreshCw, X } from 'lucide-vue-next';
 
 var { needRefresh, updateServiceWorker } = useRegisterSW({
   immediate: true,
+  onRegisteredSW(_swUrl, r) {
+    if (!r) return;
+    var checkUpdate = function () {
+      if (navigator.onLine && !r.installing) {
+        r.update().catch(function () {});
+      }
+    };
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'visible') {
+        checkUpdate();
+      }
+    });
+    window.addEventListener('online', checkUpdate);
+    // بررسی دوره‌ای هر ۳۰ دقیقه
+    setInterval(checkUpdate, 30 * 60 * 1000);
+  },
+  onRegisterError(err) {
+    console.warn('PWA registration error:', err);
+  }
 });
 
 function reload() {
